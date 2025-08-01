@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="en">
+
+<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+  <meta name="format-detection" content="telephone=no" />
+  <meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+  
+  <title>International Buyers - Zentro Homes</title>
+  <meta name="description" content="Premium property investment services for international buyers in Kenya. Expert guidance, local market knowledge, and end-to-end support for overseas investors.">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="../wp-content/uploads/2025/02/favicon-1.svg" sizes="32x32" />
+  <link rel="icon" href="../wp-content/uploads/2025/02/favicon-1.svg" sizes="192x192" />
+  <link rel="apple-touch-icon" href="../wp-content/uploads/2025/02/favicon-1.svg" />
+  <meta name="msapplication-TileImage" content="https://zentrohomes.com/wp-content/uploads/2025/02/favicon-1.svg" />
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" type="text/css" href="../wp-content/themes/source/css/main.min.css">
+  <link rel="stylesheet" type="text/css" href="../wp-content/themes/source/style.css">
+  <link rel="stylesheet" type="text/css" href="../css/consolidated-apartments.css">
+  <link rel="stylesheet" type="text/css" href="../css/company-sections.css">
+  <link rel="stylesheet" type="text/css" href="../css/contact-form.css">
+  <link rel="stylesheet" type="text/css" href="../css/dynamic-text.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-adjustments.css">
+  <link rel="stylesheet" type="text/css" href="../css/responsive.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* Page-specific styles */
+    .service-hero {
+      background-color: #171e22;
+      padding: 120px 0 80px 0;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .service-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('../wp-content/uploads/2025/02/buyers_img.svg') center/cover;
+      opacity: 0.1;
+      z-index: 1;
+    }
+    
+    .service-hero .container {
+      position: relative;
+      z-index: 2;
+    }
+    
+    .service-hero h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+    
+    /* White dynamic text styles for hero sections */
+    .service-hero .dynamic-text {
+      color: white;
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-weight: 600;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Whoosh animation for H1 titles */
+    .service-hero h1 {
+      opacity: 0;
+      transform: translateX(-50px);
+      animation: whooshIn 1s ease-out 0.3s forwards;
+    }
+    
+    @keyframes whooshIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .service-hero .subtitle {
+      font-size: 1.3rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+    
+    .advantages-section {
+      padding: 80px 0;
+      background: white;
+    }
+    
+    .advantages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+    
+    .advantage-card {
+      text-align: center;
+      padding: 40px 30px;
+      border-radius: 20px;
+      background: #f8f9fa;
+      border-bottom: 4px solid #2a7ae4;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .advantage-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      background: white;
+    }
+    
+    .advantage-icon {
+      width: 90px;
+      height: 90px;
+      background: linear-gradient(135deg, #2a7ae4, #bfa16b);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 25px;
+      font-size: 2.2rem;
+      color: white;
+    }
+    
+    .advantage-card h3 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: #32373c;
+    }
+    
+    .services-section {
+      padding: 80px 0;
+      background: #f8f9fa;
+    }
+    
+    .services-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      margin-top: 60px;
+    }
+    
+    .service-column h3 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #2a7ae4;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .service-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .service-list li {
+      background: white;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      border-left: 4px solid #2a7ae4;
+    }
+    
+    .service-list li i {
+      color: #bfa16b;
+      font-size: 1.3rem;
+      margin-top: 3px;
+    }
+    
+    .service-content h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #32373c;
+      margin-bottom: 8px;
+    }
+    
+    .service-content p {
+      color: #666;
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    
+    .process-section {
+      padding: 80px 0;
+      background: white;
+    }
+    
+    .process-flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-top: 60px;
+      position: relative;
+    }
+    
+    .process-step {
+      background: #f8f9fa;
+      padding: 40px 30px;
+      border-radius: 20px;
+      text-align: center;
+      position: relative;
+      border-top: 5px solid #bfa16b;
+    }
+    
+    .step-number {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      background: #bfa16b;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.3rem;
+      border: 4px solid white;
+    }
+    
+    .process-step h4 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #32373c;
+      margin: 20px 0 15px 0;
+    }
+    
+    .investment-opportunities {
+      padding: 80px 0;
+      background: #f8f9fa;
+    }
+    
+    .opportunities-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+    
+    .opportunity-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+      position: relative;
+    }
+    
+    .opportunity-image {
+      height: 200px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+    
+    .opportunity-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #bfa16b;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .opportunity-content {
+      padding: 30px;
+    }
+    
+    .opportunity-card h4 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #32373c;
+      margin-bottom: 15px;
+    }
+    
+    .opportunity-features {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 20px;
+    }
+    
+    .opportunity-features li {
+      padding: 5px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #666;
+      font-size: 0.95rem;
+    }
+    
+    .opportunity-features i {
+      color: #2a7ae4;
+      font-size: 1rem;
+    }
+    
+    .legal-section {
+      padding: 80px 0;
+      background: white;
+    }
+    
+    .legal-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      margin-top: 60px;
+      align-items: start;
+    }
+    
+    .legal-info {
+      background: #f8f9fa;
+      padding: 40px;
+      border-radius: 20px;
+      border-left: 5px solid #2a7ae4;
+    }
+    
+    .legal-info h4 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #32373c;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .legal-info i {
+      color: #2a7ae4;
+      font-size: 1.5rem;
+    }
+    
+    .legal-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .legal-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .legal-list li:last-child {
+      border-bottom: none;
+    }
+    
+    .legal-list li i {
+      color: #bfa16b;
+      font-size: 1.1rem;
+    }
+    
+    .cta-section {
+      padding: 80px 0;
+      background-color: #171e22;
+      color: white;
+      text-align: center;
+    }
+    
+    .cta-section h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    
+    .cta-section p {
+      font-size: 1.2rem;
+      margin-bottom: 40px;
+      opacity: 0.9;
+    }
+    
+    .btn-primary {
+      background: #32373c;
+      color: white;
+      padding: 15px 40px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      background: #1a1e22;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(50, 55, 60, 0.3);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: white;
+      border: 2px solid white;
+      padding: 12px 30px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+      transition: all 0.3s ease;
+      margin-left: 20px;
+    }
+    
+    .btn-secondary:hover {
+      background: white;
+      color: #2a7ae4;
+    }
+    
+    @media (max-width: 768px) {
+      .service-hero h1 {
+        font-size: 2.5rem;
+      }
+      
+      .services-columns,
+      .legal-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      
+      .opportunities-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="header_panel">
+      <div class="container">
+        <div class="header_action">
+          <a class="header_action_item" href="tel:+254706641871">
+            <svg class="svg_tel_icon">
+              <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#tel_icon"></use>
+            </svg>
+            <span>+254706641871</span>
+          </a>
+          <a class="header_action_item" href="https://wa.me/254706641871" target="_blank">
+            <svg class="svg_wa_icon">
+              <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#wa_icon"></use>
+            </svg>
+            <span>WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="header_main">
+      <div class="container">
+        <div class="header_main_wrap">
+          <a class="header_logo" href="../index.html">
+            <img src="../wp-content/themes/source/images/logo.png" alt="Zentro Homes">
+          </a>
+          <button class="header_toggle">
+            <div class="header_toggle_inner">
+              <span></span>
+            </div>
+          </button>
+          <div class="header_navbar">
+            <nav class="header_nav">
+              <ul id="menu-main-menu" class="menu">
+                <li class="has_submenu menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-378">
+                  <a href="#">Solutions<svg class="svg_arrow_nav">
+                      <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#arrow_nav"></use>
+                    </svg></a>
+                  <div class="header_submenu">
+                    <div class="header_submenu_box">
+                      <ul>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-272">
+                          <a href="../letting-management/index.html">Letting & Management</a>
+                        </li>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-282">
+                          <a href="../sell-your-portfolio/index.html">Sell Your Portfolio</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="has_submenu menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-20">
+                  <a href="#">Who We Work With<svg class="svg_arrow_nav">
+                      <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#arrow_nav"></use>
+                    </svg></a>
+                  <div class="header_submenu">
+                    <div class="header_submenu_box">
+                      <ul>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-308">
+                          <a href="../portfolio-landlords/index.html">Portfolio Landlords</a>
+                        </li>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-300 current-menu-item">
+                          <a href="../international-buyers/index.html">International Buyers</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-155">
+                  <a href="../about/index.html">About</a>
+                </li>
+              </ul>
+              <a class="btn btn_small" href="../contact-us/index.html">Contact Us</a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="service-hero">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <h1>
+            International <span class="dynamic-text">Buyers</span>
+          </h1>
+          <p class="subtitle">Expert guidance for overseas investors entering Kenya's dynamic property market. From initial consultation to ongoing management, we provide comprehensive support for international property investment.</p>
+          <div class="hero-buttons">
+            <a href="#contact" class="btn-primary">Start Your Investment Journey</a>
+            <a href="#opportunities" class="btn-secondary">View Opportunities</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Kenya Section -->
+  <section class="advantages-section">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Why Kenya</h3>
+        <h2 class="title_section">Prime Investment Destination</h2>
+      </div>
+      
+      <div class="advantages-grid">
+        <div class="advantage-card">
+          <div class="advantage-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>High Growth Potential</h3>
+          <p>Kenya's property market offers exceptional growth opportunities with average annual appreciation of 12-15% in prime locations.</p>
+        </div>
+        
+        <div class="advantage-card">
+          <div class="advantage-icon">
+            <i class="fas fa-coins"></i>
+          </div>
+          <h3>Strong Rental Yields</h3>
+          <p>Enjoy attractive rental yields of 8-12% per annum, significantly higher than most developed markets globally.</p>
+        </div>
+        
+        <div class="advantage-card">
+          <div class="advantage-icon">
+            <i class="fas fa-globe-africa"></i>
+          </div>
+          <h3>Strategic Location</h3>
+          <p>Kenya serves as East Africa's economic hub with excellent connectivity to major global markets and growing regional trade.</p>
+        </div>
+        
+        <div class="advantage-card">
+          <div class="advantage-icon">
+            <i class="fas fa-balance-scale"></i>
+          </div>
+          <h3>Stable Legal Framework</h3>
+          <p>Investor-friendly legal system with clear property ownership rights and established procedures for foreign investment.</p>
+        </div>
+        
+        <div class="advantage-card">
+          <div class="advantage-icon">
+            <i class="fas fa-university"></i>
+          </div>
+          <h3>Growing Economy</h3>
+          <p>Consistent GDP growth, expanding middle class, and increasing urbanization driving sustained property demand.</p>
+        </div>
+        
+        <div class="advantage-card">
+          <div class="advantage-icon">
+            <i class="fas fa-exchange-alt"></i>
+          </div>
+          <h3>Currency Opportunity</h3>
+          <p>Favorable exchange rates provide additional value for international buyers, especially from stronger currency zones.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section class="services-section">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Our Services</h3>
+        <h2 class="title_section">Complete International Buyer Support</h2>
+      </div>
+      
+      <div class="services-columns">
+        <div class="service-column">
+          <h3><i class="fas fa-search"></i> Investment Advisory</h3>
+          <ul class="service-list">
+            <li>
+              <i class="fas fa-chart-bar"></i>
+              <div class="service-content">
+                <h4>Market Analysis</h4>
+                <p>Comprehensive market research and location analysis to identify the best investment opportunities.</p>
+              </div>
+            </li>
+            <li>
+              <i class="fas fa-calculator"></i>
+              <div class="service-content">
+                <h4>Investment Modeling</h4>
+                <p>Detailed financial projections, ROI calculations, and risk assessment for informed decision-making.</p>
+              </div>
+            </li>
+            <li>
+              <i class="fas fa-map-marked-alt"></i>
+              <div class="service-content">
+                <h4>Area Selection</h4>
+                <p>Expert guidance on choosing the right neighborhoods based on growth potential and rental demand.</p>
+              </div>
+            </li>
+            <li>
+              <i class="fas fa-home"></i>
+              <div class="service-content">
+                <h4>Property Sourcing</h4>
+                <p>Access to exclusive off-market properties and pre-launch developments at competitive prices.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="service-column">
+          <h3><i class="fas fa-handshake"></i> Transaction Support</h3>
+          <ul class="service-list">
+            <li>
+              <i class="fas fa-file-contract"></i>
+              <div class="service-content">
+                <h4>Legal Assistance</h4>
+                <p>Full legal support including due diligence, contract review, and compliance with local regulations.</p>
+              </div>
+            </li>
+            <li>
+              <i class="fas fa-university"></i>
+              <div class="service-content">
+                <h4>Financing Options</h4>
+                <p>Access to international-friendly financing solutions and guidance on payment structures.</p>
+              </div>
+            </li>
+            <li>
+              <i class="fas fa-clipboard-check"></i>
+              <div class="service-content">
+                <h4>Purchase Coordination</h4>
+                <p>End-to-end transaction management from offer submission to completion and handover.</p>
+              </div>
+            </li>
+            <li>
+              <i class="fas fa-tools"></i>
+              <div class="service-content">
+                <h4>Property Management</h4>
+                <p>Comprehensive management services including tenant sourcing, maintenance, and financial reporting.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Investment Process -->
+  <section class="process-section">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Investment Process</h3>
+        <h2 class="title_section">Your Journey to Kenyan Property Ownership</h2>
+      </div>
+      
+      <div class="process-flow">
+        <div class="process-step">
+          <div class="step-number">1</div>
+          <h4>Initial Consultation</h4>
+          <p>Virtual meeting to understand your investment goals, budget, and preferences. We provide market overview and investment strategy recommendations.</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">2</div>
+          <h4>Market Research</h4>
+          <p>Comprehensive market analysis and property selection based on your criteria. We present detailed investment opportunities with financial projections.</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">3</div>
+          <h4>Virtual Viewing</h4>
+          <p>High-quality virtual tours, video calls, and detailed property documentation to help you make informed decisions remotely.</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">4</div>
+          <h4>Legal Process</h4>
+          <p>Complete legal support including due diligence, contract negotiation, and compliance with Kenyan property laws and regulations.</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">5</div>
+          <h4>Purchase Completion</h4>
+          <p>Secure payment processing, title transfer, and property handover with full documentation and ownership certificates.</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">6</div>
+          <h4>Ongoing Management</h4>
+          <p>Comprehensive property management services including tenant sourcing, rent collection, maintenance, and regular performance reports.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Investment Opportunities -->
+  <section class="investment-opportunities" id="opportunities">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Investment Types</h3>
+        <h2 class="title_section">Prime Investment Opportunities</h2>
+      </div>
+      
+      <div class="opportunities-grid">
+        <div class="opportunity-card">
+          <div class="opportunity-image" style="background-image: url('../wp-content/uploads/2025/02/A-scaled.jpg');">
+            <div class="opportunity-badge">High Yield</div>
+          </div>
+          <div class="opportunity-content">
+            <h4>Luxury Apartments</h4>
+            <p>Premium residential properties in Nairobi's most sought-after neighborhoods with exceptional rental potential.</p>
+            <ul class="opportunity-features">
+              <li><i class="fas fa-percentage"></i> 10-12% Annual Rental Yield</li>
+              <li><i class="fas fa-chart-line"></i> 15% Average Annual Appreciation</li>
+              <li><i class="fas fa-users"></i> High Demand from Expats</li>
+              <li><i class="fas fa-shield-alt"></i> Secure Gated Communities</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="opportunity-card">
+          <div class="opportunity-image" style="background-image: url('../wp-content/uploads/2025/02/C-scaled.jpg');">
+            <div class="opportunity-badge">Commercial</div>
+          </div>
+          <div class="opportunity-content">
+            <h4>Office Buildings</h4>
+            <p>Strategic commercial properties in business districts with long-term corporate tenants and stable returns.</p>
+            <ul class="opportunity-features">
+              <li><i class="fas fa-building"></i> Prime Business Locations</li>
+              <li><i class="fas fa-handshake"></i> Corporate Tenants</li>
+              <li><i class="fas fa-clock"></i> Long-term Leases</li>
+              <li><i class="fas fa-money-bill-wave"></i> Stable Income Stream</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="opportunity-card">
+          <div class="opportunity-image" style="background-image: url('../wp-content/uploads/2025/02/D-scaled.jpg');">
+            <div class="opportunity-badge">Development</div>
+          </div>
+          <div class="opportunity-content">
+            <h4>Off-Plan Developments</h4>
+            <p>Pre-construction investment opportunities offering significant capital appreciation potential upon completion.</p>
+            <ul class="opportunity-features">
+              <li><i class="fas fa-hammer"></i> Pre-Construction Pricing</li>
+              <li><i class="fas fa-arrow-up"></i> High Appreciation Potential</li>
+              <li><i class="fas fa-calendar-alt"></i> Flexible Payment Plans</li>
+              <li><i class="fas fa-star"></i> Modern Amenities</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Legal & Compliance -->
+  <section class="legal-section">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Legal Framework</h3>
+        <h2 class="title_section">Secure Investment Environment</h2>
+      </div>
+      
+      <div class="legal-content">
+        <div class="legal-info">
+          <h4><i class="fas fa-gavel"></i> Foreign Ownership Rights</h4>
+          <ul class="legal-list">
+            <li><i class="fas fa-check"></i> Full ownership rights for foreign investors</li>
+            <li><i class="fas fa-check"></i> No restrictions on property types</li>
+            <li><i class="fas fa-check"></i> Freehold and leasehold options available</li>
+            <li><i class="fas fa-check"></i> Inheritance rights protected by law</li>
+            <li><i class="fas fa-check"></i> Property can be sold without restrictions</li>
+          </ul>
+        </div>
+        
+        <div class="legal-info">
+          <h4><i class="fas fa-file-contract"></i> Investment Requirements</h4>
+          <ul class="legal-list">
+            <li><i class="fas fa-info-circle"></i> No minimum investment amount</li>
+            <li><i class="fas fa-info-circle"></i> Standard due diligence process</li>
+            <li><i class="fas fa-info-circle"></i> Title deed registration required</li>
+            <li><i class="fas fa-info-circle"></i> Stamp duty and registration fees apply</li>
+            <li><i class="fas fa-info-circle"></i> Legal representation recommended</li>
+          </ul>
+        </div>
+        
+        <div class="legal-info">
+          <h4><i class="fas fa-coins"></i> Tax Considerations</h4>
+          <ul class="legal-list">
+            <li><i class="fas fa-calculator"></i> Capital gains tax on property sales</li>
+            <li><i class="fas fa-calculator"></i> Rental income subject to taxation</li>
+            <li><i class="fas fa-calculator"></i> Double taxation treaties available</li>
+            <li><i class="fas fa-calculator"></i> Professional tax advice included</li>
+            <li><i class="fas fa-calculator"></i> Annual property tax obligations</li>
+          </ul>
+        </div>
+        
+        <div class="legal-info">
+          <h4><i class="fas fa-exchange-alt"></i> Currency & Payments</h4>
+          <ul class="legal-list">
+            <li><i class="fas fa-dollar-sign"></i> Multiple currency payment options</li>
+            <li><i class="fas fa-dollar-sign"></i> Secure international transfers</li>
+            <li><i class="fas fa-dollar-sign"></i> Flexible payment schedules</li>
+            <li><i class="fas fa-dollar-sign"></i> Currency hedging options available</li>
+            <li><i class="fas fa-dollar-sign"></i> Bank financing accessible</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section" id="contact">
+    <div class="container">
+      <h2>Ready to Invest in Kenya?</h2>
+      <p>Join successful international investors who have built wealth through Kenyan property investment with our expert guidance.</p>
+      <div class="cta-buttons">
+        <a href="../contact-us/index.html" class="btn-primary">Schedule Consultation</a>
+        <a href="tel:+254706641871" class="btn-secondary">Call: +254 706 641 871</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Form Section -->
+  <div class="contact-section">
+    <div class="content_bg">
+      <img src="../wp-content/uploads/2025/02/B.jpg" alt="Contact Background">
+    </div>
+    <div class="container">
+      <div class="contact-container">
+        <div class="contact-title">
+          <h3 class="title_category light">Get In Touch</h3>
+          <h2 class="title_section light">Let's Start Your <em>Property Journey</em></h2>
+        </div>
+
+        <form class="contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" placeholder="Your name" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" placeholder="Your email" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" placeholder="Your phone">
+            </div>
+            <div class="form-group">
+              <label for="interest">I'm interested in</label>
+              <select id="interest" name="interest">
+                <option value="">Select an option</option>
+                <option value="buying">Buying a property</option>
+                <option value="selling">Selling a property</option>
+                <option value="investing">Investment opportunities</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row full-width">
+            <div class="form-group">
+              <label for="message">Your Message</label>
+              <textarea id="message" name="message" placeholder="Tell us more about what you're looking for..." rows="4"></textarea>
+            </div>
+          </div>
+          <div class="form-submit">
+            <button type="submit" class="submit-button">Send Message</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer_bottom">
+        <p>&copy; 2025 Zentro Homes. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../wp-content/themes/source/js/main.min.js"></script>
+  <script src="../js/dynamic-text.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+	<meta name="format-detection" content="telephone=no" />
+	<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+	
+	<title>All Properties - Zentro Homes</title>
+	<link rel="canonical" href="all-properties.html" />
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="All Properties - Zentro Homes" />
+	<meta property="og:url" content="https://zentrohomes.com/all-properties.html" />
+	<meta property="og:site_name" content="Zentro Homes" />
+
+	<link rel="icon" href="wp-content/uploads/2025/02/favicon-1.svg" sizes="32x32" />
+	<link rel="icon" href="wp-content/uploads/2025/02/favicon-1.svg" sizes="192x192" />
+	<link rel="apple-touch-icon" href="wp-content/uploads/2025/02/favicon-1.svg" />
+	<meta name="msapplication-TileImage" content="https://zentrohomes.com/wp-content/uploads/2025/02/favicon-1.svg" />
+	
+	<link rel="stylesheet" type="text/css" href="wp-content/themes/source/css/main.min.css">
+    <link rel="stylesheet" type="text/css" href="wp-content/themes/source/style.css">
+    <link rel="stylesheet" type="text/css" href="css/responsive.css">
+    <link rel="stylesheet" type="text/css" href="css/touch-interactions.css">
+    <!-- Load our custom CSS LAST to override WordPress theme styles -->
+    <link rel="stylesheet" type="text/css" href="css/consolidated-apartments.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /***** Property Cards Section Styling - Match Home Page Featured Apartments *****/
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      margin-left: -16px;
+      margin-right: -16px;
+    }
+
+    .col-lg-4,
+    .col-md-6 {
+      width: 100%;
+      max-width: 33.3333%;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 991px) {
+
+      .col-lg-4,
+      .col-md-6 {
+        max-width: 50%;
+      }
+    }
+
+    @media (max-width: 767px) {
+
+      .col-lg-4,
+      .col-md-6 {
+        max-width: 100%;
+      }
+    }
+
+    .item {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+      padding: 24px 20px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: box-shadow 0.2s;
+      min-height: 480px;
+    }
+
+    .item:hover {
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
+    }
+
+    .item img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 18px;
+    }
+
+    .item .category {
+      display: inline-block;
+      background: #f5f5f5;
+      color: #333;
+      font-size: 13px;
+      padding: 4px 14px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .item h6 {
+      color: #2a7ae4;
+      font-size: 20px;
+      margin: 0 0 8px 0;
+      font-weight: 700;
+    }
+
+    .item h4 {
+      font-size: 18px;
+      margin: 0 0 12px 0;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .item ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px 0;
+      width: 100%;
+    }
+
+    .item ul li {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .item .main-button a {
+      display: inline-block;
+      background: #2a7ae4;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .item .main-button a:hover {
+      background: #174a8c;
+    }
+
+    .unique-listings-section {
+      background: #f7f3ef;
+      padding: 64px 0 48px 0;
+      font-family: 'Montserrat', Arial, sans-serif;
+    }
+
+    .unique-listings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .unique-card {
+      position: relative;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px 0 rgba(50, 55, 60, 0.08);
+      border: 1px solid #ece7e1;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      min-height: 520px;
+    }
+
+    .unique-card:hover {
+      transform: translateY(-8px) scale(1.03);
+      box-shadow: 0 16px 48px 0 rgba(50, 55, 60, 0.14);
+    }
+
+    .unique-card-img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+    }
+
+    .unique-card-price {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #bfa16b;
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 1.1em;
+      box-shadow: 0 2px 8px rgba(191, 161, 107, 0.12);
+    }
+
+    .unique-card-content {
+      padding: 28px 24px 24px 24px;
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .unique-card-title {
+      font-size: 1.25em;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #32373c;
+    }
+
+    .unique-card-location {
+      font-size: 1em;
+      color: #bfa16b;
+      margin-bottom: 16px;
+    }
+
+    .unique-card-features {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 18px;
+      color: #32373c;
+      font-size: 1em;
+    }
+
+    .unique-card-features span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .unique-card-desc {
+      font-size: 0.98em;
+      color: #666;
+      margin-bottom: 18px;
+    }
+
+    .unique-card-btn {
+      margin-top: auto;
+      background: #32373c;
+      color: #fff;
+      padding: 12px 32px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1em;
+      box-shadow: 0 2px 8px rgba(50, 55, 60, 0.10);
+      transition: background 0.2s;
+      display: inline-block;
+    }
+
+    .unique-card-btn:hover {
+      background: #bfa16b;
+      color: #fff;
+    }
+
+    /* Language Selector */
+    .language-selector {
+      position: relative;
+      display: inline-block;
+      margin-left: 20px;
+    }
+
+    .language-btn {
+      background: none;
+      border: 1px solid #e6e6e6;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: #2c2c2c;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 500;
+    }
+
+    .language-btn:hover {
+      background: #f8f8f8;
+      border-color: #d4af37;
+    }
+
+    .language-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: #fff;
+      border: 1px solid #e6e6e6;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      min-width: 140px;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+    }
+
+    .language-dropdown.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .language-option {
+      display: block;
+      padding: 10px 16px;
+      color: #2c2c2c;
+      text-decoration: none;
+      font-size: 14px;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      transition: background-color 0.3s ease;
+    }
+
+    .language-option:hover {
+      background: #f8f8f8;
+    }
+
+    .language-option.active {
+      background: #d4af37;
+      color: #fff;
+    }
+
+    .language-option.active:hover {
+      background: #b8941f;
+    }
+
+    @media (max-width: 600px) {
+      .unique-listings-section {
+        padding: 32px 0 24px 0;
+      }
+
+      .unique-card-content {
+        padding: 18px 10px 18px 10px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+	<header class="header">
+		<div class="header_panel">
+			<div class="container">
+				<div class="header_action">
+					<a class="header_action_item" href="tel:+254706641871">
+						<svg class="svg_tel_icon">
+							<use xlink:href="wp-content/themes/source/images/sprite/sprite.svg#tel_icon"></use>
+						</svg>
+						<span>+254706641871</span>
+					</a>
+					<a class="header_action_item" href="https://wa.me/254706641871" target="_blank">
+						<svg class="svg_wa_icon">
+							<use xlink:href="wp-content/themes/source/images/sprite/sprite.svg#wa_icon"></use>
+						</svg>
+						<span>WhatsApp</span>
+					</a>
+				</div>
+			</div>
+		</div>
+		<div class="header_main">
+			<div class="container">
+				<div class="header_main_wrap">
+					<a class="header_logo" href="index.html">
+						<img src="wp-content/themes/source/images/logo.png" alt="Zentro Homes">
+					</a>
+					<button class="header_toggle">
+						<div class="header_toggle_inner">
+							<span></span>
+						</div>
+					</button>
+					<div class="header_navbar">
+						<nav class="header_nav">
+							<ul id="menu-main-menu" class="menu">
+								<li class="has_submenu menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children">
+									<a href="#">Solutions<svg class="svg_arrow_nav"><use xlink:href="wp-content/themes/source/images/sprite/sprite.svg#arrow_nav"></use></svg></a>
+									<div class="header_submenu">
+										<div class="header_submenu_box">
+											<ul>
+													<li><a href="letting-management/index.html">Letting &amp; Management</a></li>
+												<li><a href="sell-your-portfolio/index.html">Sell Your Portfolio</a></li>
+											</ul>
+										</div>
+									</div>
+								</li>
+								<li class="has_submenu menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children">
+									<a href="#">Who We Work With<svg class="svg_arrow_nav"><use xlink:href="wp-content/themes/source/images/sprite/sprite.svg#arrow_nav"></use></svg></a>
+									<div class="header_submenu">
+										<div class="header_submenu_box">
+											<ul>
+													<li><a href="portfolio-landlords/index.html">Portfolio Landlords</a></li>
+												<li><a href="international-buyers/index.html">International Buyers</a></li>
+											</ul>
+										</div>
+									</div>
+								</li>
+												<li><a href="about/index.html">About</a></li>
+							</ul>
+							<a class="btn btn_small" href="contact-us/index.html">Contact Us</a>
+						</nav>
+						<div class="navbar_action">
+							<a class="navbar_action_item" href="tel:+254706641871">
+								<svg class="svg_tel_icon">
+									<use xlink:href="wp-content/themes/source/images/sprite/sprite.svg#tel_icon"></use>
+								</svg>
+								<span>+254706641871</span>
+							</a>
+							<a class="navbar_action_item" href="https://wa.me/254706641871" target="_blank">
+								<svg class="svg_wa_icon">
+									<use xlink:href="wp-content/themes/source/images/sprite/sprite.svg#wa_icon"></use>
+								</svg>
+								<span>WhatsApp</span>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</header>
+
+    <!-- All Properties Section -->
+    <div class="featured-apartments-section" style="margin-top: 0; padding-top: 80px; padding-bottom: 80px;">
+        <div class="container" style="max-width: 1600px; padding: 0;">
+            <div class="container_inner" style="max-width: 100%;">
+                <!-- Back Navigation -->
+                <div class="back-navigation" style="margin-bottom: 32px;">
+                    <a href="index.html" class="back-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Back to Home
+                    </a>
+                </div>
+
+                <div class="apartments-section-title">
+                    <h3 class="title_category" data-translate="allPropertiesSubtitle">Complete Collection</h3>
+                    <h2 class="title_section" data-translate="allPropertiesTitle">All <em>Properties</em></h2>
+                </div>
+
+                <!-- Property Search Bar - Zillow Style with Zentro Homes Branding -->
+                <div class="property-search-container">
+                    <div class="property-search-tabs">
+                        <button class="property-search-tab active" data-status="For Sale">For Sale</button>
+                        <button class="property-search-tab" data-status="For Rent">For Rent</button>
+                    </div>
+                    <div class="property-search-bar">
+                        <div class="search-field">
+                            <div class="search-field-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                                    <circle cx="12" cy="10" r="3" />
+                                </svg>
+                            </div>
+                            <div class="search-field-content">
+                                <label class="search-field-label">Location</label>
+                                <div class="search-field-value" id="location-display">Nairobi</div>
+                                <div class="field-arrow">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 9l6 6 6-6" />
+                                    </svg>
+                                </div>
+                                <div class="search-dropdown" id="location-dropdown">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="search-field">
+                            <div class="search-field-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                </svg>
+                            </div>
+                            <div class="search-field-content">
+                                <label class="search-field-label">Property Type</label>
+                                <div class="search-field-value" id="type-display">Any Type</div>
+                                <div class="field-arrow">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 9l6 6 6-6" />
+                                    </svg>
+                                </div>
+                                <div class="search-dropdown" id="type-dropdown">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="search-field">
+                            <div class="search-field-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M12 6v6l4 2" />
+                                </svg>
+                            </div>
+                            <div class="search-field-content">
+                                <label class="search-field-label">Price</label>
+                                <div class="search-field-value" id="price-display">Any Price</div>
+                                <div class="field-arrow">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 9l6 6 6-6" />
+                                    </svg>
+                                </div>
+                                <div class="search-dropdown" id="price-dropdown">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="search-field">
+                            <div class="search-field-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 22v-7h6v7" />
+                                    <path d="M21 22v-7h-6v7" />
+                                    <path d="M3 15v-2a6 6 0 0112 0v2" />
+                                    <path d="M15 9a6 6 0 00-6-6" />
+                                </svg>
+                            </div>
+                            <div class="search-field-content">
+                                <label class="search-field-label">Bedrooms</label>
+                                <div class="search-field-value" id="bedrooms-display">Any</div>
+                                <div class="field-arrow">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 9l6 6 6-6" />
+                                    </svg>
+                                </div>
+                                <div class="search-dropdown" id="bedrooms-dropdown">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="search-button" id="search-button">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading-state" class="loading-state" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading properties...</p>
+                </div>
+
+                <!-- Results count removed as requested -->
+
+                <!-- Properties Grid - Same styling as featured section -->
+                <div id="apartments-grid" class="property-grid">
+                    <!-- Properties will be loaded here by JavaScript -->
+                </div>
+
+                <!-- No Results State -->
+                <div id="no-results" class="no-results" style="display: none; text-align: center; padding: 60px 20px; color: #666;">
+                    <h3>No properties found</h3>
+                    <p>Try adjusting your search criteria or browse all properties.</p>
+                    <button onclick="clearAllFilters()" class="btn" style="margin-top: 20px;">Clear Filters</button>
+                </div>
+
+                <!-- Load More Button -->
+                <div id="load-more-container" class="load-more-container" style="text-align: center; margin-top: 48px; display: none;">
+                    <button id="load-more-btn" class="load-more-button">
+                        Load More Properties
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12l7 7 7-7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+	<footer class="footer">
+		<div class="footer_wrap">
+            <div style="display: flex; min-height: 400px;">
+                <div class="footer-map-container" style="flex: 1; min-height: 400px;">
+                    <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=36.8219%2C-1.2921%2C36.8519%2C-1.2721&layer=mapnik&marker=-1.282%2C36.8369"
+                            style="width: 100%; height: 100%; border: none;"
+                            title="Zentro Homes Kenya Office Location">
+                    </iframe>
+                </div>
+                
+                <div class="footer-address-info" style="flex: 1; background: #1a1a1a; padding: 60px 40px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="max-width: 400px;">
+                        <div style="margin-bottom: 40px;">
+                            <img src="wp-content/themes/source/images/logo_white.png" alt="Zentro Homes" style="height: 45px; margin-bottom: 16px;">
+                            <p style="color: #cccccc; font-size: 16px; line-height: 1.6; margin: 0;">We find clients the best off-market properties for achieving long term capital growth and rental income.</p>
+                        </div>
+                        
+                        <div style="margin-bottom: 32px;">
+                            <h4 style="color: #ffffff; font-size: 18px; margin-bottom: 16px; font-weight: 600;">Kenya Office</h4>
+                            <div style="space-y: 12px;">
+                                <div style="display: flex; align-items: center; color: #cccccc; margin-bottom: 12px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 12px; flex-shrink: 0;">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                        <circle cx="12" cy="10" r="3"/>
+                                    </svg>
+                                    <span>123 Mombasa Rd, Nairobi, Kenya</span>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #cccccc; margin-bottom: 12px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 12px; flex-shrink: 0;">
+                                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                                    </svg>
+                                    <a href="tel:+254706641871" style="color: #cccccc; text-decoration: none;">+254706641871</a>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #cccccc; margin-bottom: 12px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 12px; flex-shrink: 0;">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                        <polyline points="22,6 12,13 2,6"/>
+                                    </svg>
+                                    <a href="mailto:info@zentrohomes.com" style="color: #cccccc; text-decoration: none;">info@zentrohomes.com</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 32px;">
+                            <div style="display: flex; gap: 16px;">
+                                <a href="https://twitter.com/zentrohomes" target="_blank" style="color: #cccccc; transition: color 0.3s;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/>
+                                    </svg>
+                                </a>
+                                <a href="https://www.facebook.com/zentrohomes/" target="_blank" style="color: #cccccc; transition: color 0.3s;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
+                                    </svg>
+                                </a>
+                                <a href="https://www.linkedin.com/company/zentro-homes/" target="_blank" style="color: #cccccc; transition: color 0.3s;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/>
+                                        <circle cx="4" cy="4" r="2"/>
+                                    </svg>
+                                </a>
+                                <a href="https://www.instagram.com/zentrohomes" target="_blank" style="color: #cccccc; transition: color 0.3s;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                                        <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/>
+                                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div style="padding-top: 24px; border-top: 1px solid #333; color: #888; font-size: 14px;">
+                            <p style="margin: 0;">© 2024 Zentro Homes. All rights reserved.</p>
+                            <div style="margin-top: 12px;">
+                                <a href="privacy-and-cookie-policy/index.html" style="color: #888; text-decoration: none; margin-right: 16px;">Privacy Policy</a>
+                                <a href="https://mikezak.co.uk/" target="_blank" style="color: #888; text-decoration: none;">Design Credits</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+            @media (max-width: 768px) {
+                .footer .footer-map-section > div {
+                    flex-direction: column !important;
+                }
+                .footer-map-container {
+                    min-height: 300px !important;
+                }
+                .footer-address-info {
+                    padding: 40px 20px !important;
+                }
+            }
+        </style>
+    </footer>
+
+	<script src="wp-content/themes/source/js/main.min.js"></script>
+    
+    <!-- Supabase Client for database connection -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Database and data management scripts - Match home page exactly -->
+    <script src="js/apartments-data.js?v=3"></script>
+    <script src="js/supabase-config.js?v=3"></script>
+    <script src="js/shared-data-manager-supabase.js?v=3"></script>
+    <script src="js/modern-apartments.js?v=7"></script>
+    <script src="js/property-search.js?v=3"></script>
+    <script src="js/all-properties.js"></script>
+    <script src="js/touch-interactions.js?v=3"></script>
+    <script src="js/style-refresh.js?v=3"></script>
+</body>
+</html>

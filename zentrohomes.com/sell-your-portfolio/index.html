@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+
+<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+  <meta name="format-detection" content="telephone=no" />
+  <meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+  
+  <title>Sell Your Portfolio - Zentro Homes</title>
+  <meta name="description" content="Maximize your property portfolio value with our expert sales services. Professional valuations, market insights, and dedicated support for property investors.">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="../wp-content/uploads/2025/02/favicon-1.svg" sizes="32x32" />
+  <link rel="icon" href="../wp-content/uploads/2025/02/favicon-1.svg" sizes="192x192" />
+  <link rel="apple-touch-icon" href="../wp-content/uploads/2025/02/favicon-1.svg" />
+  <meta name="msapplication-TileImage" content="https://zentrohomes.com/wp-content/uploads/2025/02/favicon-1.svg" />
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" type="text/css" href="../wp-content/themes/source/css/main.min.css">
+  <link rel="stylesheet" type="text/css" href="../wp-content/themes/source/style.css">
+  <link rel="stylesheet" type="text/css" href="../css/consolidated-apartments.css">
+  <link rel="stylesheet" type="text/css" href="../css/company-sections.css">
+  <link rel="stylesheet" type="text/css" href="../css/contact-form.css">
+  <link rel="stylesheet" type="text/css" href="../css/dynamic-text.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-adjustments.css">
+  <link rel="stylesheet" type="text/css" href="../css/responsive.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* Page-specific styles */
+    .service-hero {
+      background-color: #171e22;
+      padding: 120px 0 80px 0;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .service-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('../wp-content/uploads/2025/02/fees_img.jpg') center/cover;
+      opacity: 0.1;
+      z-index: 1;
+    }
+    
+    .service-hero .container {
+      position: relative;
+      z-index: 2;
+    }
+    
+    .service-hero h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+    
+    /* White dynamic text styles for hero sections */
+    .service-hero .dynamic-text {
+      color: white;
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-weight: 600;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Whoosh animation for H1 titles */
+    .service-hero h1 {
+      opacity: 0;
+      transform: translateX(-50px);
+      animation: whooshIn 1s ease-out 0.3s forwards;
+    }
+    
+    @keyframes whooshIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .service-hero .subtitle {
+      font-size: 1.3rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+    
+    .value-props {
+      padding: 80px 0;
+      background: white;
+    }
+    
+    .value-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+    
+    .value-card {
+      background: #f8f9fa;
+      padding: 40px 30px;
+      border-radius: 20px;
+      text-align: center;
+      border-left: 5px solid #bfa16b;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .value-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    }
+    
+    .value-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #bfa16b, #a68955);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 30px;
+      font-size: 2rem;
+      color: white;
+    }
+    
+    .value-card h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: #32373c;
+    }
+    
+    .services-section {
+      padding: 80px 0;
+      background: #f8f9fa;
+    }
+    
+    .services-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      margin-top: 60px;
+      align-items: start;
+    }
+    
+    .service-category {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    }
+    
+    .service-category h3 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #bfa16b;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .service-category ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .service-category li {
+      padding: 15px 0;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .service-category li:last-child {
+      border-bottom: none;
+    }
+    
+    .service-category li i {
+      color: #bfa16b;
+      font-size: 1.2rem;
+    }
+    
+    .process-section {
+      padding: 80px 0;
+      background: white;
+    }
+    
+    .timeline {
+      position: relative;
+      margin-top: 60px;
+    }
+    
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #bfa16b;
+      transform: translateX(-50%);
+    }
+    
+    .timeline-item {
+      display: flex;
+      margin-bottom: 60px;
+      position: relative;
+    }
+    
+    .timeline-item:nth-child(even) {
+      flex-direction: row-reverse;
+    }
+    
+    .timeline-content {
+      flex: 1;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      margin: 0 30px;
+      position: relative;
+    }
+    
+    .timeline-item:nth-child(even) .timeline-content::before {
+      right: -15px;
+      border-left-color: white;
+      border-right-color: transparent;
+    }
+    
+    .timeline-content::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: -15px;
+      border: 15px solid transparent;
+      border-right-color: white;
+    }
+    
+    .timeline-number {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      background: #bfa16b;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+      z-index: 2;
+    }
+    
+    .timeline-content h4 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #32373c;
+      margin-bottom: 15px;
+    }
+    
+    .commission-section {
+      padding: 80px 0;
+      background: #f8f9fa;
+    }
+    
+    .commission-card {
+      background: white;
+      padding: 60px 40px;
+      border-radius: 20px;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 600px;
+      margin: 60px auto 0;
+      border-top: 5px solid #bfa16b;
+    }
+    
+    .commission-rate {
+      font-size: 4rem;
+      font-weight: 700;
+      color: #bfa16b;
+      margin-bottom: 10px;
+    }
+    
+    .commission-text {
+      font-size: 1.2rem;
+      color: #666;
+      margin-bottom: 30px;
+    }
+    
+    .commission-features {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+    }
+    
+    .commission-features li {
+      padding: 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .commission-features i {
+      color: #bfa16b;
+      font-size: 1.2rem;
+    }
+    
+    .cta-section {
+      padding: 80px 0;
+      background: linear-gradient(135deg, #32373c 0%, #bfa16b 100%);
+      color: white;
+      text-align: center;
+    }
+    
+    .btn-primary {
+      background: #2a7ae4;
+      color: white;
+      padding: 15px 40px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      background: #174a8c;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(42, 122, 228, 0.3);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: white;
+      border: 2px solid white;
+      padding: 12px 30px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+      transition: all 0.3s ease;
+      margin-left: 20px;
+    }
+    
+    .btn-secondary:hover {
+      background: white;
+      color: #32373c;
+    }
+    
+    @media (max-width: 768px) {
+      .service-hero h1 {
+        font-size: 2.5rem;
+      }
+      
+      .services-list {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      
+      .timeline::before {
+        left: 30px;
+      }
+      
+      .timeline-item,
+      .timeline-item:nth-child(even) {
+        flex-direction: row;
+      }
+      
+      .timeline-content {
+        margin-left: 60px;
+        margin-right: 0;
+      }
+      
+      .timeline-number {
+        left: 30px;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="header_panel">
+      <div class="container">
+        <div class="header_action">
+          <a class="header_action_item" href="tel:+254706641871">
+            <svg class="svg_tel_icon">
+              <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#tel_icon"></use>
+            </svg>
+            <span>+254706641871</span>
+          </a>
+          <a class="header_action_item" href="https://wa.me/254706641871" target="_blank">
+            <svg class="svg_wa_icon">
+              <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#wa_icon"></use>
+            </svg>
+            <span>WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="header_main">
+      <div class="container">
+        <div class="header_main_wrap">
+          <a class="header_logo" href="../index.html">
+            <img src="../wp-content/themes/source/images/logo.png" alt="Zentro Homes">
+          </a>
+          <button class="header_toggle">
+            <div class="header_toggle_inner">
+              <span></span>
+            </div>
+          </button>
+          <div class="header_navbar">
+            <nav class="header_nav">
+              <ul id="menu-main-menu" class="menu">
+                <li class="has_submenu menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-378">
+                  <a href="#">Solutions<svg class="svg_arrow_nav">
+                      <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#arrow_nav"></use>
+                    </svg></a>
+                  <div class="header_submenu">
+                    <div class="header_submenu_box">
+                      <ul>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-272">
+                          <a href="../letting-management/index.html">Letting & Management</a>
+                        </li>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-282 current-menu-item">
+                          <a href="../sell-your-portfolio/index.html">Sell Your Portfolio</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="has_submenu menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-20">
+                  <a href="#">Who We Work With<svg class="svg_arrow_nav">
+                      <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#arrow_nav"></use>
+                    </svg></a>
+                  <div class="header_submenu">
+                    <div class="header_submenu_box">
+                      <ul>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-308">
+                          <a href="../portfolio-landlords/index.html">Portfolio Landlords</a>
+                        </li>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-300">
+                          <a href="../international-buyers/index.html">International Buyers</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-155">
+                  <a href="../about/index.html">About</a>
+                </li>
+              </ul>
+              <a class="btn btn_small" href="../contact-us/index.html">Contact Us</a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="service-hero">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <h1>
+            Sell Your Property <span class="dynamic-text">Portfolio</span>
+          </h1>
+          <p class="subtitle">Maximize your investment returns with our expert property sales services. From individual properties to entire portfolios, we deliver exceptional results.</p>
+          <div class="hero-buttons">
+            <a href="#contact" class="btn-primary">Get Free Valuation</a>
+            <a href="#commission" class="btn-secondary">View Our Rates</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Value Propositions -->
+  <section class="value-props">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Why Choose Us</h3>
+        <h2 class="title_section">Unmatched Property Sales Expertise</h2>
+      </div>
+      
+      <div class="value-grid">
+        <div class="value-card">
+          <div class="value-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Market-Leading Prices</h3>
+          <p>Our deep market knowledge and strategic pricing approach consistently achieves above-market values for our clients' properties.</p>
+        </div>
+        
+        <div class="value-card">
+          <div class="value-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <h3>Fast Sales Process</h3>
+          <p>Average sale completion in 45-60 days through our extensive buyer network and proven marketing strategies.</p>
+        </div>
+        
+        <div class="value-card">
+          <div class="value-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3>Dedicated Team</h3>
+          <p>Personal account manager, professional photographer, legal support, and marketing specialists assigned to every sale.</p>
+        </div>
+        
+        <div class="value-card">
+          <div class="value-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Risk-Free Service</h3>
+          <p>No sale, no fee guarantee. We only get paid when you achieve a successful completion.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section class="services-section">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Our Services</h3>
+        <h2 class="title_section">Comprehensive Sales Solutions</h2>
+      </div>
+      
+      <div class="services-list">
+        <div class="service-category">
+          <h3><i class="fas fa-home"></i> Property Preparation</h3>
+          <ul>
+            <li><i class="fas fa-check"></i> Professional property valuation</li>
+            <li><i class="fas fa-check"></i> Market analysis and pricing strategy</li>
+            <li><i class="fas fa-check"></i> Property staging consultation</li>
+            <li><i class="fas fa-check"></i> Improvement recommendations</li>
+            <li><i class="fas fa-check"></i> Professional photography & virtual tours</li>
+            <li><i class="fas fa-check"></i> Floor plans and EPC certificates</li>
+          </ul>
+        </div>
+        
+        <div class="service-category">
+          <h3><i class="fas fa-bullhorn"></i> Marketing & Sales</h3>
+          <ul>
+            <li><i class="fas fa-check"></i> Premium listings on major portals</li>
+            <li><i class="fas fa-check"></i> Social media marketing campaigns</li>
+            <li><i class="fas fa-check"></i> Print advertising in luxury magazines</li>
+            <li><i class="fas fa-check"></i> Exclusive buyer network access</li>
+            <li><i class="fas fa-check"></i> International marketing reach</li>
+            <li><i class="fas fa-check"></i> Viewings coordination & management</li>
+          </ul>
+        </div>
+        
+        <div class="service-category">
+          <h3><i class="fas fa-handshake"></i> Transaction Management</h3>
+          <ul>
+            <li><i class="fas fa-check"></i> Offer negotiation and acceptance</li>
+            <li><i class="fas fa-check"></i> Legal documentation support</li>
+            <li><i class="fas fa-check"></i> Chain management coordination</li>
+            <li><i class="fas fa-check"></i> Progress monitoring and reporting</li>
+            <li><i class="fas fa-check"></i> Completion coordination</li>
+            <li><i class="fas fa-check"></i> Post-sale support services</li>
+          </ul>
+        </div>
+        
+        <div class="service-category">
+          <h3><i class="fas fa-briefcase"></i> Portfolio Services</h3>
+          <ul>
+            <li><i class="fas fa-check"></i> Multi-property sale coordination</li>
+            <li><i class="fas fa-check"></i> Investment portfolio analysis</li>
+            <li><i class="fas fa-check"></i> Tax optimization strategies</li>
+            <li><i class="fas fa-check"></i> 1031 exchange facilitation</li>
+            <li><i class="fas fa-check"></i> Bulk sale negotiations</li>
+            <li><i class="fas fa-check"></i> Investor matchmaking services</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Process Timeline -->
+  <section class="process-section">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">How It Works</h3>
+        <h2 class="title_section">Your Property Sale Journey</h2>
+      </div>
+      
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-number">1</div>
+          <div class="timeline-content">
+            <h4>Initial Consultation</h4>
+            <p>Free property assessment, market analysis, and personalized sales strategy development. We discuss your goals, timeline, and expectations.</p>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-number">2</div>
+          <div class="timeline-content">
+            <h4>Property Preparation</h4>
+            <p>Professional photography, staging advice, marketing materials creation, and any necessary improvements to maximize sale value.</p>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-number">3</div>
+          <div class="timeline-content">
+            <h4>Marketing Launch</h4>
+            <p>Multi-channel marketing campaign launch including online listings, social media, print advertising, and direct outreach to our buyer network.</p>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-number">4</div>
+          <div class="timeline-content">
+            <h4>Viewings & Offers</h4>
+            <p>Coordinated viewings with qualified buyers, offer presentation and negotiation, and guidance through the decision-making process.</p>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-number">5</div>
+          <div class="timeline-content">
+            <h4>Sale Completion</h4>
+            <p>Legal process management, chain coordination, final inspections, and smooth completion with full post-sale support.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Commission Section -->
+  <section class="commission-section" id="commission">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Transparent Pricing</h3>
+        <h2 class="title_section">Competitive Commission Structure</h2>
+      </div>
+      
+      <div class="commission-card">
+        <div class="commission-rate">2.5%</div>
+        <div class="commission-text">All-inclusive commission rate</div>
+        <ul class="commission-features">
+          <li><i class="fas fa-check"></i> No upfront fees or hidden costs</li>
+          <li><i class="fas fa-check"></i> No sale, no fee guarantee</li>
+          <li><i class="fas fa-check"></i> All marketing costs included</li>
+          <li><i class="fas fa-check"></i> Professional photography included</li>
+          <li><i class="fas fa-check"></i> Legal support throughout process</li>
+          <li><i class="fas fa-check"></i> Dedicated account management</li>
+          <li><i class="fas fa-check"></i> Post-completion support</li>
+        </ul>
+        <div style="margin-top: 30px;">
+          <strong>Portfolio discounts available for multiple properties</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section" id="contact">
+    <div class="container">
+      <h2>Ready to Sell Your Property?</h2>
+      <p>Get started with a free, no-obligation valuation and market analysis from our expert team.</p>
+      <div class="cta-buttons">
+        <a href="../contact-us/index.html" class="btn-primary">Get Free Valuation</a>
+        <a href="tel:+254706641871" class="btn-secondary">Call: +254 706 641 871</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Form Section -->
+  <div class="contact-section">
+    <div class="content_bg">
+      <img src="../wp-content/uploads/2025/02/B.jpg" alt="Contact Background">
+    </div>
+    <div class="container">
+      <div class="contact-container">
+        <div class="contact-title">
+          <h3 class="title_category light">Get In Touch</h3>
+          <h2 class="title_section light">Let's Start Your <em>Property Journey</em></h2>
+        </div>
+
+        <form class="contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" placeholder="Your name" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" placeholder="Your email" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" placeholder="Your phone">
+            </div>
+            <div class="form-group">
+              <label for="interest">I'm interested in</label>
+              <select id="interest" name="interest">
+                <option value="">Select an option</option>
+                <option value="buying">Buying a property</option>
+                <option value="selling">Selling a property</option>
+                <option value="investing">Investment opportunities</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row full-width">
+            <div class="form-group">
+              <label for="message">Your Message</label>
+              <textarea id="message" name="message" placeholder="Tell us more about what you're looking for..." rows="4"></textarea>
+            </div>
+          </div>
+          <div class="form-submit">
+            <button type="submit" class="submit-button">Send Message</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer_bottom">
+        <p>&copy; 2025 Zentro Homes. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../wp-content/themes/source/js/main.min.js"></script>
+  <script src="../js/dynamic-text.js"></script>
+</body>
+
+</html>

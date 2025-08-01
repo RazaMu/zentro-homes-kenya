@@ -1,0 +1,356 @@
+/**
+ * Touch Interactions CSS
+ * Styles for touch-specific interactions on mobile devices
+ */
+
+/* Touch feedback styles */
+.touch-device a:active,
+.touch-device button:active,
+.touch-device .btn:active,
+.touch-device .touch-active {
+  transform: scale(0.97);
+  transition: transform 0.2s ease;
+}
+
+/* Prevent text selection on touch elements */
+.touch-device .property-card,
+.touch-device .similar-property-card,
+.touch-device .unique-card,
+.touch-device .btn,
+.touch-device button,
+.touch-device .nav-item,
+.touch-device .header_nav a,
+.touch-device .thumbnail,
+.touch-device .modal-nav,
+.touch-device .modal-close,
+.touch-device .video-player,
+.touch-device .video-control-btn,
+.touch-device .video-progress,
+.touch-device .video-volume-slider {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Increase touch target sizes */
+.touch-device .header_nav a,
+.touch-device .navbar_action_item,
+.touch-device .footer_list a,
+.touch-device .btn,
+.touch-device button {
+  padding: 12px 16px;
+  min-height: 44px;
+}
+
+.touch-device .thumbnail {
+  margin: 4px;
+}
+
+.touch-device .modal-nav,
+.touch-device .modal-close {
+  width: 48px;
+  height: 48px;
+}
+
+/* Enhanced touch targets */
+.touch-device .touch-enhanced.video-control-btn {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 12px;
+}
+
+.touch-device .touch-enhanced.video-progress {
+  height: 16px;
+  margin: 0 20px;
+}
+
+.touch-device .touch-enhanced.video-volume-slider {
+  height: 16px;
+  min-width: 100px;
+}
+
+.touch-device .touch-enhanced.thumbnail {
+  width: 80px;
+  height: 80px;
+  margin: 6px;
+  border-width: 3px;
+}
+
+/* Swipeable galleries with visual feedback */
+.touch-device .property-gallery,
+.touch-device .gallery-modal {
+  position: relative;
+  overflow: hidden;
+}
+
+.touch-device .touch-active-gallery {
+  position: relative;
+}
+
+.touch-device .touch-active-gallery::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Swipe direction indicators */
+.touch-device [data-swipe-direction="left"]::before,
+.touch-device [data-swipe-direction="right"]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.touch-device [data-swipe-direction="left"]::before {
+  right: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.9)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18l6-6-6-6'/%3E%3C/svg%3E");
+}
+
+.touch-device [data-swipe-direction="right"]::before {
+  left: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.9)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 18l-6-6 6-6'/%3E%3C/svg%3E");
+}
+
+/* Swipeable carousels with snap scrolling */
+.touch-device .similar-properties-grid,
+.touch-device .unique-listings-grid {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  padding: 16px 0;
+  position: relative;
+}
+
+.touch-device .similar-properties-grid::-webkit-scrollbar,
+.touch-device .unique-listings-grid::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.touch-device .similar-property-card,
+.touch-device .unique-card {
+  flex: 0 0 85%;
+  scroll-snap-align: center;
+  margin-right: 16px;
+}
+
+/* Touch-friendly form elements */
+.touch-device input[type="text"],
+.touch-device input[type="email"],
+.touch-device input[type="tel"],
+.touch-device input[type="number"],
+.touch-device input[type="search"],
+.touch-device select,
+.touch-device textarea {
+  font-size: 16px; /* Prevents iOS zoom on focus */
+  padding: 12px 16px;
+  min-height: 44px;
+}
+
+/* Touch-friendly video controls */
+.touch-device .video-controls {
+  padding: 16px;
+}
+
+.touch-device .video-control-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px;
+}
+
+.touch-device .video-progress {
+  height: 16px;
+}
+
+.touch-device .video-volume-slider {
+  height: 16px;
+  min-width: 80px;
+}
+
+/* Video seek indicators */
+.touch-device .video-seek-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+  animation: fadeIn 0.3s ease;
+}
+
+.touch-device .video-seek-indicator svg {
+  width: 24px;
+  height: 24px;
+  stroke: white;
+}
+
+.touch-device .video-seek-indicator.fade-out {
+  animation: fadeOut 0.5s ease forwards;
+}
+
+/* Swipe indicators */
+.touch-device .swipe-indicator {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  opacity: 0.9;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 5;
+  animation: fadeIn 0.3s ease;
+}
+
+.touch-device .swipe-indicator svg {
+  flex-shrink: 0;
+}
+
+.touch-device .swipe-indicator.fade-out {
+  animation: fadeOut 1s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 0.9; transform: translate(-50%, 0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 0.9; transform: translate(-50%, 0); }
+  to { opacity: 0; transform: translate(-50%, 10px); }
+}
+
+/* Touch-friendly dropdown menus */
+.touch-device .has_submenu > a {
+  position: relative;
+}
+
+.touch-device .has_submenu > a::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 20px;
+}
+
+.touch-device .has_submenu.active > a::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 15l-6-6-6 6'/%3E%3C/svg%3E");
+}
+
+/* Double-tap to zoom for images */
+.touch-device #main-image {
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+
+/* Pinch-to-zoom support */
+.touch-device .gallery-modal .modal-image {
+  touch-action: pinch-zoom;
+}
+
+/* Enhanced touch feedback for thumbnails */
+.touch-device .thumbnail:active {
+  transform: scale(0.9);
+  opacity: 0.8;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Enhanced touch feedback for video controls */
+.touch-device .video-control-btn:active {
+  transform: scale(0.9);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced touch feedback for property cards */
+.touch-device .similar-property-card:active,
+.touch-device .unique-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Media queries for different device sizes */
+@media (max-width: 767px) {
+  .touch-device .similar-property-card,
+  .touch-device .unique-card {
+    flex: 0 0 90%;
+  }
+  
+  .touch-device .video-seek-indicator {
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+  
+  .touch-device .video-seek-indicator svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 575px) {
+  .touch-device .similar-property-card,
+  .touch-device .unique-card {
+    flex: 0 0 95%;
+  }
+  
+  .touch-device .modal-nav {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .touch-device .swipe-indicator {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .touch-device .swipe-indicator svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .touch-device .video-seek-indicator {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
+  .touch-device .video-seek-indicator svg {
+    width: 18px;
+    height: 18px;
+  }
+}

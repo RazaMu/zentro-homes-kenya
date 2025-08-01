@@ -1,0 +1,39 @@
+-- =============================================
+-- DATABASE MIGRATION COMMANDS - YouTube URL Implementation
+-- Execute these commands in your Supabase SQL editor
+-- =============================================
+
+-- Step 1: Add YouTube URL column to properties table (if it doesn't exist)
+ALTER TABLE public.properties 
+ADD COLUMN IF NOT EXISTS youtube_url text;
+
+-- Step 2: Add comment for documentation
+COMMENT ON COLUMN public.properties.youtube_url IS 'YouTube video URL for property showcase';
+
+-- Step 3: DROP the property_videos table that's causing 404 errors
+-- This will permanently delete all uploaded video data
+DROP TABLE IF EXISTS public.property_videos CASCADE;
+
+-- Step 4: Clean up the sequence
+DROP SEQUENCE IF EXISTS property_videos_id_seq CASCADE;
+
+-- =============================================
+-- VERIFICATION QUERIES
+-- Run these to verify the changes worked
+-- =============================================
+
+-- Check if youtube_url column exists
+SELECT column_name, data_type, is_nullable 
+FROM information_schema.columns 
+WHERE table_name = 'properties' AND column_name = 'youtube_url';
+
+-- Verify property_videos table is gone (should return no rows)
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_name = 'property_videos';
+
+-- View properties table structure to confirm changes
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns 
+WHERE table_name = 'properties' 
+ORDER BY ordinal_position;

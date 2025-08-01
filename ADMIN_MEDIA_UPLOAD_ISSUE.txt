@@ -1,0 +1,38 @@
+ADMIN MEDIA UPLOAD ISSUE FOUND
+=================================
+
+PROBLEM:
+The admin page has file upload UI but cannot actually upload to Supabase Storage because it's missing the Media Manager script.
+
+SOLUTION:
+Add this line to admin/index.html after line 493:
+
+CURRENT (line 491-494):
+  <script src="../js/apartments-data.js"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script src="js/admin-integrated-media.js"></script>
+
+ADD THIS LINE:
+  <script src="../js/apartments-data.js"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script src="../js/supabase-media-manager.js"></script>   <!-- ADD THIS LINE -->
+  <script src="js/admin-integrated-media.js"></script>
+
+WHAT THIS FIXES:
+1. ✅ Admin UI for file uploads exists
+2. ✅ Supabase config is loaded  
+3. ❌ Media Manager for actual uploads is missing → ✅ Will be added
+4. ✅ Admin logic to handle UI exists
+
+AFTER THIS FIX:
+- You'll be able to drag & drop files in admin
+- Files will upload to Supabase Storage buckets
+- URLs will be saved to database
+- Real media management will work
+
+TEST STEPS AFTER FIX:
+1. Open admin/index.html in browser
+2. Go to Properties → Add Property
+3. Try uploading an image in the "Main Image" section
+4. Check browser console for any errors
+5. Verify files appear in Supabase Storage dashboard

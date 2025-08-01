@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo $env:APPDATA)",
+      "Bash(python:*)",
+      "Bash(start:*)",
+      "Bash(cmd /c start:*)",
+      "Bash(rm:*)",
+      "Bash(cp:*)",
+      "Bash(sed:*)",
+      "Bash(node:*)",
+      "Bash(rg:*)"
+    ],
+    "deny": []
+  }
+}

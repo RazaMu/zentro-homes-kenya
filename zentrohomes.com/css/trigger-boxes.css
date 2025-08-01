@@ -1,0 +1,29 @@
+/* Smaller trigger boxes styling */
+.trigger_item {
+    padding: 5px 15px;
+    height: auto;
+    margin: 0;
+}
+
+.trigger_item_num {
+    font-size: 24px;
+    margin-bottom: 0;
+    line-height: 1;
+}
+
+.trigger_item_name {
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.triggers_row {
+    margin-bottom: 15px;
+    padding: 5px 0;
+}
+
+.triggers_wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

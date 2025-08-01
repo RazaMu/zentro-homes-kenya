@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+
+<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+  <meta name="format-detection" content="telephone=no" />
+  <meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+  
+  <title>Letting & Management - Zentro Homes</title>
+  <meta name="description" content="Professional property letting and management services in Kenya. Maximize your rental income with our comprehensive property management solutions.">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="../wp-content/uploads/2025/02/favicon-1.svg" sizes="32x32" />
+  <link rel="icon" href="../wp-content/uploads/2025/02/favicon-1.svg" sizes="192x192" />
+  <link rel="apple-touch-icon" href="../wp-content/uploads/2025/02/favicon-1.svg" />
+  <meta name="msapplication-TileImage" content="https://zentrohomes.com/wp-content/uploads/2025/02/favicon-1.svg" />
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" type="text/css" href="../wp-content/themes/source/css/main.min.css">
+  <link rel="stylesheet" type="text/css" href="../wp-content/themes/source/style.css">
+  <link rel="stylesheet" type="text/css" href="../css/consolidated-apartments.css">
+  <link rel="stylesheet" type="text/css" href="../css/company-sections.css">
+  <link rel="stylesheet" type="text/css" href="../css/contact-form.css">
+  <link rel="stylesheet" type="text/css" href="../css/dynamic-text.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-adjustments.css">
+  <link rel="stylesheet" type="text/css" href="../css/responsive.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* Page-specific styles */
+    .service-hero {
+      background-color: #171e22;
+      padding: 120px 0 80px 0;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .service-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('../wp-content/uploads/2025/02/solution_img_1-scaled.jpg') center/cover;
+      opacity: 0.1;
+      z-index: 1;
+    }
+    
+    .service-hero .container {
+      position: relative;
+      z-index: 2;
+    }
+    
+    .service-hero h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+    
+    /* White dynamic text styles for hero sections */
+    .service-hero .dynamic-text {
+      color: white;
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-weight: 600;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Whoosh animation for H1 titles */
+    .service-hero h1 {
+      opacity: 0;
+      transform: translateX(-50px);
+      animation: whooshIn 1s ease-out 0.3s forwards;
+    }
+    
+    @keyframes whooshIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .service-hero .subtitle {
+      font-size: 1.3rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+    
+    .service-features {
+      padding: 80px 0;
+      background: #f8f9fa;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+    
+    .feature-card {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+    
+    .feature-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #2a7ae4, #174a8c);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 30px;
+      font-size: 2rem;
+      color: white;
+    }
+    
+    .feature-card h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: #32373c;
+    }
+    
+    .feature-card p {
+      color: #666;
+      line-height: 1.6;
+    }
+    
+    .process-section {
+      padding: 80px 0;
+      background: white;
+    }
+    
+    .process-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-top: 60px;
+    }
+    
+    .process-step {
+      text-align: center;
+      position: relative;
+    }
+    
+    .step-number {
+      width: 60px;
+      height: 60px;
+      background: #2a7ae4;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+    }
+    
+    .process-step h4 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #32373c;
+    }
+    
+    .pricing-section {
+      padding: 80px 0;
+      background: #f8f9fa;
+    }
+    
+    .pricing-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+    
+    .pricing-card {
+      background: white;
+      padding: 50px 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+      text-align: center;
+      position: relative;
+    }
+    
+    .pricing-card.featured {
+      border: 3px solid #2a7ae4;
+      transform: scale(1.05);
+    }
+    
+    .pricing-card .plan-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #32373c;
+      margin-bottom: 10px;
+    }
+    
+    .pricing-card .price {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #2a7ae4;
+      margin-bottom: 30px;
+    }
+    
+    .pricing-card .price span {
+      font-size: 1rem;
+      color: #666;
+    }
+    
+    .pricing-features {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 40px;
+    }
+    
+    .pricing-features li {
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .pricing-features li:last-child {
+      border-bottom: none;
+    }
+    
+    .cta-section {
+      padding: 80px 0;
+      background: linear-gradient(135deg, #32373c 0%, #2a7ae4 100%);
+      color: white;
+      text-align: center;
+    }
+    
+    .cta-section h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    
+    .cta-section p {
+      font-size: 1.2rem;
+      margin-bottom: 40px;
+      opacity: 0.9;
+    }
+    
+    .btn-primary {
+      background: #bfa16b;
+      color: white;
+      padding: 15px 40px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      background: #a68955;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(191, 161, 107, 0.3);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: #2a7ae4;
+      border: 2px solid #2a7ae4;
+      padding: 12px 30px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+      transition: all 0.3s ease;
+      margin-left: 20px;
+    }
+    
+    .btn-secondary:hover {
+      background: #2a7ae4;
+      color: white;
+    }
+    
+    @media (max-width: 768px) {
+      .service-hero h1 {
+        font-size: 2.5rem;
+      }
+      
+      .features-grid,
+      .process-steps,
+      .pricing-cards {
+        grid-template-columns: 1fr;
+      }
+      
+      .pricing-card.featured {
+        transform: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="header_panel">
+      <div class="container">
+        <div class="header_action">
+          <a class="header_action_item" href="tel:+254706641871">
+            <svg class="svg_tel_icon">
+              <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#tel_icon"></use>
+            </svg>
+            <span>+254706641871</span>
+          </a>
+          <a class="header_action_item" href="https://wa.me/254706641871" target="_blank">
+            <svg class="svg_wa_icon">
+              <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#wa_icon"></use>
+            </svg>
+            <span>WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="header_main">
+      <div class="container">
+        <div class="header_main_wrap">
+          <a class="header_logo" href="../index.html">
+            <img src="../wp-content/themes/source/images/logo.png" alt="Zentro Homes">
+          </a>
+          <button class="header_toggle">
+            <div class="header_toggle_inner">
+              <span></span>
+            </div>
+          </button>
+          <div class="header_navbar">
+            <nav class="header_nav">
+              <ul id="menu-main-menu" class="menu">
+                <li class="has_submenu menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-378">
+                  <a href="#">Solutions<svg class="svg_arrow_nav">
+                      <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#arrow_nav"></use>
+                    </svg></a>
+                  <div class="header_submenu">
+                    <div class="header_submenu_box">
+                      <ul>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-272 current-menu-item">
+                          <a href="../letting-management/index.html">Letting & Management</a>
+                        </li>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-282">
+                          <a href="../sell-your-portfolio/index.html">Sell Your Portfolio</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="has_submenu menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-20">
+                  <a href="#">Who We Work With<svg class="svg_arrow_nav">
+                      <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#arrow_nav"></use>
+                    </svg></a>
+                  <div class="header_submenu">
+                    <div class="header_submenu_box">
+                      <ul>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-308">
+                          <a href="../portfolio-landlords/index.html">Portfolio Landlords</a>
+                        </li>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-300">
+                          <a href="../international-buyers/index.html">International Buyers</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-155">
+                  <a href="../about/index.html">About</a>
+                </li>
+              </ul>
+              <a class="btn btn_small" href="../contact-us/index.html">Contact Us</a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="service-hero">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <h1>
+            Professional Letting & <span class="dynamic-text">Management</span>
+          </h1>
+          <p class="subtitle">Maximize your rental income with our comprehensive property management services. From tenant sourcing to maintenance coordination, we handle everything.</p>
+          <div class="hero-buttons">
+            <a href="#contact" class="btn-primary">Get Started Today</a>
+            <a href="#pricing" class="btn-secondary">View Pricing</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="service-features">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Our Services</h3>
+        <h2 class="title_section">Complete Property Management Solutions</h2>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3>Tenant Sourcing & Screening</h3>
+          <p>Professional tenant vetting with comprehensive background checks, credit verification, and reference validation to ensure reliable tenants for your property.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Rent Collection & Management</h3>
+          <p>Automated rent collection system with real-time reporting, late payment follow-up, and detailed financial statements delivered monthly.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-tools"></i>
+          </div>
+          <h3>Maintenance & Repairs</h3>
+          <p>24/7 maintenance coordination with our network of trusted contractors, emergency response, and regular property inspections to maintain value.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-file-contract"></i>
+          </div>
+          <h3>Legal Compliance</h3>
+          <p>Full legal compliance management including tenancy agreements, deposit protection, safety certificates, and eviction procedures when necessary.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-camera"></i>
+          </div>
+          <h3>Property Marketing</h3>
+          <p>Professional photography, online listings across major platforms, virtual tours, and targeted marketing to minimize void periods.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-mobile-alt"></i>
+          </div>
+          <h3>Digital Portal Access</h3>
+          <p>Access your property dashboard 24/7 with real-time updates, financial reports, maintenance requests, and tenant communications.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Process Section -->
+  <section class="process-section">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">How It Works</h3>
+        <h2 class="title_section">Simple 5-Step Process</h2>
+      </div>
+      
+      <div class="process-steps">
+        <div class="process-step">
+          <div class="step-number">1</div>
+          <h4>Property Assessment</h4>
+          <p>We evaluate your property and provide market rental assessment with optimization recommendations.</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">2</div>
+          <h4>Marketing & Advertising</h4>
+          <p>Professional photography and listing on major rental platforms to attract quality tenants quickly.</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">3</div>
+          <h4>Tenant Screening</h4>
+          <p>Comprehensive vetting process including credit checks, employment verification, and references.</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">4</div>
+          <h4>Tenancy Setup</h4>
+          <p>Legal agreements, deposit handling, inventory, and move-in coordination with full documentation.</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">5</div>
+          <h4>Ongoing Management</h4>
+          <p>Monthly rent collection, maintenance coordination, regular inspections, and detailed reporting.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="pricing-section" id="pricing">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Transparent Pricing</h3>
+        <h2 class="title_section">Choose Your Management Package</h2>
+      </div>
+      
+      <div class="pricing-cards">
+        <div class="pricing-card">
+          <div class="plan-name">Letting Only</div>
+          <div class="price">8% <span>+ VAT</span></div>
+          <ul class="pricing-features">
+            <li>Professional marketing & advertising</li>
+            <li>Tenant sourcing & screening</li>
+            <li>Tenancy agreement preparation</li>
+            <li>Deposit handling</li>
+            <li>Move-in coordination</li>
+            <li>One-off fee on successful letting</li>
+          </ul>
+          <a href="#contact" class="btn-primary">Get Started</a>
+        </div>
+        
+        <div class="pricing-card featured">
+          <div class="plan-name">Full Management</div>
+          <div class="price">12% <span>+ VAT</span></div>
+          <ul class="pricing-features">
+            <li>Everything in Letting Only</li>
+            <li>Monthly rent collection</li>
+            <li>Maintenance coordination</li>
+            <li>Regular property inspections</li>
+            <li>24/7 emergency response</li>
+            <li>Monthly financial reporting</li>
+            <li>Tenant relationship management</li>
+          </ul>
+          <a href="#contact" class="btn-primary">Most Popular</a>
+        </div>
+        
+        <div class="pricing-card">
+          <div class="plan-name">Premium Plus</div>
+          <div class="price">15% <span>+ VAT</span></div>
+          <ul class="pricing-features">
+            <li>Everything in Full Management</li>
+            <li>Guaranteed rent scheme</li>
+            <li>Property improvement advice</li>
+            <li>Quarterly market reviews</li>
+            <li>Priority maintenance response</li>
+            <li>Dedicated account manager</li>
+            <li>Investment portfolio analysis</li>
+          </ul>
+          <a href="#contact" class="btn-primary">Premium Service</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section" id="contact">
+    <div class="container">
+      <h2>Ready to Maximize Your Rental Income?</h2>
+      <p>Join over 500+ satisfied landlords who trust Zentro Homes with their property management needs.</p>
+      <div class="cta-buttons">
+        <a href="../contact-us/index.html" class="btn-primary">Get Free Assessment</a>
+        <a href="tel:+254706641871" class="btn-secondary" style="color: white; border-color: white;">Call Now: +254 706 641 871</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Form Section -->
+  <div class="contact-section">
+    <div class="content_bg">
+      <img src="../wp-content/uploads/2025/02/B.jpg" alt="Contact Background">
+    </div>
+    <div class="container">
+      <div class="contact-container">
+        <div class="contact-title">
+          <h3 class="title_category light">Get In Touch</h3>
+          <h2 class="title_section light">Let's Start Your <em>Property Journey</em></h2>
+        </div>
+
+        <form class="contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" placeholder="Your name" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" placeholder="Your email" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" placeholder="Your phone">
+            </div>
+            <div class="form-group">
+              <label for="interest">I'm interested in</label>
+              <select id="interest" name="interest">
+                <option value="">Select an option</option>
+                <option value="buying">Buying a property</option>
+                <option value="selling">Selling a property</option>
+                <option value="investing">Investment opportunities</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row full-width">
+            <div class="form-group">
+              <label for="message">Your Message</label>
+              <textarea id="message" name="message" placeholder="Tell us more about what you're looking for..." rows="4"></textarea>
+            </div>
+          </div>
+          <div class="form-submit">
+            <button type="submit" class="submit-button">Send Message</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer_bottom">
+        <p>&copy; 2025 Zentro Homes. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../wp-content/themes/source/js/main.min.js"></script>
+  <script src="../js/dynamic-text.js"></script>
+</body>
+
+</html>

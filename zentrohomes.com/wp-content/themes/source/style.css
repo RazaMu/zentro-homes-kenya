@@ -1,0 +1,52 @@
+.aligncenter,
+div.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.alignleft {
+	float: left;
+	margin-right: 20px;
+	margin-bottom: 15px;
+}
+
+.alignright {
+	float: right;
+	margin-left: 20px;
+	margin-bottom: 15px;
+}
+
+.wp-caption {
+	border: 1px solid #ddd;
+	text-align: center;
+	background-color: #f3f3f3;
+	padding-top: 4px;
+	margin: 10px;
+	-moz-border-radius: 3px;
+	-khtml-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+}
+
+.wp-caption img {
+	margin: 0;
+	padding: 0;
+	border: 0 none;
+}
+
+.wp-caption p.wp-caption-text {
+	font-size: 11px;
+	line-height: 17px;
+	padding: 0 4px 5px;
+	margin: 0;
+}
+
+.current-menu-item > a, .current-menu-ancestor > a, .current-menu-parent > a { 
+	color: #00987a !important; 
+}
+
+
+.wpcf7-response-output { margin:15px 0 0 0 !important; text-align:center; background:#fff; font-size:15px; }
+.wpcf7-not-valid { border: 1px solid #C00 !important; }
+.wpcf7-not-valid-tip, .redirect_form .send .wpcf7-response-output { display:none !important; }

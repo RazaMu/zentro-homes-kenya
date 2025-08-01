@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="en">
+
+<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+  <meta name="format-detection" content="telephone=no" />
+  <meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+  
+  <title>Portfolio Landlords - Zentro Homes</title>
+  <meta name="description" content="Comprehensive property investment services for portfolio landlords. Expert acquisition, management, and growth strategies for serious property investors in Kenya.">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="../wp-content/uploads/2025/02/favicon-1.svg" sizes="32x32" />
+  <link rel="icon" href="../wp-content/uploads/2025/02/favicon-1.svg" sizes="192x192" />
+  <link rel="apple-touch-icon" href="../wp-content/uploads/2025/02/favicon-1.svg" />
+  <meta name="msapplication-TileImage" content="https://zentrohomes.com/wp-content/uploads/2025/02/favicon-1.svg" />
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" type="text/css" href="../wp-content/themes/source/css/main.min.css">
+  <link rel="stylesheet" type="text/css" href="../wp-content/themes/source/style.css">
+  <link rel="stylesheet" type="text/css" href="../css/consolidated-apartments.css">
+  <link rel="stylesheet" type="text/css" href="../css/company-sections.css">
+  <link rel="stylesheet" type="text/css" href="../css/contact-form.css">
+  <link rel="stylesheet" type="text/css" href="../css/dynamic-text.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-adjustments.css">
+  <link rel="stylesheet" type="text/css" href="../css/responsive.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* Page-specific styles */
+    .service-hero {
+      background-color: #171e22;
+      padding: 120px 0 80px 0;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .service-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('../wp-content/uploads/2025/02/landlords_img.svg') center/cover;
+      opacity: 0.1;
+      z-index: 1;
+    }
+    
+    .service-hero .container {
+      position: relative;
+      z-index: 2;
+    }
+    
+    .service-hero h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+    
+    /* White dynamic text styles for hero sections */
+    .service-hero .dynamic-text {
+      color: white;
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-weight: 600;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Whoosh animation for H1 titles */
+    .service-hero h1 {
+      opacity: 0;
+      transform: translateX(-50px);
+      animation: whooshIn 1s ease-out 0.3s forwards;
+    }
+    
+    @keyframes whooshIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .service-hero .subtitle {
+      font-size: 1.3rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+    
+    .investor-types {
+      padding: 80px 0;
+      background: white;
+    }
+    
+    .types-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+    
+    .type-card {
+      background: #f8f9fa;
+      padding: 40px 30px;
+      border-radius: 20px;
+      text-align: center;
+      border-top: 5px solid #32373c;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+    }
+    
+    .type-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    }
+    
+    .type-icon {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #32373c, #2a7ae4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 30px;
+      font-size: 2.5rem;
+      color: white;
+    }
+    
+    .type-card h3 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #32373c;
+    }
+    
+    .type-features {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+      margin-bottom: 30px;
+    }
+    
+    .type-features li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #666;
+    }
+    
+    .type-features i {
+      color: #32373c;
+      font-size: 1.1rem;
+    }
+    
+    .services-section {
+      padding: 80px 0;
+      background: #f8f9fa;
+    }
+    
+    .services-tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 60px;
+      gap: 10px;
+      border-bottom: 3px solid #e9ecef;
+      padding-bottom: 20px;
+    }
+    
+    .tab-button {
+      background: transparent;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .tab-button.active {
+      color: #32373c;
+      background: white;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .tab-button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -23px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 3px;
+      background: #32373c;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+    
+    .service-item {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      border-left: 4px solid #32373c;
+    }
+    
+    .service-item h4 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #32373c;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .service-item i {
+      color: #2a7ae4;
+      font-size: 1.5rem;
+    }
+    
+    .success-section {
+      padding: 80px 0;
+      background: white;
+    }
+    
+    .success-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+      text-align: center;
+    }
+    
+    .stat-item {
+      padding: 30px 20px;
+    }
+    
+    .stat-number {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #32373c;
+      margin-bottom: 10px;
+      display: block;
+    }
+    
+    .stat-label {
+      font-size: 1.1rem;
+      color: #666;
+      font-weight: 500;
+    }
+    
+    .testimonials-section {
+      padding: 80px 0;
+      background: #f8f9fa;
+    }
+    
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+    
+    .testimonial-card {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      position: relative;
+    }
+    
+    .testimonial-card::before {
+      content: '"';
+      position: absolute;
+      top: -10px;
+      left: 30px;
+      font-size: 4rem;
+      color: #32373c;
+      font-weight: 700;
+      opacity: 0.3;
+    }
+    
+    .testimonial-text {
+      font-style: italic;
+      margin-bottom: 25px;
+      color: #666;
+      line-height: 1.6;
+    }
+    
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .author-info h5 {
+      font-weight: 700;
+      color: #32373c;
+      margin-bottom: 5px;
+    }
+    
+    .author-info span {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .cta-section {
+      padding: 80px 0;
+      background-color: #171e22;
+      color: white;
+      text-align: center;
+    }
+    
+    .btn-primary {
+      background: #bfa16b;
+      color: white;
+      padding: 15px 40px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      background: #a68955;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(191, 161, 107, 0.3);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: white;
+      border: 2px solid white;
+      padding: 12px 30px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+      transition: all 0.3s ease;
+      margin-left: 20px;
+    }
+    
+    .btn-secondary:hover {
+      background: white;
+      color: #32373c;
+    }
+    
+    @media (max-width: 768px) {
+      .service-hero h1 {
+        font-size: 2.5rem;
+      }
+      
+      .services-tabs {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .types-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="header_panel">
+      <div class="container">
+        <div class="header_action">
+          <a class="header_action_item" href="tel:+254706641871">
+            <svg class="svg_tel_icon">
+              <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#tel_icon"></use>
+            </svg>
+            <span>+254706641871</span>
+          </a>
+          <a class="header_action_item" href="https://wa.me/254706641871" target="_blank">
+            <svg class="svg_wa_icon">
+              <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#wa_icon"></use>
+            </svg>
+            <span>WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="header_main">
+      <div class="container">
+        <div class="header_main_wrap">
+          <a class="header_logo" href="../index.html">
+            <img src="../wp-content/themes/source/images/logo.png" alt="Zentro Homes">
+          </a>
+          <button class="header_toggle">
+            <div class="header_toggle_inner">
+              <span></span>
+            </div>
+          </button>
+          <div class="header_navbar">
+            <nav class="header_nav">
+              <ul id="menu-main-menu" class="menu">
+                <li class="has_submenu menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-378">
+                  <a href="#">Solutions<svg class="svg_arrow_nav">
+                      <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#arrow_nav"></use>
+                    </svg></a>
+                  <div class="header_submenu">
+                    <div class="header_submenu_box">
+                      <ul>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-272">
+                          <a href="../letting-management/index.html">Letting & Management</a>
+                        </li>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-282">
+                          <a href="../sell-your-portfolio/index.html">Sell Your Portfolio</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="has_submenu menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-20">
+                  <a href="#">Who We Work With<svg class="svg_arrow_nav">
+                      <use xlink:href="../wp-content/themes/source/images/sprite/sprite.svg#arrow_nav"></use>
+                    </svg></a>
+                  <div class="header_submenu">
+                    <div class="header_submenu_box">
+                      <ul>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-308 current-menu-item">
+                          <a href="../portfolio-landlords/index.html">Portfolio Landlords</a>
+                        </li>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-300">
+                          <a href="../international-buyers/index.html">International Buyers</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-155">
+                  <a href="../about/index.html">About</a>
+                </li>
+              </ul>
+              <a class="btn btn_small" href="../contact-us/index.html">Contact Us</a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="service-hero">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <h1>
+            Portfolio <span class="dynamic-text">Landlords</span>
+          </h1>
+          <p class="subtitle">Comprehensive property investment services for serious landlords. From acquisition to management, we help you build and optimize your property portfolio for maximum returns.</p>
+          <div class="hero-buttons">
+            <a href="#contact" class="btn-primary">Start Building Your Portfolio</a>
+            <a href="#services" class="btn-secondary">Our Services</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Investor Types Section -->
+  <section class="investor-types">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Who We Serve</h3>
+        <h2 class="title_section">Portfolio Landlord Types</h2>
+      </div>
+      
+      <div class="types-grid">
+        <div class="type-card">
+          <div class="type-icon">
+            <i class="fas fa-seedling"></i>
+          </div>
+          <h3>Growing Investors</h3>
+          <p style="margin-bottom: 25px;">Building your first 2-10 property portfolio with strategic guidance and support.</p>
+          <ul class="type-features">
+            <li><i class="fas fa-check"></i> First-time investor guidance</li>
+            <li><i class="fas fa-check"></i> Property sourcing & analysis</li>
+            <li><i class="fas fa-check"></i> Financing strategy support</li>
+            <li><i class="fas fa-check"></i> Portfolio planning roadmap</li>
+            <li><i class="fas fa-check"></i> Risk management education</li>
+          </ul>
+          <a href="#contact" class="btn-primary" style="font-size: 1rem; padding: 12px 25px;">Get Started</a>
+        </div>
+        
+        <div class="type-card">
+          <div class="type-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Established Portfolios</h3>
+          <p style="margin-bottom: 25px;">Owners of 10-50+ properties looking to optimize and expand strategically.</p>
+          <ul class="type-features">
+            <li><i class="fas fa-check"></i> Portfolio performance analysis</li>
+            <li><i class="fas fa-check"></i> Asset optimization strategies</li>
+            <li><i class="fas fa-check"></i> Market expansion planning</li>
+            <li><i class="fas fa-check"></i> Tax efficiency structuring</li>
+            <li><i class="fas fa-check"></i> Exit strategy development</li>
+          </ul>
+          <a href="#contact" class="btn-primary" style="font-size: 1rem; padding: 12px 25px;">Optimize Portfolio</a>
+        </div>
+        
+        <div class="type-card">
+          <div class="type-icon">
+            <i class="fas fa-building"></i>
+          </div>
+          <h3>Commercial Investors</h3>
+          <p style="margin-bottom: 25px;">Large-scale investors focused on commercial and mixed-use developments.</p>
+          <ul class="type-features">
+            <li><i class="fas fa-check"></i> Commercial property sourcing</li>
+            <li><i class="fas fa-check"></i> Development opportunity analysis</li>
+            <li><i class="fas fa-check"></i> Institutional funding access</li>
+            <li><i class="fas fa-check"></i> Joint venture partnerships</li>
+            <li><i class="fas fa-check"></i> Large-scale management</li>
+          </ul>
+          <a href="#contact" class="btn-primary" style="font-size: 1rem; padding: 12px 25px;">Scale Up</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section class="services-section" id="services">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Our Services</h3>
+        <h2 class="title_section">Complete Portfolio Solutions</h2>
+      </div>
+      
+      <div class="services-tabs">
+        <button class="tab-button active" onclick="switchTab(event, 'acquisition')">Acquisition</button>
+        <button class="tab-button" onclick="switchTab(event, 'management')">Management</button>
+        <button class="tab-button" onclick="switchTab(event, 'optimization')">Optimization</button>
+        <button class="tab-button" onclick="switchTab(event, 'expansion')">Expansion</button>
+      </div>
+      
+      <div id="acquisition" class="tab-content active">
+        <div class="service-grid">
+          <div class="service-item">
+            <h4><i class="fas fa-search"></i> Property Sourcing</h4>
+            <p>Access to off-market deals, exclusive listings, and investment opportunities tailored to your portfolio strategy.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-calculator"></i> Investment Analysis</h4>
+            <p>Comprehensive due diligence, cash flow modeling, and ROI projections for informed investment decisions.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-handshake"></i> Negotiation Support</h4>
+            <p>Expert negotiation services to secure the best purchase terms and conditions for your investments.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-university"></i> Financing Solutions</h4>
+            <p>Access to specialist landlord mortgages, bridging finance, and alternative funding sources.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-file-contract"></i> Legal Coordination</h4>
+            <p>Complete legal support through the acquisition process, ensuring smooth and compliant transactions.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-hammer"></i> Refurbishment Management</h4>
+            <p>Project management for property improvements to maximize rental value and tenant appeal.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div id="management" class="tab-content">
+        <div class="service-grid">
+          <div class="service-item">
+            <h4><i class="fas fa-users"></i> Tenant Management</h4>
+            <p>Full tenant lifecycle management from sourcing and screening to rent collection and renewals.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-tools"></i> Maintenance Coordination</h4>
+            <p>Proactive maintenance programs and 24/7 emergency response to protect your property values.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-chart-bar"></i> Financial Reporting</h4>
+            <p>Detailed monthly financial reports, tax documentation, and portfolio performance analytics.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-shield-alt"></i> Insurance Management</h4>
+            <p>Comprehensive insurance coordination including landlord, contents, and liability coverage.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-gavel"></i> Legal Compliance</h4>
+            <p>Ensuring all properties meet legal requirements including safety certifications and regulations.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-mobile-alt"></i> Digital Dashboard</h4>
+            <p>Real-time access to your portfolio performance through our landlord portal and mobile app.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div id="optimization" class="tab-content">
+        <div class="service-grid">
+          <div class="service-item">
+            <h4><i class="fas fa-analytics"></i> Performance Analysis</h4>
+            <p>Regular portfolio reviews identifying underperforming assets and improvement opportunities.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-arrow-up"></i> Rent Optimization</h4>
+            <p>Market-based rent reviews and strategic increases to maximize rental income potential.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-coins"></i> Tax Efficiency</h4>
+            <p>Tax planning strategies to minimize liability and maximize after-tax returns from your portfolio.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-exchange-alt"></i> Asset Repositioning</h4>
+            <p>Strategic buying and selling decisions to optimize your portfolio composition and performance.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-lightbulb"></i> Value-Add Strategies</h4>
+            <p>Identifying and implementing improvement projects that increase property values and rental yields.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-target"></i> Goal Alignment</h4>
+            <p>Regular strategy reviews ensuring your portfolio aligns with your long-term financial objectives.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div id="expansion" class="tab-content">
+        <div class="service-grid">
+          <div class="service-item">
+            <h4><i class="fas fa-map"></i> Market Expansion</h4>
+            <p>Strategic expansion into new geographic markets with high growth and rental yield potential.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-puzzle-piece"></i> Portfolio Diversification</h4>
+            <p>Diversifying across property types, locations, and tenant demographics to reduce risk.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-users-cog"></i> Joint Ventures</h4>
+            <p>Partnership opportunities with other investors for larger deals and shared expertise.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-rocket"></i> Growth Funding</h4>
+            <p>Access to growth capital through specialist lenders and investment partners.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-cogs"></i> Scaling Systems</h4>
+            <p>Implementing systems and processes that support efficient management of larger portfolios.</p>
+          </div>
+          <div class="service-item">
+            <h4><i class="fas fa-graduation-cap"></i> Investor Education</h4>
+            <p>Ongoing education and market insights to support your development as a property investor.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Success Stats Section -->
+  <section class="success-section">
+    <div class="container">
+      <div class="text-center">
+        <h3 class="title_category">Our Track Record</h3>
+        <h2 class="title_section">Portfolio Landlord Success</h2>
+      </div>
+      
+      <div class="success-stats">
+        <div class="stat-item">
+          <span class="stat-number">250+</span>
+          <span class="stat-label">Portfolio Landlords Served</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">KSh 2.8B</span>
+          <span class="stat-label">Properties Under Management</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">18.5%</span>
+          <span class="stat-label">Average Portfolio ROI</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">96%</span>
+          <span class="stat-label">Client Retention Rate</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section" id="contact">
+    <div class="container">
+      <h2>Ready to Grow Your Property Portfolio?</h2>
+      <p>Join Kenya's most successful portfolio landlords with our comprehensive investment and management services.</p>
+      <div class="cta-buttons">
+        <a href="../contact-us/index.html" class="btn-primary">Start Your Journey</a>
+        <a href="tel:+254706641871" class="btn-secondary">Call: +254 706 641 871</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Form Section -->
+  <div class="contact-section">
+    <div class="content_bg">
+      <img src="../wp-content/uploads/2025/02/B.jpg" alt="Contact Background">
+    </div>
+    <div class="container">
+      <div class="contact-container">
+        <div class="contact-title">
+          <h3 class="title_category light">Get In Touch</h3>
+          <h2 class="title_section light">Let's Start Your <em>Property Journey</em></h2>
+        </div>
+
+        <form class="contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" placeholder="Your name" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" placeholder="Your email" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" placeholder="Your phone">
+            </div>
+            <div class="form-group">
+              <label for="interest">I'm interested in</label>
+              <select id="interest" name="interest">
+                <option value="">Select an option</option>
+                <option value="buying">Buying a property</option>
+                <option value="selling">Selling a property</option>
+                <option value="investing">Investment opportunities</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row full-width">
+            <div class="form-group">
+              <label for="message">Your Message</label>
+              <textarea id="message" name="message" placeholder="Tell us more about what you're looking for..." rows="4"></textarea>
+            </div>
+          </div>
+          <div class="form-submit">
+            <button type="submit" class="submit-button">Send Message</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer_bottom">
+        <p>&copy; 2025 Zentro Homes. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../wp-content/themes/source/js/main.min.js"></script>
+  <script src="../js/dynamic-text.js"></script>
+  <script>
+    function switchTab(evt, tabName) {
+      var i, tabcontent, tabbuttons;
+      
+      // Hide all tab content
+      tabcontent = document.getElementsByClassName("tab-content");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].classList.remove("active");
+      }
+      
+      // Remove active class from all tab buttons
+      tabbuttons = document.getElementsByClassName("tab-button");
+      for (i = 0; i < tabbuttons.length; i++) {
+        tabbuttons[i].classList.remove("active");
+      }
+      
+      // Show the selected tab content and mark button as active
+      document.getElementById(tabName).classList.add("active");
+      evt.currentTarget.classList.add("active");
+    }
+  </script>
+</body>
+
+</html>

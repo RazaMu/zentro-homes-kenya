@@ -1,0 +1,289 @@
+================================================================================
+                        SUPABASE SETUP GUIDE FOR ZENTRO HOMES
+================================================================================
+
+This guide provides comprehensive steps to set up Supabase database integration 
+for the Zentro Homes real estate website admin panel.
+
+================================================================================
+STEP 1: CREATE SUPABASE ACCOUNT AND PROJECT
+================================================================================
+
+1. Go to https://supabase.com and sign up for a free account
+2. Click "New Project" from your dashboard
+3. Fill in project details:
+   - Name: zentro-homes
+   - Database Password: Create a strong password (save this!)
+   - Region: Choose closest to your location (e.g., ap-southeast-1 for Asia)
+4. Click "Create new project"
+5. Wait for project setup to complete (2-3 minutes)
+
+================================================================================
+STEP 2: GET PROJECT CREDENTIALS
+================================================================================
+
+Once your project is ready:
+
+1. Go to Settings > API in your Supabase dashboard
+2. Copy and save these values (you'll need them later):
+   - Project URL (looks like: https://your-project-id.supabase.co)
+   - Project API Keys:
+     - anon/public key (starts with: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlxc2tsZHNrZW9rdmdpZ3lyZm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2ODQ0MDMsImV4cCI6MjA2OTI2MDQwM30.5Mly7KA5h8862yEaz0FeiIWfbThcOiEI9QPCk-SX_wo)
+     - service_role key (starts with: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlxc2tsZHNrZW9rdmdpZ3lyZm53Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzY4NDQwMywiZXhwIjoyMDY5MjYwNDAzfQ.51ZXyxnjeXUhrrufQrnZOh5-uo67N8Za6Qsz3Bm1TF4)
+
+IMPORTANT: Keep these credentials secure! Never commit them to public repositories.
+
+================================================================================
+STEP 3: CREATE DATABASE TABLES
+================================================================================
+
+1. Go to SQL Editor in your Supabase dashboard
+2. Run the following SQL commands to create the properties table:
+
+```sql
+-- Create properties table
+CREATE TABLE properties (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('For Sale', 'For Rent')),
+    price BIGINT NOT NULL,
+    currency VARCHAR(3) DEFAULT 'KES',
+    location_area VARCHAR(100) NOT NULL,
+    location_city VARCHAR(100) NOT NULL,
+    location_country VARCHAR(100) DEFAULT 'Kenya',
+    location_lat DECIMAL(10, 8),
+    location_lng DECIMAL(11, 8),
+    bedrooms INTEGER NOT NULL,
+    bathrooms INTEGER NOT NULL,
+    parking INTEGER DEFAULT 0,
+    size INTEGER NOT NULL,
+    size_unit VARCHAR(10) DEFAULT 'm²',
+    description TEXT NOT NULL,
+    main_image TEXT NOT NULL,
+    gallery_images TEXT[] DEFAULT ARRAY[]::TEXT[],
+    amenities TEXT[] DEFAULT ARRAY[]::TEXT[],
+    year_built INTEGER,
+    furnished BOOLEAN DEFAULT true,
+    available BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create an index on status for faster filtering
+CREATE INDEX idx_properties_status ON properties(status);
+
+-- Create an index on location for geographic queries
+CREATE INDEX idx_properties_location ON properties(location_city, location_area);
+
+-- Create a trigger to automatically update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_properties_updated_at 
+    BEFORE UPDATE ON properties 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+```
+
+3. Click "Run" to execute the SQL commands
+
+================================================================================
+STEP 4: SET UP ROW LEVEL SECURITY (OPTIONAL BUT RECOMMENDED)
+================================================================================
+
+For production use, enable Row Level Security:
+
+```sql
+-- Enable Row Level Security
+ALTER TABLE properties ENABLE ROW LEVEL SECURITY;
+
+-- Allow anyone to read properties (for public website)
+CREATE POLICY "Anyone can view properties" ON properties
+    FOR SELECT USING (true);
+
+-- Only authenticated users can insert/update/delete (for admin)
+CREATE POLICY "Authenticated users can insert properties" ON properties
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can update properties" ON properties
+    FOR UPDATE USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can delete properties" ON properties
+    FOR DELETE USING (auth.role() = 'authenticated');
+```
+
+================================================================================
+STEP 5: INSERT SAMPLE DATA (OPTIONAL)
+================================================================================
+
+To test your setup, insert some sample properties:
+
+```sql
+INSERT INTO properties (
+    title, type, status, price, location_area, location_city, 
+    bedrooms, bathrooms, parking, size, description, main_image, 
+    amenities, year_built
+) VALUES 
+(
+    'Luxury Villa in Kilimani',
+    'Villa',
+    'For Sale',
+    283000000,
+    'Kilimani',
+    'Nairobi',
+    8,
+    8,
+    6,
+    545,
+    'A stunning villa with panoramic city views, private pool, and luxury amenities.',
+    'wp-content/uploads/2025/02/unsplash.jpg',
+    ARRAY['Swimming Pool', 'Garden', 'Security', 'Parking', 'Modern Kitchen', 'Balcony'],
+    2022
+),
+(
+    'Modern Apartment in Westlands',
+    'Apartment',
+    'For Rent',
+    450000,
+    'Westlands',
+    'Nairobi',
+    3,
+    2,
+    2,
+    120,
+    'Modern apartment with contemporary design and premium finishes.',
+    'wp-content/uploads/2025/02/A-scaled.jpg',
+    ARRAY['Gym', 'Swimming Pool', 'Security', 'Parking'],
+    2023
+);
+```
+
+================================================================================
+STEP 6: CONFIGURE PROJECT FILES
+================================================================================
+
+1. Create a configuration file in your project:
+   - File: zentrohomes.com/js/supabase-config.js
+   - This file will contain your Supabase credentials and client setup
+
+2. Update your admin HTML to include Supabase client library:
+   - Add Supabase CDN script tag to admin/index.html
+
+3. Update the admin JavaScript to use Supabase instead of localStorage:
+   - Modify admin/js/admin.js to use Supabase client
+   - Replace localStorage operations with Supabase database calls
+
+================================================================================
+STEP 7: ENVIRONMENT VARIABLES (PRODUCTION)
+================================================================================
+
+For production deployment, use environment variables instead of hardcoded keys:
+
+1. Create a .env file in your project root:
+```
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+2. Never commit .env files to version control
+3. Add .env to your .gitignore file
+
+================================================================================
+STEP 8: TESTING YOUR SETUP
+================================================================================
+
+1. Open your admin panel (admin/index.html)
+2. Try adding a new property
+3. Check your Supabase dashboard > Table Editor > properties to see if data was saved
+4. Try editing and deleting properties
+5. Check that the main website displays properties from Supabase
+
+================================================================================
+STEP 9: BACKUP AND MAINTENANCE
+================================================================================
+
+1. Supabase automatically backs up your database
+2. You can access backups from Settings > Database > Backups
+3. For additional safety, regularly export your data:
+   - Go to Table Editor
+   - Select your properties table
+   - Click "Export" to download CSV
+
+================================================================================
+TROUBLESHOOTING COMMON ISSUES
+================================================================================
+
+Issue: "Invalid API key" error
+Solution: Double-check your API keys are copied correctly without extra spaces
+
+Issue: CORS errors in browser
+Solution: Make sure you're using the correct project URL and anon key
+
+Issue: "Row Level Security" policy violations
+Solution: If using RLS, ensure your policies allow the operations you're trying to perform
+
+Issue: Connection timeouts
+Solution: Check your internet connection and Supabase status page
+
+Issue: Data not appearing on website
+Solution: Verify your JavaScript is calling the correct Supabase functions
+
+================================================================================
+SECURITY BEST PRACTICES
+================================================================================
+
+1. Never expose your service_role key in client-side code
+2. Use Row Level Security policies in production
+3. Enable database webhooks for audit logging if needed
+4. Regularly rotate your API keys
+5. Monitor usage in Supabase dashboard
+6. Set up proper authentication for admin users in production
+
+================================================================================
+COST CONSIDERATIONS
+================================================================================
+
+Supabase Free Tier includes:
+- Up to 50,000 monthly active users
+- 500MB database space
+- 1GB file storage
+- 5GB bandwidth
+
+For a real estate website, this should be sufficient for getting started.
+Monitor usage in your Supabase dashboard and upgrade when needed.
+
+================================================================================
+SUPPORT AND RESOURCES
+================================================================================
+
+- Supabase Documentation: https://supabase.com/docs
+- Supabase JavaScript Client Docs: https://supabase.com/docs/reference/javascript
+- Community Support: https://github.com/supabase/supabase/discussions
+- Discord Community: https://discord.supabase.com
+
+================================================================================
+COMPLETION CHECKLIST
+================================================================================
+
+□ Created Supabase account and project
+□ Copied project URL and API keys
+□ Created properties table with SQL commands
+□ Set up Row Level Security (optional)
+□ Inserted sample data for testing
+□ Updated project files with Supabase integration
+□ Tested adding/editing/deleting properties through admin panel
+□ Verified properties display on main website
+□ Set up proper environment variables for production
+□ Created backup strategy
+
+================================================================================
+
+This completes the Supabase setup for your Zentro Homes project. The integration
+will allow you to store property data in a professional database instead of 
+localStorage, making your admin panel production-ready.

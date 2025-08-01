@@ -1,0 +1,20 @@
+{
+  "name": "zuberzz",
+  "version": "1.0.0",
+  "description": "",
+  "main": "check_image_urls.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "C:/Users/abdir/OneDrive/Documents/zentro"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.53.0"
+  }
+}
