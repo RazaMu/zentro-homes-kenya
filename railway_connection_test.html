@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Railway Database Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚂 Railway Database Connection Test</h1>
+        <p>Testing connection to your Railway PostgreSQL database for Zentro Homes</p>
+        
+        <div class="test-section">
+            <h2>Connection Details</h2>
+            <div id="connection-info" class="info">
+                <strong>Database:</strong> Railway PostgreSQL<br>
+                <strong>Host:</strong> turntable.proxy.rlwy.net:52389<br>
+                <strong>Database:</strong> railway<br>
+                <strong>Status:</strong> <span id="connection-status">Testing...</span>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Database Schema Test</h2>
+            <button onclick="testSchema()">Test Schema</button>
+            <div id="schema-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Property Operations Test</h2>
+            <button onclick="testGetProperties()">Get All Properties</button>
+            <button onclick="testAddProperty()">Add Test Property</button>
+            <button onclick="testSearch()">Test Search</button>
+            <div id="operations-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Data Manager Test</h2>
+            <button onclick="testDataManager()">Test Data Manager</button>
+            <div id="data-manager-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Live Results</h2>
+            <div id="live-results"></div>
+        </div>
+    </div>
+
+    <!-- Load the Railway configuration -->
+    <script src="zentrohomes.com/js/apartments-data.js"></script>
+    <script src="zentrohomes.com/js/railway-config.js"></script>
+
+    <script>
+        let testResults = [];
+
+        function logResult(test, status, message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const result = { test, status, message, data, timestamp };
+            testResults.push(result);
+            
+            const resultsDiv = document.getElementById('live-results');
+            const statusClass = status === 'success' ? 'success' : status === 'error' ? 'error' : 'info';
+            
+            resultsDiv.innerHTML += `
+                <div class="${statusClass}">
+                    <strong>[${timestamp}] ${test}:</strong> ${message}
+                    ${data ? `<pre>${JSON.stringify(data, null, 2)}</pre>` : ''}
+                </div>
+            `;
+            
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        // Test Railway connection and configuration
+        async function testRailwayConnection() {
+            logResult('Railway Config', 'info', 'Testing Railway configuration...');
+            
+            if (typeof window.railwayManager === 'undefined') {
+                logResult('Railway Manager', 'error', 'Railway manager not found. Waiting for initialization...');
+                
+                // Wait for Railway manager to be available
+                let attempts = 0;
+                while (!window.railwayManager && attempts < 50) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (!window.railwayManager) {
+                    logResult('Railway Manager', 'error', 'Railway manager failed to initialize after 5 seconds');
+                    return false;
+                }
+            }
+            
+            logResult('Railway Manager', 'success', 'Railway manager found and initialized');
+            
+            // Test connection
+            try {
+                const connectionResult = await window.railwayManager.testConnection();
+                if (connectionResult.success) {
+                    logResult('Connection Test', 'success', connectionResult.message);
+                    document.getElementById('connection-status').innerHTML = '<span style="color: green;">✅ Connected</span>';
+                    return true;
+                } else {
+                    logResult('Connection Test', 'error', connectionResult.message);
+                    document.getElementById('connection-status').innerHTML = '<span style="color: red;">❌ Failed</span>';
+                    return false;
+                }
+            } catch (error) {
+                logResult('Connection Test', 'error', `Connection test failed: ${error.message}`);
+                document.getElementById('connection-status').innerHTML = '<span style="color: red;">❌ Error</span>';
+                return false;
+            }
+        }
+
+        async function testSchema() {
+            const resultsDiv = document.getElementById('schema-results');
+            resultsDiv.innerHTML = '<div class="info">Testing database schema...</div>';
+            
+            try {
+                if (!window.railwayManager) {
+                    throw new Error('Railway manager not available');
+                }
+
+                // Test if we can query the properties table structure
+                const query = `
+                    SELECT column_name, data_type, is_nullable, column_default
+                    FROM information_schema.columns 
+                    WHERE table_schema = 'public' AND table_name = 'properties'
+                    ORDER BY ordinal_position
+                `;
+                
+                const result = await window.railwayManager.executeQuery(query);
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">✅ Schema test successful! Found ${result.rows.length} columns in properties table.</div>
+                    <pre>${JSON.stringify(result.rows, null, 2)}</pre>
+                `;
+                
+                logResult('Schema Test', 'success', `Found ${result.rows.length} columns in properties table`, result.rows);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Schema test failed: ${error.message}</div>`;
+                logResult('Schema Test', 'error', error.message);
+            }
+        }
+
+        async function testGetProperties() {
+            const resultsDiv = document.getElementById('operations-results');
+            resultsDiv.innerHTML = '<div class="info">Testing get all properties...</div>';
+            
+            try {
+                if (!window.railwayManager) {
+                    throw new Error('Railway manager not available');
+                }
+
+                const properties = await window.railwayManager.getAllProperties();
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">✅ Retrieved ${properties.length} properties from Railway database</div>
+                    ${properties.length > 0 ? `<pre>First property:\n${JSON.stringify(properties[0], null, 2)}</pre>` : '<div class="warning">No properties found in database</div>'}
+                `;
+                
+                logResult('Get Properties', 'success', `Retrieved ${properties.length} properties`, properties.length > 0 ? properties[0] : null);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Get properties failed: ${error.message}</div>`;
+                logResult('Get Properties', 'error', error.message);
+            }
+        }
+
+        async function testAddProperty() {
+            const resultsDiv = document.getElementById('operations-results');
+            resultsDiv.innerHTML += '<div class="info">Testing add property...</div>';
+            
+            try {
+                if (!window.railwayManager) {
+                    throw new Error('Railway manager not available');
+                }
+
+                const testProperty = {
+                    title: 'Test Property - Railway',
+                    type: 'Villa',
+                    status: 'For Sale',
+                    price: 5000000,
+                    currency: 'KES',
+                    location: {
+                        area: 'Test Area',
+                        city: 'Nairobi',
+                        country: 'Kenya',
+                        coordinates: { lat: -1.2921, lng: 36.8219 }
+                    },
+                    features: {
+                        bedrooms: 3,
+                        bathrooms: 2,
+                        parking: 1,
+                        size: 150,
+                        sizeUnit: 'm²'
+                    },
+                    description: 'This is a test property created to verify Railway database connection.',
+                    amenities: ['Test Amenity 1', 'Test Amenity 2'],
+                    yearBuilt: 2024,
+                    furnished: true,
+                    available: true,
+                    youtubeUrl: ''
+                };
+
+                const newProperty = await window.railwayManager.addProperty(testProperty);
+                
+                resultsDiv.innerHTML += `
+                    <div class="success">✅ Successfully added test property with ID: ${newProperty.id}</div>
+                    <pre>Added property:\n${JSON.stringify(newProperty, null, 2)}</pre>
+                `;
+                
+                logResult('Add Property', 'success', `Added test property with ID: ${newProperty.id}`, newProperty);
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `<div class="error">❌ Add property failed: ${error.message}</div>`;
+                logResult('Add Property', 'error', error.message);
+            }
+        }
+
+        async function testSearch() {
+            const resultsDiv = document.getElementById('operations-results');
+            resultsDiv.innerHTML += '<div class="info">Testing search functionality...</div>';
+            
+            try {
+                if (!window.railwayManager) {
+                    throw new Error('Railway manager not available');
+                }
+
+                const searchResults = await window.railwayManager.searchProperties('test');
+                
+                resultsDiv.innerHTML += `
+                    <div class="success">✅ Search completed. Found ${searchResults.length} results for "test"</div>
+                    ${searchResults.length > 0 ? `<pre>Search results:\n${JSON.stringify(searchResults, null, 2)}</pre>` : ''}
+                `;
+                
+                logResult('Search Test', 'success', `Found ${searchResults.length} results for "test"`, searchResults);
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `<div class="error">❌ Search test failed: ${error.message}</div>`;
+                logResult('Search Test', 'error', error.message);
+            }
+        }
+
+        async function testDataManager() {
+            const resultsDiv = document.getElementById('data-manager-results');
+            resultsDiv.innerHTML = '<div class="info">Testing Railway data manager...</div>';
+            
+            try {
+                // Check if shared data manager is available
+                if (!window.sharedDataManager) {
+                    throw new Error('Shared data manager not available');
+                }
+
+                const connectionInfo = window.sharedDataManager.getConnectionInfo();
+                const properties = window.sharedDataManager.getAllApartments();
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">✅ Data manager is working</div>
+                    <pre>Connection Info:\n${JSON.stringify(connectionInfo, null, 2)}</pre>
+                    <div class="info">Properties loaded: ${properties.length}</div>
+                `;
+                
+                logResult('Data Manager', 'success', `Data manager working with ${properties.length} properties`, connectionInfo);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Data manager test failed: ${error.message}</div>`;
+                logResult('Data Manager', 'error', error.message);
+            }
+        }
+
+        // Initialize tests when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            logResult('Page Load', 'info', 'Starting Railway database tests...');
+            
+            // Wait a moment for scripts to load
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testRailwayConnection();
+        });
+    </script>
+</body>
+</html>

@@ -1,39 +1,27 @@
--- =============================================
--- DATABASE MIGRATION COMMANDS - YouTube URL Implementation
--- Execute these commands in your Supabase SQL editor
--- =============================================
+railway=# \dtv
+               List of relations
+ Schema |       Name        | Type  |  Owner
+--------+-------------------+-------+----------
+ public | admin_sessions    | table | postgres
+ public | admin_users       | table | postgres
+ public | contact_inquiries | table | postgres
+ public | properties        | table | postgres
+ public | website_analytics | table | postgres
+(5 rows)
 
--- Step 1: Add YouTube URL column to properties table (if it doesn't exist)
-ALTER TABLE public.properties 
-ADD COLUMN IF NOT EXISTS youtube_url text;
 
--- Step 2: Add comment for documentation
-COMMENT ON COLUMN public.properties.youtube_url IS 'YouTube video URL for property showcase';
+railway=#
 
--- Step 3: DROP the property_videos table that's causing 404 errors
--- This will permanently delete all uploaded video data
-DROP TABLE IF EXISTS public.property_videos CASCADE;
 
--- Step 4: Clean up the sequence
-DROP SEQUENCE IF EXISTS property_videos_id_seq CASCADE;
+railway=# SELECT * FROM properties;
+ id | uuid | title | slug | type | status | price | currency | location_area | location_city | location_country | coordinates_lat | coordinates_lng | bedrooms | bathrooms | parking | size | size_unit | year_built | furnished | description | short_description | images | videos | virtual_tour_url | amenities | features | meta_title | meta_description | meta_keywords | available | featured | published | views_count | created_at | updated_at | published_at | search_vector | youtube_url
+----+------+-------+------+------+--------+-------+----------+---------------+---------------+------------------+-----------------+-----------------+----------+-----------+---------+------+-----------+------------+-----------+-------------+-------------------+--------+--------+------------------+-----------+----------+------------+------------------+---------------+-----------+----------+-----------+-------------+------------+------------+--------------+---------------+-------------
+(0 rows)
 
--- =============================================
--- VERIFICATION QUERIES
--- Run these to verify the changes worked
--- =============================================
 
--- Check if youtube_url column exists
-SELECT column_name, data_type, is_nullable 
-FROM information_schema.columns 
-WHERE table_name = 'properties' AND column_name = 'youtube_url';
+SELECT * FROM admin_users;
 
--- Verify property_videos table is gone (should return no rows)
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_name = 'property_videos';
+ id | uuid | name | email | password_hash | role | permissions | active | email_verified | last_login | login_count | reset_token | reset_token_expires | created_at | updated_at
+----+------+------+-------+---------------+------+-------------+--------+----------------+------------+-------------+-------------+---------------------+------------+------------
+(0 rows)
 
--- View properties table structure to confirm changes
-SELECT column_name, data_type, is_nullable, column_default
-FROM information_schema.columns 
-WHERE table_name = 'properties' 
-ORDER BY ordinal_position;
