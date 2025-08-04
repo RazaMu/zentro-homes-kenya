@@ -20,16 +20,6 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
-// Test database connection
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error('Error acquiring client:', err.stack);
-  } else {
-    console.log('✅ Connected to Railway PostgreSQL database');
-    release();
-  }
-});
-
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
@@ -49,7 +39,7 @@ app.use(helmet({
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? process.env.ALLOWED_ORIGINS?.split(',') || ['https://zentro-homes.up.railway.app']
-    : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5500'],
+    : ['http://localhost:3000', 'http://127.0.0.1:5500', 'http://localhost:5500'],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -83,6 +73,7 @@ if (process.env.NODE_ENV === 'production') {
 // Health check endpoint
 app.get('/health', async (req, res) => {
   try {
+    // A quick query to check the database connection
     await pool.query('SELECT 1');
     res.json({ 
       status: 'healthy', 
