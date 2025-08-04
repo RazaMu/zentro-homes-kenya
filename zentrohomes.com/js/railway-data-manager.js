@@ -13,6 +13,24 @@ class RailwayDataManager {
     this.init();
   }
   
+  // Safe JSON parser that handles invalid JSON gracefully
+  safeJSONParse(jsonString, fallback = null) {
+    try {
+      return JSON.parse(jsonString || (Array.isArray(fallback) ? '[]' : '{}'));
+    } catch (error) {
+      // If it's a string that looks like a comma-separated list, convert to array silently
+      if (typeof jsonString === 'string' && Array.isArray(fallback)) {
+        // Check if it contains commas - likely a comma-separated list (expected behavior)
+        if (jsonString.includes(',')) {
+          return jsonString.split(',').map(item => item.trim()).filter(item => item.length > 0);
+        }
+        // Log warning only for unexpected JSON parsing failures
+        console.warn('⚠️ JSON Parse Error:', error.message, 'Raw value:', jsonString);
+      }
+      return fallback;
+    }
+  }
+  
   async init() {
     // Wait for Railway client to be ready
     await this.waitForRailwayClient();
@@ -118,27 +136,27 @@ class RailwayDataManager {
       
       media: {
         images: Array.isArray(property.images) ? property.images : 
-                (typeof property.images === 'string' ? JSON.parse(property.images || '[]') : []),
+                (typeof property.images === 'string' ? this.safeJSONParse(property.images, []) : []),
         videos: Array.isArray(property.videos) ? property.videos : 
-                (typeof property.videos === 'string' ? JSON.parse(property.videos || '[]') : []),
+                (typeof property.videos === 'string' ? this.safeJSONParse(property.videos, []) : []),
         virtualTour: property.virtual_tour_url,
         youtubeUrl: property.youtube_url
       },
       
       amenities: Array.isArray(property.amenities) ? property.amenities : 
-                 (typeof property.amenities === 'string' ? JSON.parse(property.amenities || '[]') : []),
+                 (typeof property.amenities === 'string' ? this.safeJSONParse(property.amenities, []) : []),
       
       seo: {
         metaTitle: property.meta_title,
         metaDescription: property.meta_description,
         metaKeywords: Array.isArray(property.meta_keywords) ? property.meta_keywords :
-                      (typeof property.meta_keywords === 'string' ? JSON.parse(property.meta_keywords || '[]') : [])
+                      (typeof property.meta_keywords === 'string' ? this.safeJSONParse(property.meta_keywords, []) : [])
       },
       
       // Legacy compatibility fields
       description: property.description,
       images: Array.isArray(property.images) ? property.images : 
-              (typeof property.images === 'string' ? JSON.parse(property.images || '[]') : []),
+              (typeof property.images === 'string' ? this.safeJSONParse(property.images, []) : []),
       
       // Status fields
       available: property.available,
@@ -556,13 +574,53 @@ class RailwayDataManager {
     }
   }
   
-  // Save to localStorage (fallback)
+  // Save to localStorage (fallback) - exclude large image data
   saveToStorage() {
     try {
-      localStorage.setItem('zentro-apartments-railway', JSON.stringify(this.apartments));
+      // Create a lightweight version without large image data
+      const lightweightData = this.apartments.map(property => {
+        // Create a copy without images to save storage space
+        const lightProperty = { ...property };
+        
+        // Keep only image URLs, not full base64 data
+        if (lightProperty.images && Array.isArray(lightProperty.images)) {
+          lightProperty.images = lightProperty.images.map(img => {
+            if (typeof img === 'object' && img.url) {
+              // Keep only URL and metadata, remove large base64 data
+              return {
+                url: img.url.startsWith('data:') ? '[base64-image]' : img.url,
+                alt: img.alt,
+                isPrimary: img.isPrimary
+              };
+            }
+            return typeof img === 'string' && img.startsWith('data:') ? '[base64-image]' : img;
+          });
+        }
+        
+        return lightProperty;
+      });
+      
+      localStorage.setItem('zentro-apartments-railway', JSON.stringify(lightweightData));
       localStorage.setItem('zentro-last-update-railway', new Date().toISOString());
+      console.log('💾 Saved lightweight property data to localStorage (without large images)');
     } catch (error) {
       console.error('Failed to save to localStorage:', error);
+      // Try to clear some space and retry with even more minimal data
+      try {
+        const minimalData = this.apartments.map(p => ({
+          id: p.id,
+          title: p.title,
+          type: p.type,
+          status: p.status,
+          price: p.price
+        }));
+        localStorage.setItem('zentro-apartments-railway', JSON.stringify(minimalData));
+        console.log('💾 Saved minimal property data to localStorage');
+      } catch (retryError) {
+        console.error('Failed to save even minimal data to localStorage:', retryError);
+        // Clear the localStorage item to prevent corruption
+        localStorage.removeItem('zentro-apartments-railway');
+      }
     }
   }
   

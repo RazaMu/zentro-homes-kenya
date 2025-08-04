@@ -112,6 +112,14 @@ app.use(express.static(path.join(__dirname, 'zentrohomes.com'), {
   lastModified: true
 }));
 
+// Serve uploaded files from Railway volume
+const uploadPath = process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadPath, {
+  maxAge: process.env.NODE_ENV === 'production' ? '1d' : '1h',
+  etag: true,
+  lastModified: true
+}));
+
 // Handle React Router style routing
 app.get('*', (req, res) => {
   // Don't serve index.html for API routes

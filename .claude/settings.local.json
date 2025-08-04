@@ -10,7 +10,11 @@
       "Bash(sed:*)",
       "Bash(node:*)",
       "Bash(rg:*)",
-      "Bash(npx tailwindcss:*)"
+      "Bash(npx tailwindcss:*)",
+      "WebFetch(domain:docs.railway.com)",
+      "WebFetch(domain:station.railway.com)",
+      "WebFetch(domain:railway.com)",
+      "Bash(npm start)"
     ],
     "deny": []
   }

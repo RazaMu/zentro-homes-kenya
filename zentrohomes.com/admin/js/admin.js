@@ -11,9 +11,9 @@ class ZentroAdminRailway {
     this.isLoggedIn = false;
     this.currentUser = null;
     
-    // Media management - single image approach
+    // Media management - multiple images approach
     this.selectedMedia = {
-      image: null, // Single image file
+      images: [], // Array of image files (first one is main image)
       youtubeUrl: '' // YouTube URL for property video
     };
     this.maxImageSize = 10 * 1024 * 1024; // 10MB
@@ -121,8 +121,8 @@ class ZentroAdminRailway {
           <h2>Admin Login</h2>
           <form id="loginForm">
             <div class="form-group">
-              <label for="loginEmail">Email:</label>
-              <input type="email" id="loginEmail" required value="admin">
+              <label for="loginEmail">Username:</label>
+              <input type="text" id="loginEmail" required value="admin">
             </div>
             <div class="form-group">
               <label for="loginPassword">Password:</label>
@@ -160,7 +160,6 @@ class ZentroAdminRailway {
 
     // Add click handlers for drop zones that were previously inline
     const mediaVideoDropZone = document.getElementById('media-video-drop-zone');
-    const imagesDropZone = document.getElementById('images-drop-zone');
 
     if (mediaVideoDropZone) {
       mediaVideoDropZone.addEventListener('click', () => {
@@ -169,29 +168,48 @@ class ZentroAdminRailway {
       });
     }
 
-    if (imagesDropZone) {
-      imagesDropZone.addEventListener('click', () => {
-        const imagesInput = document.getElementById('images-input');
-        if (imagesInput) imagesInput.click();
-      });
-    }
+    // Images drop zone click handling is now managed by bindMultipleImageEvents()
 
-    // Add event delegation for dynamically created remove buttons
+    // Add event delegation for dynamically created buttons
     document.addEventListener('click', (e) => {
+      // Debug all clicks to see what's being clicked
+      if (e.target.hasAttribute('data-action')) {
+        console.log('🖱️ DEBUG: Button clicked with data-action:', e.target.getAttribute('data-action'));
+        console.log('🖱️ DEBUG: Button element:', e.target);
+        console.log('🖱️ DEBUG: Button classes:', e.target.className);
+        console.log('🖱️ DEBUG: Property ID:', e.target.getAttribute('data-property-id'));
+      }
+      
       if (e.target.classList.contains('remove-image-btn')) {
         const index = parseInt(e.target.getAttribute('data-remove-index'));
-        this.removeImage(index);
+        this.removeImageAtIndex(index);
+      }
+      
+      // Handle property action buttons (edit/delete)
+      if (e.target.hasAttribute('data-action') && e.target.hasAttribute('data-property-id')) {
+        const action = e.target.getAttribute('data-action');
+        const propertyId = parseInt(e.target.getAttribute('data-property-id'));
+        
+        console.log(`🎯 DEBUG: Action button clicked - Action: ${action}, Property ID: ${propertyId}`);
+        
+        if (action === 'edit') {
+          console.log('✏️ DEBUG: Calling editProperty for ID:', propertyId);
+          this.editProperty(propertyId);
+        } else if (action === 'delete') {
+          console.log('🗑️ DEBUG: Calling deleteProperty for ID:', propertyId);
+          this.deleteProperty(propertyId);
+        }
       }
     });
   }
 
   // Handle login
   async handleLogin() {
-    const email = (document.getElementById('loginEmail') || document.getElementById('username')).value;
+    const username = (document.getElementById('loginEmail') || document.getElementById('username')).value;
     const password = (document.getElementById('loginPassword') || document.getElementById('password')).value;
     
-    if (!email || !password) {
-      this.showNotification('Please enter email and password', 'error');
+    if (!username || !password) {
+      this.showNotification('Please enter username and password', 'error');
       return;
     }
 
@@ -204,7 +222,7 @@ class ZentroAdminRailway {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ username, password })
       });
 
       const result = await response.json();
@@ -514,33 +532,54 @@ class ZentroAdminRailway {
   }
 
   openPropertyModal(property = null) {
+    console.log('🎬 DEBUG: Opening property modal for:', property ? `editing "${property.title}"` : 'new property');
+    
     const modal = document.getElementById('property-modal');
     const modalTitle = document.getElementById('modal-title');
     const form = document.getElementById('property-form');
 
+    if (!modal || !modalTitle || !form) {
+      console.error('❌ DEBUG: Modal elements not found:', {
+        modal: !!modal,
+        modalTitle: !!modalTitle,
+        form: !!form
+      });
+      this.showNotification('Error: Modal elements not found', 'error');
+      return;
+    }
+
     // Clear media selections
     this.clearAllMedia();
 
-    if (property) {
-      modalTitle.textContent = 'Edit Property';
-      this.currentEditingId = property.id;
-      this.populatePropertyForm(property);
-    } else {
-      modalTitle.textContent = 'Add Property';
-      this.currentEditingId = null;
-      form.reset();
-    }
-
+    // Show modal first
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.body.style.overflow = 'hidden';
     
+    console.log('🎬 DEBUG: Modal is now visible');
+
+    if (property) {
+      modalTitle.textContent = 'Edit Property';
+      this.currentEditingId = property.id;
+      
+      // Wait for modal to be fully rendered before populating
+      setTimeout(() => {
+        console.log('🎯 DEBUG: Starting form population after modal render...');
+        this.populatePropertyForm(property);
+      }, 50);
+    } else {
+      modalTitle.textContent = 'Add Property';
+      this.currentEditingId = null;
+      form.reset();
+      console.log('📝 DEBUG: Form reset for new property');
+    }
+    
     // Bind media upload events after modal is shown
     setTimeout(() => {
-      console.log('🎬 Binding media events for Railway modal...');
+      console.log('🎬 DEBUG: Binding media events for Railway modal...');
       this.bindMultipleImageEvents();
       this.bindYouTubeEvents();
-      console.log('✅ Media events bound for Railway modal');
+      console.log('✅ DEBUG: Media events bound for Railway modal');
     }, 200);
   }
 
@@ -560,110 +599,244 @@ class ZentroAdminRailway {
   }
 
   populatePropertyForm(property) {
+    console.log('🎯 DEBUG: Starting form population for property:', property.title);
+    console.log('🎯 DEBUG: Full property data:', property);
+    
+    // Test if modal is open and form exists
+    const modal = document.getElementById('property-modal');
+    const form = document.getElementById('property-form');
+    console.log('🎯 DEBUG: Modal visible:', !modal?.classList.contains('hidden'));
+    console.log('🎯 DEBUG: Form exists:', !!form);
+    
     // Populate basic form fields
+    console.log('📝 DEBUG: Populating basic fields...');
     this.setFormValue('property-title', property.title);
     this.setFormValue('property-type', property.type);
     this.setFormValue('property-status', property.status);
     this.setFormValue('property-price', property.price);
-    this.setFormValue('property-currency', property.currency);
+    this.setFormValue('property-currency', property.currency || 'KES');
     
     // Location fields (flat structure from database)
+    console.log('📍 DEBUG: Populating location fields...');
     this.setFormValue('property-area', property.location_area);
     this.setFormValue('property-city', property.location_city);
-    this.setFormValue('property-country', property.location_country);
-    // Parse coordinates if they exist (stored as "lat,lng" string)
-    if (property.coordinates) {
+    this.setFormValue('property-country', property.location_country || 'Kenya');
+    
+    // Handle coordinates - check both formats
+    console.log('🗺️ DEBUG: Processing coordinates...');
+    if (property.coordinates_lat && property.coordinates_lng) {
+      console.log('   - Using separate lat/lng fields:', property.coordinates_lat, property.coordinates_lng);
+      this.setFormValue('property-coordinates-lat', property.coordinates_lat);
+      this.setFormValue('property-coordinates-lng', property.coordinates_lng);
+    } else if (property.coordinates) {
+      console.log('   - Parsing coordinates string:', property.coordinates);
       const coords = property.coordinates.split(',');
       this.setFormValue('property-coordinates-lat', coords[0]?.trim());
       this.setFormValue('property-coordinates-lng', coords[1]?.trim());
     }
     
     // Features (flat structure from database)
+    console.log('🏠 DEBUG: Populating feature fields...');
     this.setFormValue('property-bedrooms', property.bedrooms);
     this.setFormValue('property-bathrooms', property.bathrooms);
-    this.setFormValue('property-parking', property.parking);
+    this.setFormValue('property-parking', property.parking || 0);
     this.setFormValue('property-size', property.size);
-    this.setFormValue('property-size-unit', property.size_unit);
+    this.setFormValue('property-size-unit', property.size_unit || 'm²');
     
     // Additional details
+    console.log('📋 DEBUG: Populating additional details...');
     this.setFormValue('property-year-built', property.year_built);
     this.setFormValue('property-furnished', property.furnished === true ? 'true' : 'false');
     
     // Content
+    console.log('📄 DEBUG: Populating content fields...');
     this.setFormValue('property-description', property.description);
     this.setFormValue('property-short-description', property.short_description);
-    // Parse amenities if they exist (stored as comma-separated string)
-    this.setFormValue('property-amenities', property.amenities || '');
+    
+    // Handle amenities - check different formats
+    console.log('🎯 DEBUG: Processing amenities...');
+    let amenitiesValue = '';
+    if (property.amenities) {
+      if (typeof property.amenities === 'string') {
+        amenitiesValue = property.amenities;
+      } else if (Array.isArray(property.amenities)) {
+        amenitiesValue = property.amenities.join(', ');
+      } else {
+        console.log('   - Amenities in unexpected format:', typeof property.amenities, property.amenities);
+        amenitiesValue = JSON.stringify(property.amenities);
+      }
+    }
+    console.log('   - Final amenities value:', amenitiesValue);
+    this.setFormValue('property-amenities', amenitiesValue);
     
     // Status fields
+    console.log('🎛️ DEBUG: Populating status fields...');
     this.setFormValue('property-available', property.available !== false ? 'true' : 'false');
     this.setFormValue('property-featured', property.featured === true ? 'true' : 'false');
     this.setFormValue('property-published', property.published !== false ? 'true' : 'false');
     
-    // Media URLs
-    this.setFormValue('property-youtube-url', property.youtube_url);
-    this.setFormValue('property-virtual-tour-url', property.virtual_tour_url);
+    // Media URLs - check multiple possible field names
+    console.log('🎬 DEBUG: Populating media URLs...');
+    console.log('   - Raw youtube_url:', property.youtube_url);
+    console.log('   - Raw virtual_tour_url:', property.virtual_tour_url);
+    
+    // Handle YouTube URL - check different possible field names
+    let youtubeUrl = property.youtube_url || property.youtubeUrl || property.youtube || '';
+    let virtualTourUrl = property.virtual_tour_url || property.virtualTourUrl || property.virtual_tour || '';
+    
+    console.log('   - Final YouTube URL:', youtubeUrl);
+    console.log('   - Final Virtual Tour URL:', virtualTourUrl);
+    
+    this.setFormValue('property-youtube-url', youtubeUrl);
+    this.setFormValue('property-virtual-tour-url', virtualTourUrl);
 
     // Clear any existing media selections
     this.clearAllMedia();
 
     // Show existing images in preview (for reference, but don't add to selectedMedia)
+    console.log('🖼️ DEBUG: Showing existing images...');
     this.showExistingImages(property);
     
     // Populate YouTube URL if exists
-    if (property.youtube_url) {
-      this.selectedMedia.youtubeUrl = property.youtube_url;
+    if (youtubeUrl) {
+      this.selectedMedia.youtubeUrl = youtubeUrl;
+      console.log('   - Set YouTube URL in selectedMedia:', youtubeUrl);
     }
     
-    console.log('✅ Property form populated for Railway editing:', property.title);
+    console.log('✅ DEBUG: Property form population completed for:', property.title);
+    
+    // Verify form population after a short delay
+    setTimeout(() => {
+      console.log('🔍 DEBUG: Verifying form population...');
+      this.verifyFormPopulation();
+    }, 100);
   }
 
   // Helper method to safely set form values
   setFormValue(id, value) {
     const element = document.getElementById(id);
-    if (element && value !== null && value !== undefined) {
-      element.value = value;
+    if (element) {
+      if (value !== null && value !== undefined) {
+        element.value = value;
+        console.log(`   ✅ Set ${id} = "${value}"`);
+      } else {
+        console.log(`   ⚠️ Skipped ${id} (value is null/undefined)`);
+      }
+    } else {
+      console.error(`   ❌ Element not found: ${id}`);
     }
+  }
+
+  // Verify form population worked
+  verifyFormPopulation() {
+    const fieldsToCheck = [
+      'property-title', 'property-type', 'property-status', 'property-price',
+      'property-area', 'property-city', 'property-bedrooms', 'property-bathrooms',
+      'property-size', 'property-description'
+    ];
+    
+    console.log('🔍 DEBUG: Form verification results:');
+    fieldsToCheck.forEach(fieldId => {
+      const element = document.getElementById(fieldId);
+      if (element) {
+        console.log(`   ${fieldId}: "${element.value}" (${element.value ? '✅' : '❌'})`);
+      } else {
+        console.log(`   ${fieldId}: Element not found (❌)`);
+      }
+    });
   }
 
   // Show existing images for reference during editing
   showExistingImages(property) {
+    const startTime = performance.now();
     const imagesPreview = document.getElementById('images-preview');
     if (!imagesPreview) return;
 
     let existingImagesHtml = '';
     
-    // Show main image
-    if (property.main_image) {
+    // Handle JSONB images array from database
+    let propertyImages = [];
+    
+    console.log('🖼️ DEBUG: Processing images for edit modal, raw images:', property.images);
+    
+    // Parse images from JSONB array structure
+    if (property.images && Array.isArray(property.images)) {
+      propertyImages = property.images;
+      console.log('🖼️ DEBUG: Using array format, count:', propertyImages.length);
+    } else if (property.images && typeof property.images === 'string') {
+      try {
+        propertyImages = JSON.parse(property.images);
+        console.log('🖼️ DEBUG: Parsed JSON string, count:', propertyImages.length);
+      } catch (e) {
+        console.warn('Failed to parse images JSON:', e);
+        propertyImages = [];
+      }
+    }
+    
+    // Show existing images from JSONB array
+    if (propertyImages && propertyImages.length > 0) {
+      console.log('🖼️ DEBUG: Generating HTML for', propertyImages.length, 'images');
+      
+      propertyImages.forEach((imageObj, index) => {
+        const imageUrl = imageObj.url || imageObj;
+        const isPrimary = imageObj.isPrimary || index === 0;
+        
+        // Check for slow base64 images
+        if (imageUrl && imageUrl.startsWith('data:')) {
+          console.warn(`🐌 MODAL SLOW: Edit modal showing base64 image ${index + 1} (${Math.round(imageUrl.length / 1024)}KB)`);
+        }
+        
+        existingImagesHtml += `
+          <div class="relative group border-2 ${isPrimary ? 'border-blue-200' : 'border-gray-200'} rounded-lg">
+            <img src="${imageUrl}" alt="Current ${isPrimary ? 'main' : 'gallery'} image" 
+                 class="w-full h-24 object-cover rounded-lg loading-shimmer transition-opacity duration-300"
+                 loading="lazy"
+                 onload="this.classList.remove('loading-shimmer'); console.log('✅ Modal image ${index + 1} loaded');"
+                 onerror="console.warn('❌ Modal image ${index + 1} failed:', this.src); this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjBGMkY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg0NFY0NEgyMFYyMFoiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CjxjaXJjbGUgY3g9IjI2IiBjeT0iMjgiIHI9IjMiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDM2TDI4IDI4TDM2IDM2TDQ0IDI4VjQ0SDIwVjM2WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'">
+            <div class="absolute top-2 left-2 ${isPrimary ? 'bg-blue-500' : 'bg-gray-600'} text-white text-xs px-2 py-1 rounded-full">
+              ${isPrimary ? 'Current Main' : `Gallery ${index + 1}`}
+            </div>
+            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+              <span class="text-white text-xs">Upload new images to replace</span>
+            </div>
+          </div>
+        `;
+      });
+    } else if (property.main_image) {
+      console.log('🖼️ DEBUG: Using fallback main_image:', property.main_image.substring(0, 50) + '...');
+      
+      // Fallback: show main_image if no JSONB images array
       existingImagesHtml += `
         <div class="relative group border-2 border-blue-200 rounded-lg">
-          <img src="${property.main_image}" alt="Current main image" class="w-full h-24 object-cover rounded-lg">
+          <img src="${property.main_image}" alt="Current main image" 
+               class="w-full h-24 object-cover rounded-lg loading-shimmer transition-opacity duration-300"
+               loading="lazy"
+               onload="this.classList.remove('loading-shimmer'); console.log('✅ Modal main image loaded');"
+               onerror="console.warn('❌ Modal main image failed:', this.src); this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjBGMkY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg0NFY0NEgyMFYyMFoiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CjxjaXJjbGUgY3g9IjI2IiBjeT0iMjgiIHI9IjMiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDM2TDI4IDI4TDM2IDM2TDQ0IDI4VjQ0SDIwVjM2WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'">
           <div class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Current Main</div>
           <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-            <span class="text-white text-xs">Upload new image to replace</span>
+            <span class="text-white text-xs">Upload new images to replace</span>
           </div>
         </div>
       `;
     }
 
-    // Show gallery images (stored as comma-separated string)
-    if (property.gallery_images) {
-      const galleryUrls = property.gallery_images.split(',').filter(url => url.trim());
-      galleryUrls.forEach((galleryUrl, index) => {
-        existingImagesHtml += `
-          <div class="relative group border-2 border-gray-200 rounded-lg">
-            <img src="${galleryUrl.trim()}" alt="Current gallery image ${index + 1}" class="w-full h-24 object-cover rounded-lg">
-            <div class="absolute top-2 left-2 bg-gray-600 text-white text-xs px-2 py-1 rounded-full">Gallery ${index + 1}</div>
-            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-              <span class="text-white text-xs">Upload new image to replace</span>
-            </div>
-          </div>
-        `;
-      });
-    }
+    const processingTime = performance.now() - startTime;
 
     if (existingImagesHtml) {
       imagesPreview.innerHTML = existingImagesHtml;
+      console.log(`✅ DEBUG: Modal displayed ${propertyImages.length || 1} existing images in ${processingTime.toFixed(2)}ms`);
+    } else {
+      imagesPreview.innerHTML = `
+        <div class="text-center py-8 text-gray-500">
+          <svg class="mx-auto h-12 w-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+          </svg>
+          <p>No existing images found</p>
+          <p class="text-xs">Upload new images below</p>
+        </div>
+      `;
+      console.log(`📭 DEBUG: Modal showing no images placeholder in ${processingTime.toFixed(2)}ms`);
     }
   }
 
@@ -726,7 +899,7 @@ class ZentroAdminRailway {
       published: document.getElementById('property-published')?.value !== 'false',
       
       // Media URLs
-      youtubeUrl: document.getElementById('property-youtube-url')?.value?.trim() || '',
+      youtubeUrl: document.getElementById('property-youtube-url')?.value?.trim() || this.selectedMedia.youtubeUrl || '',
       virtualTourUrl: document.getElementById('property-virtual-tour-url')?.value?.trim() || '',
       
       // Timestamps
@@ -824,10 +997,33 @@ class ZentroAdminRailway {
     try {
       this.setLoading(true);
       
-      // Process media uploads and prepare media data
-      const mediaData = await this.processMediaUploads();
+      const isEditing = this.currentEditingId && this.currentEditingId !== 'new';
+      let imagesToSave = [];
       
-      // Prepare property data for API - map to expected database schema
+      console.log('💾 DEBUG: Save property - isEditing:', isEditing);
+      console.log('💾 DEBUG: New images selected:', this.selectedMedia.images.length);
+      
+      // Handle images intelligently based on edit vs new
+      if (isEditing) {
+        // For editing: preserve existing images if no new ones uploaded
+        if (this.selectedMedia.images && this.selectedMedia.images.length > 0) {
+          console.log('📸 DEBUG: Processing new images for edited property...');
+          const mediaData = await this.processMediaUploads();
+          imagesToSave = mediaData.images || [];
+        } else {
+          console.log('📸 DEBUG: No new images - preserving existing images...');
+          // Get existing images from current property data
+          const existingProperty = await this.getCurrentPropertyData();
+          imagesToSave = existingProperty?.images || [];
+          console.log('📸 DEBUG: Preserved images count:', imagesToSave.length);
+        }
+      } else {
+        console.log('📸 DEBUG: New property - processing uploaded images...');
+        const mediaData = await this.processMediaUploads();
+        imagesToSave = mediaData.images || [];
+      }
+      
+      // Prepare property data for API - map to actual database schema
       const propertyPayload = {
         title: formData.title,
         type: formData.type,
@@ -837,8 +1033,8 @@ class ZentroAdminRailway {
         location_area: formData.location.area,
         location_city: formData.location.city,
         location_country: formData.location.country,
-        coordinates: formData.location.coordinates && formData.location.coordinates.lat && formData.location.coordinates.lng ? 
-          `${formData.location.coordinates.lat},${formData.location.coordinates.lng}` : null,
+        coordinates_lat: formData.location.coordinates?.lat || null,
+        coordinates_lng: formData.location.coordinates?.lng || null,
         bedrooms: formData.features.bedrooms,
         bathrooms: formData.features.bathrooms,
         parking: formData.features.parking,
@@ -846,23 +1042,24 @@ class ZentroAdminRailway {
         size_unit: formData.features.sizeUnit,
         description: formData.description,
         short_description: formData.shortDescription,
-        main_image: mediaData.images && mediaData.images.length > 0 ? mediaData.images[0].url : null,
-        gallery_images: mediaData.images && mediaData.images.length > 1 ? mediaData.images.slice(1).map(img => img.url).join(',') : null,
-        amenities: formData.amenities.join(','),
+        images: imagesToSave, // Preserve existing or use new images
+        videos: [], // JSONB array as per schema
+        amenities: formData.amenities || [], // JSONB array as per schema
         year_built: formData.yearBuilt,
         furnished: formData.furnished,
         available: formData.available,
         featured: formData.featured,
         published: formData.published,
-        youtube_url: mediaData.youtubeUrl,
-        virtual_tour_url: formData.virtualTourUrl
+        virtual_tour_url: formData.virtualTourUrl || formData.youtubeUrl || null
       };
 
-      const endpoint = this.currentEditingId && this.currentEditingId !== 'new' 
+      console.log('💾 DEBUG: Final payload images count:', propertyPayload.images.length);
+
+      const endpoint = isEditing 
         ? `/api/admin/properties/${this.currentEditingId}`
         : '/api/admin/properties';
       
-      const method = this.currentEditingId && this.currentEditingId !== 'new' ? 'PUT' : 'POST';
+      const method = isEditing ? 'PUT' : 'POST';
       
       const response = await fetch(endpoint, {
         method,
@@ -880,7 +1077,7 @@ class ZentroAdminRailway {
 
       const result = await response.json();
       
-      const action = this.currentEditingId && this.currentEditingId !== 'new' ? 'updated' : 'added';
+      const action = isEditing ? 'updated' : 'added';
       this.showNotification(`Property ${action} successfully!`, 'success');
 
       this.closePropertyModal();
@@ -894,6 +1091,33 @@ class ZentroAdminRailway {
     } finally {
       this.setLoading(false);
     }
+  }
+
+  // Get current property data for preserving existing images during edit
+  async getCurrentPropertyData() {
+    if (!this.currentEditingId || this.currentEditingId === 'new') {
+      return null;
+    }
+
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await fetch(`/api/admin/properties/${this.currentEditingId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📡 DEBUG: Fetched existing property for image preservation:', data.property?.title);
+        return data.property;
+      }
+    } catch (error) {
+      console.error('Error fetching current property data:', error);
+    }
+    
+    return null;
   }
 
   // Bind multiple image upload events
@@ -917,91 +1141,108 @@ class ZentroAdminRailway {
       return;
     }
 
+    // Remove any existing event listeners to prevent duplicates
+    const newImagesDropZone = imagesDropZone.cloneNode(true);
+    const newImagesInput = imagesInput.cloneNode(true);
+    imagesDropZone.parentNode.replaceChild(newImagesDropZone, imagesDropZone);
+    imagesInput.parentNode.replaceChild(newImagesInput, imagesInput);
+
+    // Get references to the new elements
+    const cleanImagesDropZone = document.getElementById('images-drop-zone');
+    const cleanImagesInput = document.getElementById('images-input');
+
     // Click to browse files
-    imagesDropZone.addEventListener('click', (e) => {
+    cleanImagesDropZone.addEventListener('click', (e) => {
       console.log('Railway images drop zone clicked!');
       e.preventDefault();
-      imagesInput.click();
+      cleanImagesInput.click();
     });
 
     // Handle file selection
-    imagesInput.addEventListener('change', (e) => {
+    cleanImagesInput.addEventListener('change', (e) => {
       if (e.target.files.length > 0) {
-        this.handleSingleImage(e.target.files[0]);
+        this.handleMultipleImages(Array.from(e.target.files));
       }
     });
 
     // Drag and drop functionality
-    imagesDropZone.addEventListener('dragover', (e) => {
+    cleanImagesDropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
-      imagesDropZone.classList.add('border-zentro-gold', 'bg-zentro-gold/10');
+      cleanImagesDropZone.classList.add('border-zentro-gold', 'bg-zentro-gold/10');
     });
 
-    imagesDropZone.addEventListener('dragleave', (e) => {
+    cleanImagesDropZone.addEventListener('dragleave', (e) => {
       e.preventDefault();
-      imagesDropZone.classList.remove('border-zentro-gold', 'bg-zentro-gold/10');
+      cleanImagesDropZone.classList.remove('border-zentro-gold', 'bg-zentro-gold/10');
     });
 
-    imagesDropZone.addEventListener('drop', (e) => {
+    cleanImagesDropZone.addEventListener('drop', (e) => {
       e.preventDefault();
-      imagesDropZone.classList.remove('border-zentro-gold', 'bg-zentro-gold/10');
+      cleanImagesDropZone.classList.remove('border-zentro-gold', 'bg-zentro-gold/10');
       
       const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
       if (files.length > 0) {
-        this.handleSingleImage(files[0]);
+        this.handleMultipleImages(Array.from(files));
       }
     });
   }
 
-  // Handle single image file
-  handleSingleImage(file) {
-    if (!file) return;
+  // Handle multiple image files
+  handleMultipleImages(files) {
+    if (!files || files.length === 0) return;
 
-    // Store single file in selectedMedia
-    this.selectedMedia.image = file;
+    // Add files to selectedMedia images array
+    this.selectedMedia.images = [...this.selectedMedia.images, ...files];
     
     // Update preview
-    this.renderSingleImagePreview(file);
+    this.renderMultipleImagesPreview();
     
-    console.log(`Selected single image for Railway storage: ${file.name}`);
+    console.log(`Selected ${files.length} images for Railway storage. Total: ${this.selectedMedia.images.length}`);
   }
 
-  // Render preview for single image  
-  renderSingleImagePreview(file) {
+  // Render preview for multiple images  
+  renderMultipleImagesPreview() {
     const previewContainer = document.getElementById('images-preview');
     previewContainer.innerHTML = '';
 
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      const imageContainer = document.createElement('div');
-      imageContainer.className = 'relative group max-w-xs';
+    this.selectedMedia.images.forEach((file, index) => {
+      const reader = new FileReader();
       
-      imageContainer.innerHTML = `
-        <div class="absolute top-2 left-2 bg-zentro-gold text-white text-xs px-2 py-1 rounded-full">Main Image</div>
-        <img src="${e.target.result}" 
-             alt="Property Image Preview" 
-             class="w-full h-32 object-cover rounded-lg border-2 border-gray-200">
-        <button class="remove-image-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          ×
-        </button>
-      `;
+      reader.onload = (e) => {
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'relative group';
+        
+        imageContainer.innerHTML = `
+          ${index === 0 ? '<div class="absolute top-2 left-2 bg-zentro-gold text-white text-xs px-2 py-1 rounded-full z-10">Main</div>' : ''}
+          <img src="${e.target.result}" 
+               alt="Property Image Preview ${index + 1}" 
+               class="w-full h-32 object-cover rounded-lg border-2 ${index === 0 ? 'border-zentro-gold' : 'border-gray-200'}">
+          <button class="remove-image-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10" data-index="${index}">
+            ×
+          </button>
+          <div class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+            ${index + 1} of ${this.selectedMedia.images.length}
+          </div>
+        `;
+        
+        // Add event listener for remove button
+        const removeBtn = imageContainer.querySelector('.remove-image-btn');
+        removeBtn.addEventListener('click', () => this.removeImageAtIndex(index));
+        
+        previewContainer.appendChild(imageContainer);
+      };
       
-      // Add event listener for remove button
-      const removeBtn = imageContainer.querySelector('.remove-image-btn');
-      removeBtn.addEventListener('click', () => this.removeSingleImage());
-      
-      previewContainer.appendChild(imageContainer);
-    };
-    
-    reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
+    });
   }
 
-  // Remove single image from selection
-  removeSingleImage() {
-    this.selectedMedia.image = null;
-    document.getElementById('images-preview').innerHTML = '';
-    console.log('Removed selected image');
+  // Remove image at specific index
+  removeImageAtIndex(index) {
+    if (index >= 0 && index < this.selectedMedia.images.length) {
+      const removedFile = this.selectedMedia.images.splice(index, 1)[0];
+      this.renderMultipleImagesPreview();
+      console.log(`Removed image: ${removedFile.name}. Remaining: ${this.selectedMedia.images.length}`);
+    }
   }
 
   // Bind YouTube URL events
@@ -1043,10 +1284,15 @@ class ZentroAdminRailway {
 
   // Simple validation for Railway
   validateRequiredMedia() {
+    const isEditing = this.currentEditingId && this.currentEditingId !== 'new';
+    const hasNewImages = this.selectedMedia.images && this.selectedMedia.images.length > 0;
+    
+    console.log('🔍 DEBUG: Media validation - isEditing:', isEditing, 'hasNewImages:', hasNewImages);
+    
     // For new properties, require at least one image
-    if (!this.currentEditingId || this.currentEditingId === 'new') {
-      if (!this.selectedMedia.image) {
-        throw new Error('Please select an image for new properties');
+    if (!isEditing) {
+      if (!hasNewImages) {
+        throw new Error('Please select at least one image for new properties');
       }
     }
     // For existing properties, images are optional (keep existing if none uploaded)
@@ -1063,26 +1309,30 @@ class ZentroAdminRailway {
       youtubeUrl: this.selectedMedia.youtubeUrl || ''
     };
 
-    // Process single image - store locally since Railway doesn't have built-in storage
-    if (this.selectedMedia.image) {
-      console.log(`📸 Processing single image for Railway...`);
+    // Process multiple images - store locally since Railway doesn't have built-in storage
+    if (this.selectedMedia.images && this.selectedMedia.images.length > 0) {
+      console.log(`📸 Processing ${this.selectedMedia.images.length} images for Railway...`);
       
-      // For Railway, we'll store files locally and save paths to database
-      const storageUrl = await this.saveToLocalStorage(this.selectedMedia.image, 'image');
-      
-      const imageData = {
-        url: storageUrl,
-        alt: `${this.getFormData().title} - Main Image`,
-        isPrimary: true,
-        displayOrder: 0,
-        fileSize: this.selectedMedia.image.size,
-        mimeType: this.selectedMedia.image.type
-      };
+      for (let i = 0; i < this.selectedMedia.images.length; i++) {
+        const imageFile = this.selectedMedia.images[i];
+        
+        // Upload image to Railway storage via API
+        const storageUrl = await this.saveToRailwayStorage(imageFile, 'image');
+        
+        const imageData = {
+          url: storageUrl,
+          alt: `${this.getFormData().title} - ${i === 0 ? 'Main Image' : `Gallery Image ${i + 1}`}`,
+          isPrimary: i === 0, // First image is primary
+          displayOrder: i,
+          fileSize: imageFile.size,
+          mimeType: imageFile.type
+        };
 
-      mediaData.images = [imageData];
-      console.log(`✅ Processed single image for Railway`);
+        mediaData.images.push(imageData);
+      }
+      console.log(`✅ Processed ${this.selectedMedia.images.length} images for Railway`);
     } else {
-      console.log('📸 No new image to process for Railway');
+      console.log('📸 No new images to process for Railway');
     }
 
     // YouTube URL is already stored in mediaData.youtubeUrl
@@ -1095,32 +1345,53 @@ class ZentroAdminRailway {
     return mediaData;
   }
 
-  // Save file to local filesystem (Railway approach)
-  async saveToLocalStorage(file, fileType = 'image') {
+  // Upload file to Railway storage via API
+  async saveToRailwayStorage(file, fileType = 'image') {
     try {
-      console.log(`📁 Saving ${file.name} to local filesystem for Railway...`);
+      console.log(`📁 Uploading ${file.name} to Railway storage...`);
       
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const token = localStorage.getItem('admin_token');
+      if (!token) {
+        throw new Error('Authentication required for file upload');
+      }
+
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('fileType', fileType);
       
-      // For Railway, we'll use the wp-content uploads directory
-      const relativePath = `wp-content/uploads/2025/02/${fileName}`;
+      // Upload to Railway API endpoint
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log(`✅ File ${file.name} uploaded to Railway storage:`, result.url);
       
-      // In a real implementation, you'd use a proper file upload system
-      // For now, we'll create a data URL and simulate the upload
+      return result.url; // Returns the accessible URL for the image
+      
+    } catch (error) {
+      console.error('Error uploading file to Railway storage:', error);
+      
+      // Fallback: Convert to base64 data URL for temporary display
+      console.log('⚠️ Falling back to base64 storage for', file.name);
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
-          // In production, this would be an actual file save operation
-          console.log(`✅ File ${fileName} saved to Railway local storage`);
-          resolve(`../${relativePath}`);
+          console.log(`📸 File ${file.name} converted to base64 for display`);
+          resolve(reader.result); // Returns data URL
         };
         reader.readAsDataURL(file);
       });
-    } catch (error) {
-      console.error('Error saving file to Railway local storage:', error);
-      throw new Error(`Failed to save ${file.name} to Railway local storage: ${error.message}`);
     }
   }
 
@@ -1204,6 +1475,9 @@ class ZentroAdminRailway {
   }
 
   renderProperties() {
+    const renderStart = performance.now();
+    console.log('🔄 DEBUG: Starting renderProperties with', this.filteredProperties.length, 'properties');
+    
     const container = document.getElementById('properties-list');
 
     if (this.isLoading) {
@@ -1231,6 +1505,19 @@ class ZentroAdminRailway {
       return;
     }
 
+    const imageProcessingStart = performance.now();
+    
+    // Pre-process images to measure total time
+    const processedProperties = this.filteredProperties.map(property => {
+      const imageHtml = this.getPropertyImageHtml(property);
+      return { ...property, imageHtml };
+    });
+    
+    const imageProcessingTime = performance.now() - imageProcessingStart;
+    console.log(`🖼️ DEBUG: Image processing for ${this.filteredProperties.length} properties took ${imageProcessingTime.toFixed(2)}ms`);
+
+    const htmlGenerationStart = performance.now();
+
     container.innerHTML = `
       <div class="overflow-hidden rounded-lg border border-[#dbe0e6] bg-white">
         <table class="w-full">
@@ -1247,12 +1534,12 @@ class ZentroAdminRailway {
             </tr>
           </thead>
           <tbody>
-            ${this.filteredProperties.map(property => `
+            ${processedProperties.map(property => `
               <tr class="border-t border-t-[#dbe0e6]">
                 <td class="h-[72px] px-4 py-2 text-zentro-dark text-sm font-normal">${property.id}</td>
                 <td class="h-[72px] px-4 py-2">
-                  <div class="w-16 h-16 rounded-lg overflow-hidden">
-                    <img src="${property.main_image || '../wp-content/uploads/2025/02/default-property.jpg'}" alt="${property.title}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjBGMkY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg0NFY0NEgyMFYyMFoiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CjxjaXJjbGUgY3g9IjI2IiBjeT0iMjgiIHI9IjMiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDM2TDI4IDI4TDM2IDM2TDQ0IDI4VjQ0SDIwVjM2WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'">
+                  <div class="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                    ${property.imageHtml}
                   </div>
                 </td>
                 <td class="h-[72px] px-4 py-2 text-zentro-dark text-sm font-normal">${property.title}</td>
@@ -1266,10 +1553,10 @@ class ZentroAdminRailway {
                 <td class="h-[72px] px-4 py-2 text-zentro-dark text-sm font-medium">${this.formatPrice(property.price, property.currency)}</td>
                 <td class="h-[72px] px-4 py-2">
                   <div class="flex gap-2">
-                    <button onclick="zentroAdmin.editProperty(${property.id})" class="text-zentro-dark text-sm font-bold tracking-[0.015em] hover:text-zentro-gold transition-colors">
+                    <button data-action="edit" data-property-id="${property.id}" class="text-zentro-dark text-sm font-bold tracking-[0.015em] hover:text-zentro-gold transition-colors">
                       Edit
                     </button>
-                    <button onclick="zentroAdmin.deleteProperty(${property.id})" class="text-red-500 text-sm font-bold tracking-[0.015em] hover:text-red-600 transition-colors">
+                    <button data-action="delete" data-property-id="${property.id}" class="text-red-500 text-sm font-bold tracking-[0.015em] hover:text-red-600 transition-colors">
                       Delete
                     </button>
                   </div>
@@ -1280,28 +1567,100 @@ class ZentroAdminRailway {
         </table>
       </div>
     `;
+
+    const totalRenderTime = performance.now() - renderStart;
+    const htmlGenerationTime = performance.now() - htmlGenerationStart;
+    
+    console.log(`⏱️ DEBUG: Render timing breakdown:`);
+    console.log(`   - Image processing: ${imageProcessingTime.toFixed(2)}ms`);
+    console.log(`   - HTML generation: ${htmlGenerationTime.toFixed(2)}ms`);
+    console.log(`   - Total render time: ${totalRenderTime.toFixed(2)}ms`);
+    
+    if (totalRenderTime > 100) {
+      console.warn(`🐌 SLOW RENDER: Properties took ${totalRenderTime.toFixed(2)}ms to render (>100ms)`);
+    }
   }
 
   async editProperty(id) {
-    const property = this.properties.find(p => p.id === id);
-    if (property) {
-      this.openPropertyModal(property);
+    try {
+      console.log(`🔧 DEBUG: Editing property with ID: ${id}`);
+      
+      // ALWAYS fetch full property details for editing (list data is incomplete)
+      console.log('📡 DEBUG: Fetching complete property details from database...');
+      const token = localStorage.getItem('admin_token');
+      if (!token) {
+        this.showNotification('Authentication required. Please login again.', 'error');
+        return;
+      }
+
+      const response = await fetch(`/api/admin/properties/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch property details');
+      }
+
+      const data = await response.json();
+      const property = data.property;
+      console.log('📡 DEBUG: Fetched complete property from API:', property);
+
+      if (property) {
+        console.log('✅ DEBUG: Complete property data structure:');
+        console.log('   - ID:', property.id);
+        console.log('   - Title:', property.title);
+        console.log('   - Description:', property.description ? 'Present' : 'Missing');
+        console.log('   - Short Description:', property.short_description ? 'Present' : 'Missing');
+        console.log('   - Images:', property.images ? (Array.isArray(property.images) ? `Array(${property.images.length})` : 'Present') : 'Missing');
+        console.log('   - Amenities:', property.amenities ? (Array.isArray(property.amenities) ? `Array(${property.amenities.length})` : 'Present') : 'Missing');
+        console.log('   - Virtual Tour URL:', property.virtual_tour_url ? 'Present' : 'Missing');
+        console.log('   - Year Built:', property.year_built ? property.year_built : 'Missing');
+        console.log('   - Furnished:', property.furnished);
+        console.log('   - Full property object:', property);
+        
+        console.log('🎬 DEBUG: Opening edit modal with complete property data:', property.title);
+        this.openPropertyModal(property);
+      } else {
+        console.error('❌ DEBUG: Property not found');
+        this.showNotification('Property not found', 'error');
+      }
+    } catch (error) {
+      console.error('❌ DEBUG: Error opening edit modal:', error);
+      this.showNotification('Failed to load property for editing: ' + error.message, 'error');
     }
   }
 
   async deleteProperty(id) {
-    if (!confirm('Are you sure you want to delete this property?')) {
+    console.log('🗑️ DEBUG: Delete property initiated for ID:', id);
+    
+    // Show custom danger confirmation
+    console.log('🚨 DEBUG: Showing danger confirmation modal...');
+    const confirmed = await this.showDangerConfirmation('UKO SURE BOSS?', 'This action cannot be undone. The property will be permanently deleted from the database.');
+    
+    console.log('🤔 DEBUG: User confirmation result:', confirmed);
+    
+    if (!confirmed) {
+      console.log('❌ DEBUG: User cancelled deletion');
       return;
     }
 
+    console.log('✅ DEBUG: User confirmed deletion - proceeding...');
+
     const token = localStorage.getItem('admin_token');
     if (!token) {
+      console.error('❌ DEBUG: No authentication token found');
       this.showNotification('Authentication required. Please login again.', 'error');
       return;
     }
 
+    console.log('🔑 DEBUG: Authentication token found, making API call...');
+
     try {
       this.setLoading(true);
+      console.log(`🗑️ DEBUG: Sending DELETE request to /api/admin/properties/${id}`);
       
       const response = await fetch(`/api/admin/properties/${id}`, {
         method: 'DELETE',
@@ -1311,22 +1670,182 @@ class ZentroAdminRailway {
         }
       });
 
+      console.log('📡 DEBUG: API response status:', response.status);
+      console.log('📡 DEBUG: API response ok:', response.ok);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('❌ DEBUG: API error response:', errorData);
         throw new Error(errorData.error || 'Failed to delete property');
       }
 
+      const responseData = await response.json();
+      console.log('✅ DEBUG: Delete API success response:', responseData);
+
+      console.log('🔄 DEBUG: Reloading properties list...');
       await this.loadPropertiesFromDatabase();
       this.renderProperties();
       this.updateDashboard();
+      
       this.showNotification('Property deleted successfully!', 'success');
+      console.log('🎉 DEBUG: Property deletion completed successfully');
       
     } catch (error) {
-      console.error('Error deleting property:', error);
+      console.error('💥 DEBUG: Error during deletion process:', error);
+      console.error('💥 DEBUG: Error stack:', error.stack);
       this.showNotification('Error deleting property: ' + error.message, 'error');
     } finally {
       this.setLoading(false);
+      console.log('🔄 DEBUG: Delete operation finished, loading state cleared');
     }
+  }
+
+  // Custom danger confirmation modal with consistent styling and debugging
+  showDangerConfirmation(title, message) {
+    console.log('🚨 DEBUG: Creating danger confirmation modal');
+    console.log('   - Title:', title);
+    console.log('   - Message:', message);
+    
+    return new Promise((resolve) => {
+      // Create danger modal with consistent admin styling
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] animate-fadeIn';
+      modal.innerHTML = `
+        <div class="bg-white rounded-2xl max-w-md w-full mx-4 shadow-2xl border border-gray-100 animate-slideIn">
+          <div class="p-8 text-center">
+            <!-- Danger Icon -->
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-50 border-4 border-red-100 mb-6">
+              <svg class="h-8 w-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.312 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              </svg>
+            </div>
+            
+            <!-- Title -->
+            <h3 class="text-2xl font-bold text-red-600 mb-3">${title}</h3>
+            
+            <!-- Message -->
+            <p class="text-gray-600 text-base leading-relaxed mb-8">${message}</p>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+              <button id="cancel-danger" class="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-gray-100 text-gray-700 text-base font-medium hover:bg-gray-200 transition-all duration-200 transform hover:scale-105">
+                <span class="truncate">Cancel</span>
+              </button>
+              <button id="confirm-danger" class="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-red-500 text-white text-base font-bold hover:bg-red-600 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                <span class="truncate">Yes, Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Add modal to body
+      document.body.appendChild(modal);
+      console.log('✅ DEBUG: Modal added to DOM');
+      
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+
+      // Check if buttons exist
+      const cancelBtn = modal.querySelector('#cancel-danger');
+      const confirmBtn = modal.querySelector('#confirm-danger');
+      
+      console.log('🔍 DEBUG: Button elements found:');
+      console.log('   - Cancel button:', !!cancelBtn);
+      console.log('   - Confirm button:', !!confirmBtn);
+      
+      if (cancelBtn) {
+        console.log('   - Cancel button text:', cancelBtn.textContent.trim());
+        console.log('   - Cancel button visible:', cancelBtn.offsetWidth > 0 && cancelBtn.offsetHeight > 0);
+      }
+      
+      if (confirmBtn) {
+        console.log('   - Confirm button text:', confirmBtn.textContent.trim());
+        console.log('   - Confirm button visible:', confirmBtn.offsetWidth > 0 && confirmBtn.offsetHeight > 0);
+        console.log('   - Confirm button styles:', window.getComputedStyle(confirmBtn).display);
+      }
+
+      // Handle button clicks with debugging
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+          console.log('❌ DEBUG: Cancel button clicked');
+          modal.classList.add('animate-fadeOut');
+          setTimeout(() => {
+            if (modal.parentNode) {
+              document.body.removeChild(modal);
+              document.body.style.overflow = '';
+            }
+          }, 200);
+          resolve(false);
+        });
+      } else {
+        console.error('❌ CRITICAL: Cancel button not found!');
+      }
+
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+          console.log('✅ DEBUG: Confirm/Delete button clicked - proceeding with deletion');
+          modal.classList.add('animate-fadeOut');
+          setTimeout(() => {
+            if (modal.parentNode) {
+              document.body.removeChild(modal);
+              document.body.style.overflow = '';
+            }
+          }, 200);
+          resolve(true);
+        });
+      } else {
+        console.error('❌ CRITICAL: Confirm button not found!');
+      }
+
+      // Close on background click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          console.log('🖱️ DEBUG: Background clicked - canceling');
+          modal.classList.add('animate-fadeOut');
+          setTimeout(() => {
+            if (modal.parentNode) {
+              document.body.removeChild(modal);
+              document.body.style.overflow = '';
+            }
+          }, 200);
+          resolve(false);
+        }
+      });
+
+      // Close on Escape key
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          console.log('⌨️ DEBUG: Escape key pressed - canceling');
+          modal.classList.add('animate-fadeOut');
+          setTimeout(() => {
+            if (modal.parentNode) {
+              document.body.removeChild(modal);
+              document.body.style.overflow = '';
+            }
+          }, 200);
+          document.removeEventListener('keydown', handleEscape);
+          resolve(false);
+        }
+      };
+      document.addEventListener('keydown', handleEscape);
+
+      // Debug modal final state
+      setTimeout(() => {
+        console.log('🔍 DEBUG: Modal final state check:');
+        console.log('   - Modal in DOM:', document.body.contains(modal));
+        console.log('   - Modal visible:', modal.offsetWidth > 0 && modal.offsetHeight > 0);
+        console.log('   - Modal z-index:', window.getComputedStyle(modal).zIndex);
+        
+        const buttonsContainer = modal.querySelector('.flex.gap-3');
+        if (buttonsContainer) {
+          console.log('   - Buttons container children:', buttonsContainer.children.length);
+          Array.from(buttonsContainer.children).forEach((child, index) => {
+            console.log(`   - Button ${index + 1}:`, child.textContent.trim(), child.offsetWidth > 0 ? 'visible' : 'hidden');
+          });
+        }
+      }, 100);
+    });
   }
 
   // Dashboard statistics via API
@@ -1376,6 +1895,60 @@ class ZentroAdminRailway {
 
     localStorage.setItem('zentro-railway-settings', JSON.stringify(settings));
     this.showNotification('Settings saved successfully for Railway!', 'success');
+  }
+
+  // Get property image HTML with proper fallbacks and loading optimization
+  getPropertyImageHtml(property) {
+    const startTime = performance.now();
+    
+    // Try to get image URL from different sources
+    let imageUrl = null;
+    let imageSource = '';
+    
+    // First try main_image (extracted from JSONB by SQL)
+    if (property.main_image) {
+      imageUrl = property.main_image;
+      imageSource = 'main_image';
+    }
+    // Then try first image from JSONB array
+    else if (property.images && Array.isArray(property.images) && property.images.length > 0) {
+      imageUrl = property.images[0].url || property.images[0];
+      imageSource = 'images_array';
+    }
+    // Try to parse JSONB string
+    else if (property.images && typeof property.images === 'string') {
+      try {
+        const parsedImages = JSON.parse(property.images);
+        if (parsedImages && parsedImages.length > 0) {
+          imageUrl = parsedImages[0].url || parsedImages[0];
+          imageSource = 'parsed_images';
+        }
+      } catch (e) {
+        console.warn('Failed to parse images JSON for property:', property.id);
+      }
+    }
+    
+    const processingTime = performance.now() - startTime;
+    console.log(`⏱️ DEBUG: Image processing for property ${property.id} took ${processingTime.toFixed(2)}ms, source: ${imageSource}, url: ${imageUrl ? imageUrl.substring(0, 50) + '...' : 'none'}`);
+    
+    if (imageUrl) {
+      // Check if it's a base64 image (which can be slow)
+      const isBase64 = imageUrl.startsWith('data:');
+      if (isBase64) {
+        console.warn(`🐌 SLOW: Property ${property.id} using base64 image (${Math.round(imageUrl.length / 1024)}KB)`);
+      }
+      
+      return `
+        <img src="${imageUrl}" 
+             alt="${property.title || 'Property'}" 
+             class="w-full h-full object-cover transition-opacity duration-200 ${isBase64 ? 'loading-shimmer' : ''}" 
+             loading="lazy"
+             onload="this.classList.remove('loading-shimmer'); console.log('✅ Image loaded for property ${property.id}');" 
+             onerror="console.warn('❌ Image failed for property ${property.id}:', this.src); this.parentElement.innerHTML='<svg class=\\'w-8 h-8 text-gray-400\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z\\'></path></svg>'">
+      `;
+    } else {
+      return `<svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>`;
+    }
   }
 
   // Utility functions

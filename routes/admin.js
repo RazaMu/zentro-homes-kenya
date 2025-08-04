@@ -3,15 +3,57 @@ const router = express.Router();
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+// Railway Volume configuration for file uploads
+const uploadPath = process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, '..', 'uploads');
+
+// Ensure upload directory exists
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
+  console.log(`📁 Created upload directory: ${uploadPath}`);
+}
+
+// Multer configuration for Railway volume storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const name = path.basename(file.originalname, ext);
+    cb(null, `${name}-${uniqueSuffix}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 10 // Maximum 10 files per upload
+  },
+  fileFilter: function (req, file, cb) {
+    // Only allow image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
+
 // Hardcoded admin credentials as per user requirement
 const ADMIN_CREDENTIALS = {
-  email: 'admin',
+  username: 'admin',
   password: 'zentro2025', // In production, this should be hashed
   name: 'Admin User',
   role: 'admin'
@@ -37,30 +79,30 @@ const verifyAdminToken = (req, res, next) => {
 // Admin login (using hardcoded credentials)
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
     }
 
     // Debug logging
     console.log('Login attempt:', { 
-      received_email: email, 
+      received_username: username, 
       received_password: password,
-      expected_email: ADMIN_CREDENTIALS.email,
+      expected_username: ADMIN_CREDENTIALS.username,
       expected_password: ADMIN_CREDENTIALS.password 
     });
 
     // Check against hardcoded credentials
-    if (email.toLowerCase() !== ADMIN_CREDENTIALS.email.toLowerCase() || password !== ADMIN_CREDENTIALS.password) {
+    if (username.toLowerCase() !== ADMIN_CREDENTIALS.username.toLowerCase() || password !== ADMIN_CREDENTIALS.password) {
       console.log('Login failed - credential mismatch');
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
 
     // Generate JWT token
     const token = jwt.sign(
       { 
-        email: ADMIN_CREDENTIALS.email,
+        username: ADMIN_CREDENTIALS.username,
         name: ADMIN_CREDENTIALS.name,
         role: ADMIN_CREDENTIALS.role,
         loginTime: new Date().toISOString()
@@ -214,6 +256,71 @@ router.get('/dashboard/stats', verifyAdminToken, async (req, res) => {
   }
 });
 
+// UPLOAD ROUTES (must be before parameterized routes)
+// Single file upload endpoint (used by admin panel)
+router.post('/upload', verifyAdminToken, upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    console.log(`📸 Uploaded single file to Railway volume: ${req.file.filename}`);
+
+    res.json({
+      success: true,
+      message: 'File uploaded successfully',
+      url: `/uploads/${req.file.filename}`, // Public URL path
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    });
+
+  } catch (error) {
+    console.error('Single file upload error:', error);
+    res.status(500).json({ 
+      error: 'File upload failed',
+      message: error.message 
+    });
+  }
+});
+
+// Multiple file upload endpoint for property images
+router.post('/upload/images', verifyAdminToken, upload.array('images', 10), async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
+    }
+
+    console.log(`📸 Uploaded ${req.files.length} images to Railway volume`);
+
+    // Process uploaded files
+    const uploadedImages = req.files.map((file, index) => ({
+      filename: file.filename,
+      originalName: file.originalname,
+      size: file.size,
+      mimetype: file.mimetype,
+      path: file.path,
+      url: `/uploads/${file.filename}`, // Public URL path
+      isPrimary: index === 0, // First image is primary
+      displayOrder: index
+    }));
+
+    res.json({
+      success: true,
+      message: `Successfully uploaded ${req.files.length} images`,
+      images: uploadedImages
+    });
+
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ 
+      error: 'File upload failed',
+      message: error.message 
+    });
+  }
+});
+
 // Admin CRUD operations for properties
 router.get('/properties', verifyAdminToken, async (req, res) => {
   try {
@@ -223,6 +330,7 @@ router.get('/properties', verifyAdminToken, async (req, res) => {
       featured,
       type,
       status,
+      search,
       limit = 50,
       offset = 0,
       sort_by = 'created_at',
@@ -234,6 +342,9 @@ router.get('/properties', verifyAdminToken, async (req, res) => {
         id, uuid, title, slug, type, status, price, currency,
         location_area, location_city, bedrooms, bathrooms, parking,
         size, size_unit, featured, published, available, views_count,
+        images, videos, description, amenities, virtual_tour_url,
+        coordinates_lat, coordinates_lng,
+        (images->0->>'url') as main_image,
         created_at, updated_at
       FROM properties
       WHERE 1=1
@@ -270,6 +381,12 @@ router.get('/properties', verifyAdminToken, async (req, res) => {
       paramCount++;
       query += ` AND status = $${paramCount}`;
       params.push(status);
+    }
+
+    if (search) {
+      paramCount++;
+      query += ` AND (title ILIKE $${paramCount} OR location_area ILIKE $${paramCount} OR location_city ILIKE $${paramCount})`;
+      params.push(`%${search}%`);
     }
 
     // Add sorting
@@ -317,9 +434,10 @@ router.post('/properties', verifyAdminToken, async (req, res) => {
     const {
       title, type, status, price, currency = 'KES',
       location_area, location_city, location_country = 'Kenya',
-      coordinates_lat, coordinates_lng,
+      coordinates, coordinates_lat, coordinates_lng,
       bedrooms, bathrooms, parking = 0, size, size_unit = 'm²',
       year_built, furnished = true, description, short_description,
+      main_image, gallery_images, // New flat structure
       images = [], videos = [], virtual_tour_url, amenities = [], features = {},
       meta_title, meta_description, meta_keywords = [],
       available = true, featured = false, published = true, youtube_url
@@ -344,6 +462,25 @@ router.post('/properties', verifyAdminToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid property status' });
     }
 
+    // Handle coordinates - support both string format ("lat,lng") and separate lat/lng
+    let coordsLat = null, coordsLng = null;
+    if (coordinates && typeof coordinates === 'string' && coordinates.includes(',')) {
+      const [lat, lng] = coordinates.split(',').map(c => c.trim());
+      coordsLat = lat ? parseFloat(lat) : null;
+      coordsLng = lng ? parseFloat(lng) : null;
+    } else if (coordinates_lat && coordinates_lng) {
+      coordsLat = parseFloat(coordinates_lat);
+      coordsLng = parseFloat(coordinates_lng);
+    }
+
+    // Handle amenities - support both array and comma-separated string
+    let amenitiesProcessed = [];
+    if (typeof amenities === 'string') {
+      amenitiesProcessed = amenities.split(',').map(a => a.trim()).filter(a => a);
+    } else if (Array.isArray(amenities)) {
+      amenitiesProcessed = amenities;
+    }
+
     const query = `
       INSERT INTO properties (
         title, type, status, price, currency,
@@ -351,27 +488,26 @@ router.post('/properties', verifyAdminToken, async (req, res) => {
         coordinates_lat, coordinates_lng,
         bedrooms, bathrooms, parking, size, size_unit,
         year_built, furnished, description, short_description,
-        images, videos, virtual_tour_url, amenities, features,
-        meta_title, meta_description, meta_keywords,
-        available, featured, published, youtube_url
+        images, videos, virtual_tour_url, 
+        amenities, features, meta_title, meta_description, meta_keywords,
+        available, featured, published
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-        $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31
+        $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30
       ) RETURNING id, uuid, slug, created_at
     `;
 
     const values = [
       title, type, status, parseInt(price), currency,
       location_area, location_city, location_country,
-      coordinates_lat ? parseFloat(coordinates_lat) : null,
-      coordinates_lng ? parseFloat(coordinates_lng) : null,
+      coordsLat, coordsLng,
       parseInt(bedrooms), parseInt(bathrooms), parseInt(parking),
       parseInt(size), size_unit, year_built ? parseInt(year_built) : null,
       furnished, description, short_description,
       JSON.stringify(images), JSON.stringify(videos), virtual_tour_url,
-      JSON.stringify(amenities), JSON.stringify(features),
+      JSON.stringify(amenitiesProcessed), JSON.stringify(features),
       meta_title, meta_description, meta_keywords,
-      available, featured, published, youtube_url
+      available, featured, published
     ];
 
     const result = await pool.query(query, values);
@@ -384,6 +520,42 @@ router.post('/properties', verifyAdminToken, async (req, res) => {
   } catch (err) {
     console.error('Error creating property:', err);
     res.status(500).json({ error: 'Failed to create property' });
+  }
+});
+
+// Get single property by ID
+router.get('/properties/:id', verifyAdminToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const query = `
+      SELECT 
+        id, uuid, title, slug, type, status, price, currency,
+        location_area, location_city, location_country,
+        coordinates_lat, coordinates_lng, bedrooms, bathrooms, parking,
+        size, size_unit, year_built, furnished, description, short_description,
+        images, videos, virtual_tour_url,
+        amenities, features, meta_title, meta_description, meta_keywords,
+        available, featured, published, views_count,
+        (images->0->>'url') as main_image,
+        created_at, updated_at
+      FROM properties 
+      WHERE id = $1
+    `;
+
+    const result = await pool.query(query, [parseInt(id)]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+
+    res.json({
+      property: result.rows[0]
+    });
+
+  } catch (err) {
+    console.error('Error fetching property:', err);
+    res.status(500).json({ error: 'Failed to fetch property' });
   }
 });
 
@@ -403,13 +575,19 @@ router.put('/properties/:id', verifyAdminToken, async (req, res) => {
       return res.status(400).json({ error: 'No update data provided' });
     }
 
+    // Remove fields that don't exist in database schema
+    delete updateData.coordinates;
+    delete updateData.main_image;
+    delete updateData.gallery_images;
+    delete updateData.youtube_url;
+
     // Build dynamic update query
     const fields = Object.keys(updateData);
     const values = Object.values(updateData);
     
     let query = 'UPDATE properties SET ';
     const setClause = fields.map((field, index) => {
-      // Handle JSON fields
+      // Handle JSONB fields as per actual schema
       if (['images', 'videos', 'amenities', 'features', 'meta_keywords'].includes(field)) {
         return `${field} = $${index + 1}::jsonb`;
       }
@@ -419,7 +597,7 @@ router.put('/properties/:id', verifyAdminToken, async (req, res) => {
     query += setClause;
     query += `, updated_at = NOW() WHERE id = $${fields.length + 1} RETURNING id, title, updated_at`;
     
-    // Convert arrays/objects to JSON strings for JSON fields
+    // Convert arrays/objects to JSON strings for JSONB fields
     const processedValues = values.map((value, index) => {
       const field = fields[index];
       if (['images', 'videos', 'amenities', 'features', 'meta_keywords'].includes(field) && 
@@ -452,23 +630,33 @@ router.put('/properties/:id', verifyAdminToken, async (req, res) => {
 router.delete('/properties/:id', verifyAdminToken, async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('🗑️ BACKEND DEBUG: Delete request received for property ID:', id);
+    console.log('🗑️ BACKEND DEBUG: Request method:', req.method);
+    console.log('🗑️ BACKEND DEBUG: Request URL:', req.url);
 
     const result = await pool.query(
       'DELETE FROM properties WHERE id = $1 RETURNING id, title',
       [parseInt(id)]
     );
 
+    console.log('🗑️ BACKEND DEBUG: Database delete result:', result.rows);
+
     if (result.rows.length === 0) {
+      console.log('❌ BACKEND DEBUG: Property not found in database');
       return res.status(404).json({ error: 'Property not found' });
     }
 
-    res.json({
+    const response = {
       message: 'Property deleted successfully',
       property: result.rows[0]
-    });
+    };
+
+    console.log('✅ BACKEND DEBUG: Sending success response:', response);
+    res.json(response);
 
   } catch (err) {
-    console.error('Error deleting property:', err);
+    console.error('💥 BACKEND DEBUG: Error deleting property:', err);
+    console.error('💥 BACKEND DEBUG: Error stack:', err.stack);
     res.status(500).json({ error: 'Failed to delete property' });
   }
 });
@@ -491,6 +679,21 @@ router.get('/sessions', verifyAdminToken, async (req, res) => {
   } catch (err) {
     console.error('Error fetching admin sessions:', err);
     res.status(500).json({ error: 'Failed to fetch sessions' });
+  }
+});
+
+// Get contact inquiries (stub endpoint to prevent 404 errors)
+router.get('/contacts', verifyAdminToken, async (req, res) => {
+  try {
+    // For now return empty array - can be implemented later if needed
+    res.json({
+      inquiries: [],
+      total: 0,
+      message: 'Contact inquiries endpoint - to be implemented'
+    });
+  } catch (err) {
+    console.error('Error fetching contact inquiries:', err);
+    res.status(500).json({ error: 'Failed to fetch contact inquiries' });
   }
 });
 
