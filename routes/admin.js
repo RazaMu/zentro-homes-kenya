@@ -11,8 +11,8 @@ const pool = new Pool({
 
 // Hardcoded admin credentials as per user requirement
 const ADMIN_CREDENTIALS = {
-  email: 'admin@zentrohomes.com',
-  password: 'admin123', // In production, this should be hashed
+  email: 'admin',
+  password: 'zentro2025', // In production, this should be hashed
   name: 'Admin User',
   role: 'admin'
 };

@@ -2,30 +2,13 @@
 
 <head>
   <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
-  <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
+  <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans:wght@400;500;700;900&amp;family=Public+Sans:wght@400;500;700;900" />
 
   <title>Zentro Homes Admin Dashboard</title>
   <link rel="icon" href="../wp-content/uploads/2025/02/favicon-1.svg" sizes="32x32" />
 
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            'sans': ['Public Sans', 'Noto Sans', 'system-ui', 'sans-serif']
-          },
-          colors: {
-            'zentro-gold': '#bfa16b',
-            'zentro-dark': '#171e22',
-            'zentro-green': '#00987a',
-            'zentro-light': '#f6f6f1'
-          }
-        }
-      }
-    }
-  </script>
+  <link rel="stylesheet" href="css/tailwind-full.css">
 </head>
 
 <body class="font-sans antialiased overflow-x-hidden bg-white">
@@ -153,7 +136,7 @@
                 <span class="text-sm font-medium">Back to Website</span>
               </a>
               
-              <button onclick="logout()"
+              <button id="logout-btn"
                 class="w-full flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300 group">
                 <div class="text-red-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor"
@@ -267,7 +250,7 @@
             <h2 class="text-zentro-dark text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Videos
             </h2>
             <div class="flex flex-col p-4">
-              <div id="media-video-drop-zone" onclick="document.getElementById('video-input').click()"
+              <div id="media-video-drop-zone"
                 class="flex flex-col items-center gap-6 rounded-xl border-2 border-dashed border-[#dbe0e6] px-6 py-14">
                 <div class="flex max-w-[480px] flex-col items-center gap-2">
                   <p
@@ -557,7 +540,7 @@
             <div class="mb-4">
               <h4 class="text-sm font-medium text-zentro-dark mb-2">Property Images</h4>
               <p class="text-xs text-gray-500 mb-3">First image will be the main thumbnail, rest will be gallery images</p>
-              <div id="images-drop-zone" onclick="document.getElementById('images-input').click()" 
+              <div id="images-drop-zone" 
                 class="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-[#dbe0e6] px-6 py-8 cursor-pointer hover:border-zentro-gold transition-colors">
                 <div class="flex flex-col items-center gap-2">
                   <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
