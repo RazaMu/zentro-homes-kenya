@@ -17,56 +17,69 @@ class ApartmentDetailsManager {
     return parseInt(urlParams.get('id'));
   }
 
+  // Wait for Railway data manager to be ready using event-based approach
+  async waitForRailwayDataReady() {
+    return new Promise((resolve) => {
+      // Check if already ready
+      if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
+        console.log('✅ Apartment Details: Railway data manager already ready');
+        resolve(true);
+        return;
+      }
+
+      // Set up timeout
+      const timeout = setTimeout(() => {
+        console.log('⚠️ Apartment Details: Timeout waiting for Railway data manager');
+        resolve(false);
+      }, 15000); // 15 second timeout
+
+      // Listen for ready event
+      const handleReady = (event) => {
+        console.log('✅ Apartment Details: Railway data manager ready event received', event.detail);
+        clearTimeout(timeout);
+        window.removeEventListener('railwayDataManagerReady', handleReady);
+        resolve(true);
+      };
+
+      window.addEventListener('railwayDataManagerReady', handleReady);
+      
+      // Also check periodically in case we missed the event
+      const pollInterval = setInterval(() => {
+        if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
+          console.log('✅ Apartment Details: Railway data manager ready via polling');
+          clearTimeout(timeout);
+          clearInterval(pollInterval);
+          window.removeEventListener('railwayDataManagerReady', handleReady);
+          resolve(true);
+        }
+      }, 500);
+
+      // Clear polling if we get the event
+      window.addEventListener('railwayDataManagerReady', () => {
+        clearInterval(pollInterval);
+      });
+    });
+  }
+
   async loadApartmentData() {
     try {
       console.log('🔍 ApartmentDetails: Loading apartment ID:', this.apartmentId);
       
-      // Wait for shared data manager to be ready
-      let attempts = 0;
-      while (!window.sharedDataManager && attempts < 100) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-      }
-
-      if (!window.sharedDataManager) {
-        console.error('❌ SharedDataManager not available, using fallback data');
+      // Wait for Railway data manager to be ready using event-based approach
+      const dataReady = await this.waitForRailwayDataReady();
+      
+      if (!dataReady) {
+        console.error('❌ Railway data manager not ready, using fallback data');
         this.apartment = apartmentsData.apartments.find(apt => apt.id === this.apartmentId);
       } else {
-        // CRITICAL: Wait for complete database sync (not just connection)
-        console.log('⏳ Waiting for complete database sync...');
-        let syncAttempts = 0;
-        while (syncAttempts < 100) { // 10 seconds max
-          const connectionInfo = window.sharedDataManager.getConnectionInfo();
-          
-          if (syncAttempts % 10 === 0) {
-            console.log(`🔄 Sync attempt ${syncAttempts}:`, {
-              isOnline: connectionInfo.isOnline,
-              lastSync: connectionInfo.lastSync,
-              totalProperties: connectionInfo.totalProperties,
-              dataSource: connectionInfo.dataSource
-            });
-          }
-          
-          // Wait for lastSync to be set (indicates sync completed)
-          if (connectionInfo.isOnline && 
-              connectionInfo.lastSync && 
-              connectionInfo.dataSource === 'database') {
-            console.log('✅ Database sync completed! Proceeding with apartment lookup...');
-            break;
-          }
-          
-          await new Promise(resolve => setTimeout(resolve, 100));
-          syncAttempts++;
-        }
-        
-        // Now get the apartment after sync is complete
+        // Get all apartments from Railway
         const allApartments = await window.sharedDataManager.getAllApartments();
-        console.log('🔢 Available apartment IDs after sync:', allApartments.map(apt => ({ id: apt.id, title: apt.title })));
+        console.log('🔢 Available apartment IDs from Railway:', allApartments.map(apt => ({ id: apt.id, title: apt.title })));
         console.log('🎯 Requested apartment ID:', this.apartmentId, typeof this.apartmentId);
         
-        // Get apartment from database
+        // Get apartment from Railway
         this.apartment = await window.sharedDataManager.getApartmentById(this.apartmentId);
-        console.log('🏠 Loaded apartment from database:', this.apartment);
+        console.log('🏠 Loaded apartment from Railway:', this.apartment);
       }
 
       if (!this.apartment) {
@@ -140,7 +153,48 @@ class ApartmentDetailsManager {
 
   renderImageGallery() {
     const apartment = this.apartment;
-    const allImages = [apartment.images.main, ...apartment.images.gallery];
+    
+    // Build image array from Railway API data structure
+    const allImages = [];
+    
+    // Add main image if available
+    if (apartment.main_image) {
+      allImages.push(this.getImageUrl(apartment.main_image));
+    }
+    
+    // Add gallery images from various possible sources
+    if (apartment.media && apartment.media.images && apartment.media.images.length > 0) {
+      apartment.media.images.forEach(image => {
+        const imageUrl = this.getImageUrl(image);
+        if (imageUrl && !allImages.includes(imageUrl)) {
+          allImages.push(imageUrl);
+        }
+      });
+    }
+    
+    // Add from direct images array if available
+    if (apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
+      apartment.images.forEach(image => {
+        const imageUrl = this.getImageUrl(image);
+        if (imageUrl && !allImages.includes(imageUrl)) {
+          allImages.push(imageUrl);
+        }
+      });
+    }
+    
+    // Fallback image if no images found
+    if (allImages.length === 0) {
+      allImages.push('wp-content/uploads/2025/02/unsplash.jpg');
+    }
+    
+    console.log('🖼️ Apartment Details - Image gallery:', {
+      apartment_id: apartment.id,
+      main_image: apartment.main_image,
+      media_images: apartment.media?.images,
+      direct_images: apartment.images,
+      final_images: allImages
+    });
+    
     const galleryContainer = document.getElementById('property-gallery');
 
     galleryContainer.innerHTML = `
@@ -273,22 +327,27 @@ class ApartmentDetailsManager {
     const apartment = this.apartment;
     const videoSection = document.getElementById('property-video-section');
 
-    // Check if the property has a YouTube URL
-    if (!apartment.youtubeUrl || apartment.youtubeUrl.trim() === '') {
+    // Check if the property has a YouTube URL from various sources
+    const youtubeUrl = apartment.youtubeUrl || apartment.media?.youtubeUrl || apartment.youtube_url;
+    
+    if (!youtubeUrl || youtubeUrl.trim() === '') {
+      console.log('🎬 No YouTube URL found for apartment:', apartment.id);
       videoSection.classList.add('hidden');
       videoSection.style.display = 'none';
       return;
     }
+    
+    console.log('🎬 YouTube URL found:', youtubeUrl);
 
     // Show the video section
     videoSection.classList.remove('hidden');
     videoSection.style.display = 'block';
 
     // Extract YouTube video ID from the URL
-    const youtubeId = this.extractYouTubeId(apartment.youtubeUrl);
+    const youtubeId = this.extractYouTubeId(youtubeUrl);
     
     if (!youtubeId) {
-      console.warn('Invalid YouTube URL:', apartment.youtubeUrl);
+      console.warn('Invalid YouTube URL:', youtubeUrl);
       videoSection.classList.add('hidden');
       videoSection.style.display = 'none';
       return;
@@ -313,7 +372,7 @@ class ApartmentDetailsManager {
           </iframe>
         </div>
         <div class="video-actions">
-          <a href="${apartment.youtubeUrl}" target="_blank" rel="noopener noreferrer" class="watch-on-youtube">
+          <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="watch-on-youtube">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
             </svg>
@@ -402,7 +461,7 @@ class ApartmentDetailsManager {
             <line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
           <p>Unable to load video</p>
-          <a href="${this.apartment.youtubeUrl}" target="_blank" rel="noopener noreferrer" class="retry-link">
+          <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="retry-link">
             Watch on YouTube instead
           </a>
         </div>
@@ -937,6 +996,48 @@ class ApartmentDetailsManager {
         }, 500);
       }, 1000);
     }
+  }
+
+  getImageUrl(imageData) {
+    if (!imageData) return null;
+    
+    // If Railway client is available, use its image URL helper
+    if (window.railwayClient && window.railwayClient.getImageUrl) {
+      return window.railwayClient.getImageUrl(imageData);
+    }
+    
+    // Handle Railway API image data structure
+    if (Array.isArray(imageData) && imageData.length > 0) {
+      return this.getImageUrl(imageData[0]); // Get first image from array
+    }
+    
+    // Handle string URLs
+    if (typeof imageData === 'string') {
+      // Railway Volume Storage URLs
+      if (imageData.startsWith('/uploads/')) {
+        return window.location.origin + imageData;
+      }
+      // Already a full URL
+      return imageData;
+    }
+    
+    // Handle object with url property
+    if (imageData && imageData.url) {
+      if (imageData.url.startsWith('/uploads/')) {
+        return window.location.origin + imageData.url;
+      }
+      return imageData.url;
+    }
+    
+    // Handle Railway API format with file path
+    if (imageData && imageData.path) {
+      if (imageData.path.startsWith('/uploads/')) {
+        return window.location.origin + imageData.path;
+      }
+      return imageData.path;
+    }
+    
+    return null;
   }
 
   formatCurrency(price, currency = 'KES') {

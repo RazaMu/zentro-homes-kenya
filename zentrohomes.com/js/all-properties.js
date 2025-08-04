@@ -19,60 +19,62 @@ class AllPropertiesManager {
         await this.loadApartments();
         this.renderSearchAndFilters();
         this.renderApartments();
-        this.bindEvents();
+        this.bindTabEvents();
+        this.bindSearchFieldEvents();
+        this.bindCardEvents();
+    }
+
+    // Simplified Railway data manager detection
+    async waitForRailwayDataReady() {
+        return new Promise((resolve) => {
+            // Check if already ready
+            if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
+                console.log('✅ All Properties: Railway data manager already ready');
+                resolve(true);
+                return;
+            }
+
+            // Listen for ready event (no timeout, wait for actual completion)
+            const handleReady = (event) => {
+                console.log('✅ All Properties: Railway data manager ready event received', event.detail);
+                window.removeEventListener('railwayDataManagerReady', handleReady);
+                resolve(true);
+            };
+
+            window.addEventListener('railwayDataManagerReady', handleReady);
+            
+            // Also poll every 200ms for faster detection
+            const pollInterval = setInterval(() => {
+                if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
+                    console.log('✅ All Properties: Railway data manager ready via polling');
+                    clearInterval(pollInterval);
+                    window.removeEventListener('railwayDataManagerReady', handleReady);
+                    resolve(true);
+                }
+            }, 200);
+
+            // Clear polling if we get the event
+            window.addEventListener('railwayDataManagerReady', () => {
+                clearInterval(pollInterval);
+            });
+        });
     }
 
     async loadApartments() {
         try {
             console.log('🕐 All Properties: Starting to load apartments...');
             
-            // Wait for shared data manager to exist
-            let attempts = 0;
-            while (!window.sharedDataManager && attempts < 100) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                attempts++;
-            }
-            
-            if (!window.sharedDataManager) {
-                throw new Error('SharedDataManager not available');
-            }
-            
-            console.log('📡 All Properties: SharedDataManager found, waiting for database sync...');
-            
-            // Wait for database sync to complete
-            attempts = 0;
-            while (attempts < 200) { // 20 seconds max
-                const connectionInfo = window.sharedDataManager.getConnectionInfo();
-                
-                if (attempts % 20 === 0) {
-                    console.log(`🔄 All Properties: Waiting for database sync... (attempt ${attempts})`, {
-                        isOnline: connectionInfo.isOnline,
-                        lastSync: connectionInfo.lastSync,
-                        totalProperties: connectionInfo.totalProperties,
-                        dataSource: connectionInfo.dataSource
-                    });
-                }
-                
-                // Check if we have real database sync
-                if (connectionInfo.isOnline && 
-                    connectionInfo.lastSync && 
-                    connectionInfo.dataSource === 'database' &&
-                    connectionInfo.totalProperties > 0) {
-                    
-                    console.log('✅ All Properties: Database sync confirmed! Loading all data...');
-                    break;
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, 100));
-                attempts++;
-            }
+            // Always wait for Railway data manager to be ready (no timeout)
+            await this.waitForRailwayDataReady();
 
-            // Get all apartments
+            // Get all apartments from Railway
             this.apartments = await window.sharedDataManager.getAllApartments();
-            const finalConnectionInfo = window.sharedDataManager.getConnectionInfo();
             
-            console.log(`🎯 All Properties: Loaded ${this.apartments.length} apartments from ${finalConnectionInfo.dataSource}`);
-            console.log('🔢 All Properties - Available apartment IDs:', this.apartments.map(apt => ({ id: apt.id, title: apt.title })));
+            // If no apartments loaded from Railway, use fallback data as last resort
+            if (!this.apartments || this.apartments.length === 0) {
+                console.log('⚠️ No apartments from Railway, using fallback data');
+                this.apartments = this.createFallbackData();
+            }
             
             this.filteredApartments = [...this.apartments];
             this.isLoading = false;
@@ -81,8 +83,7 @@ class AllPropertiesManager {
             // Apply initial filter (For Sale by default)
             this.applyFilters();
             
-            console.log(`📦 All Properties ready for display:`, this.apartments.length);
-            console.log(`📊 Property statuses:`, this.apartments.map(apt => `${apt.title}: ${apt.status}`));
+            console.log(`📦 All Properties: ${this.apartments.length} apartments ready for display`);
         } catch (error) {
             console.error('❌ Error loading apartments:', error);
             // Fallback to static data
@@ -172,10 +173,42 @@ class AllPropertiesManager {
     createApartmentCard(apartment) {
         const formattedPrice = this.formatCurrency(apartment.price, apartment.currency);
         
+        // Try multiple image sources
+        let imageUrl = null;
+        
+        // Try different image property structures from Railway API
+        if (apartment.main_image && apartment.main_image !== 'wp-content/uploads/2025/02/unsplash.jpg') {
+            imageUrl = this.getImageUrl(apartment.main_image);
+        } else if (apartment.media?.images?.[0]) {
+            imageUrl = this.getImageUrl(apartment.media.images[0]);
+        } else if (apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
+            imageUrl = this.getImageUrl(apartment.images[0]);
+        } else if (apartment.images?.main) {
+            imageUrl = this.getImageUrl(apartment.images.main);
+        } else if (apartment.gallery_images?.[0]) {
+            imageUrl = this.getImageUrl(apartment.gallery_images[0]);
+        } else {
+            // Use fallback image
+            imageUrl = 'wp-content/uploads/2025/02/unsplash.jpg';
+        }
+        
+        // Debug: Log image data structure for first few apartments
+        if (apartment.id <= 3) {
+            console.log(`🖼️ Property ${apartment.id} (${apartment.title}) - Image data:`, {
+                main_image: apartment.main_image,
+                media_images: apartment.media?.images,
+                images_array: apartment.images,
+                gallery_images: apartment.gallery_images,
+                final_url: imageUrl
+            });
+        }
+        
+        const finalImageUrl = imageUrl || 'wp-content/uploads/2025/02/unsplash.jpg';
+        
         return `
-            <div class="property-card" data-id="${apartment.id}" onclick="window.location.href='apartment-details.html?id=${apartment.id}'" style="cursor: pointer;">
+            <div class="property-card" data-id="${apartment.id}" data-navigate-to="apartment-details" style="cursor: pointer;">
                 <div class="property-image-wrapper">
-                    <img src="${apartment.images?.main || 'wp-content/uploads/2025/02/unsplash.jpg'}" alt="${apartment.title}" class="property-image">
+                    <img src="${finalImageUrl}" alt="${apartment.title}" class="property-image" onerror="this.src='wp-content/uploads/2025/02/unsplash.jpg'">
                     <div class="property-tags">
                         <span class="property-tag tag-${apartment.status?.toLowerCase().replace(' ', '-')}">${apartment.status}</span>
                     </div>
@@ -374,7 +407,9 @@ class AllPropertiesManager {
     }
 
     bindCardEvents() {
-        // Cards already have onclick handlers in the HTML
+        // Add click handlers for property cards navigation
+        this.addPropertyCardListeners();
+        
         // Load more button
         const loadMoreBtn = document.getElementById('load-more-btn');
         if (loadMoreBtn) {
@@ -383,6 +418,23 @@ class AllPropertiesManager {
                 this.renderApartments();
             });
         }
+    }
+
+    addPropertyCardListeners() {
+        // Remove existing listeners to avoid duplicates
+        document.removeEventListener('click', this.handlePropertyCardClick);
+        
+        // Add event delegation for property cards
+        this.handlePropertyCardClick = (event) => {
+            const propertyCard = event.target.closest('.property-card[data-navigate-to="apartment-details"]');
+            if (propertyCard) {
+                const apartmentId = propertyCard.getAttribute('data-id');
+                console.log('🔗 All Properties: Navigating to apartment details with ID:', apartmentId);
+                window.location.href = `apartment-details.html?id=${apartmentId}`;
+            }
+        };
+        
+        document.addEventListener('click', this.handlePropertyCardClick);
     }
 
     applyFilters() {
@@ -452,6 +504,133 @@ class AllPropertiesManager {
     formatCurrency(price, currency = 'KES') {
         const formattedNumber = new Intl.NumberFormat('en-KE').format(price);
         return `${currency} ${formattedNumber}`;
+    }
+
+    getImageUrl(imageData) {
+        if (!imageData) return null;
+        
+        // If Railway client is available, use its image URL helper
+        if (window.railwayClient && window.railwayClient.getImageUrl) {
+            return window.railwayClient.getImageUrl(imageData);
+        }
+        
+        // Handle Railway API image data structure
+        if (Array.isArray(imageData) && imageData.length > 0) {
+            return this.getImageUrl(imageData[0]); // Get first image from array
+        }
+        
+        // Handle string URLs
+        if (typeof imageData === 'string') {
+            // Railway Volume Storage URLs
+            if (imageData.startsWith('/uploads/')) {
+                return window.location.origin + imageData;
+            }
+            // Already a full URL
+            return imageData;
+        }
+        
+        // Handle object with url property
+        if (imageData && imageData.url) {
+            if (imageData.url.startsWith('/uploads/')) {
+                return window.location.origin + imageData.url;
+            }
+            return imageData.url;
+        }
+        
+        // Handle Railway API format with file path
+        if (imageData && imageData.path) {
+            if (imageData.path.startsWith('/uploads/')) {
+                return window.location.origin + imageData.path;
+            }
+            return imageData.path;
+        }
+        
+        return null;
+    }
+
+    createFallbackData() {
+        return [
+            {
+                id: 1,
+                title: "Luxury Villa in Kilimani",
+                type: "Villa",
+                status: "For Sale",
+                price: 75000000,
+                currency: "KES",
+                location: { area: "Kilimani", city: "Nairobi", country: "Kenya" },
+                features: { bedrooms: 4, bathrooms: 3, parking: 2, size: 350, sizeUnit: "m²" },
+                images: { main: "wp-content/uploads/2025/02/unsplash.jpg" },
+                description: "Beautiful luxury villa with modern amenities.",
+                featured: true,
+                available: true,
+                published: true,
+                dateAdded: new Date().toISOString()
+            },
+            {
+                id: 2,
+                title: "Modern Apartment in Westlands",
+                type: "Apartment",
+                status: "For Sale",
+                price: 45000000,
+                currency: "KES",
+                location: { area: "Westlands", city: "Nairobi", country: "Kenya" },
+                features: { bedrooms: 3, bathrooms: 2, parking: 1, size: 180, sizeUnit: "m²" },
+                images: { main: "wp-content/uploads/2025/02/unsplash.jpg" },
+                description: "Contemporary apartment in prime location.",
+                featured: false,
+                available: true,
+                published: true,
+                dateAdded: new Date().toISOString()
+            },
+            {
+                id: 3,
+                title: "Penthouse in Lavington",
+                type: "Penthouse",
+                status: "For Sale",
+                price: 120000000,
+                currency: "KES",
+                location: { area: "Lavington", city: "Nairobi", country: "Kenya" },
+                features: { bedrooms: 5, bathrooms: 4, parking: 3, size: 450, sizeUnit: "m²" },
+                images: { main: "wp-content/uploads/2025/02/unsplash.jpg" },
+                description: "Exclusive penthouse with panoramic city views.",
+                featured: true,
+                available: true,
+                published: true,
+                dateAdded: new Date().toISOString()
+            },
+            {
+                id: 4,
+                title: "Condo in Parklands",
+                type: "Condo",
+                status: "For Rent",
+                price: 150000,
+                currency: "KES",
+                location: { area: "Parklands", city: "Nairobi", country: "Kenya" },
+                features: { bedrooms: 2, bathrooms: 2, parking: 1, size: 120, sizeUnit: "m²" },
+                images: { main: "wp-content/uploads/2025/02/unsplash.jpg" },
+                description: "Modern condo available for rent.",
+                featured: false,
+                available: true,
+                published: true,
+                dateAdded: new Date().toISOString()
+            },
+            {
+                id: 5,
+                title: "Townhouse in Runda",
+                type: "Townhouse",
+                status: "For Sale",
+                price: 95000000,
+                currency: "KES",
+                location: { area: "Runda", city: "Nairobi", country: "Kenya" },
+                features: { bedrooms: 4, bathrooms: 3, parking: 2, size: 280, sizeUnit: "m²" },
+                images: { main: "wp-content/uploads/2025/02/unsplash.jpg" },
+                description: "Spacious townhouse in gated community.",
+                featured: false,
+                available: true,
+                published: true,
+                dateAdded: new Date().toISOString()
+            }
+        ];
     }
 }
 

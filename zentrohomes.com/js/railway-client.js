@@ -5,8 +5,20 @@
 
 class RailwayClient {
   constructor() {
-    // Use the correct API server URL
-    this.baseUrl = 'http://localhost:3000/api';
+    // Dynamically determine the API base URL
+    // If running on Railway (has railway.app in hostname) or in production
+    const isRailway = window.location.hostname.includes('railway.app') || 
+                      window.location.hostname.includes('up.railway.app');
+    const isProduction = window.location.hostname !== 'localhost' && 
+                        window.location.hostname !== '127.0.0.1';
+    
+    if (isRailway || isProduction) {
+      // Use the same origin for Railway deployment
+      this.baseUrl = window.location.origin + '/api';
+    } else {
+      // Development - use localhost with port 3000
+      this.baseUrl = window.location.protocol + '//' + window.location.hostname + ':3000/api';
+    }
     this.adminToken = localStorage.getItem('admin_token');
     this.defaultHeaders = {
       'Content-Type': 'application/json'
@@ -614,6 +626,10 @@ class RailwayClient {
 
   getImageUrl(imageObj, transformation = '') {
     if (typeof imageObj === 'string') {
+      // If it's already a URL, check if it needs base URL prepended
+      if (imageObj.startsWith('/uploads/')) {
+        return this.baseUrl.replace('/api', '') + imageObj;
+      }
       return imageObj; // Direct URL
     }
     
@@ -622,6 +638,12 @@ class RailwayClient {
         // Insert transformation into Cloudinary URL
         return imageObj.url.replace('/upload/', `/upload/${transformation}/`);
       }
+      
+      // Handle Railway storage URLs
+      if (imageObj.url.startsWith('/uploads/')) {
+        return this.baseUrl.replace('/api', '') + imageObj.url;
+      }
+      
       return imageObj.url;
     }
     

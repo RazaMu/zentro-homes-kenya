@@ -9,8 +9,9 @@ class RailwayDataManager {
     this.isOnline = false;
     this.lastSync = null;
     this.client = null;
+    this.isInitialized = false;
     
-    this.init();
+    // Don't auto-init in constructor since we need to control timing
   }
   
   // Safe JSON parser that handles invalid JSON gracefully
@@ -29,6 +30,28 @@ class RailwayDataManager {
       }
       return fallback;
     }
+  }
+
+  // Process image array from Railway API with proper fallbacks
+  processImageArray(imageData) {
+    if (!imageData) return null;
+    
+    if (Array.isArray(imageData)) {
+      return imageData.filter(img => img !== null && img !== undefined);
+    }
+    
+    if (typeof imageData === 'string') {
+      if (imageData.trim() === '' || imageData === 'null') return null;
+      try {
+        const parsed = JSON.parse(imageData);
+        return Array.isArray(parsed) ? parsed.filter(img => img !== null && img !== undefined) : null;
+      } catch {
+        // Treat as comma-separated string
+        return imageData.split(',').map(item => item.trim()).filter(item => item.length > 0 && item !== 'null');
+      }
+    }
+    
+    return null;
   }
   
   async init() {
@@ -78,6 +101,16 @@ class RailwayDataManager {
       const response = await this.client.getProperties({ published: true, available: true });
       
       if (response.properties) {
+        // Debug: Log raw Railway API response structure
+        if (response.properties.length > 0) {
+          console.log('🔍 Raw Railway API property structure:', response.properties[0]);
+          console.log('🔍 Raw image fields:', {
+            main_image: response.properties[0].main_image,
+            gallery_images: response.properties[0].gallery_images,
+            images: response.properties[0].images
+          });
+        }
+        
         this.apartments = this.convertToLegacyFormat(response.properties);
         this.lastSync = new Date();
         console.log(`✅ RailwayDataManager: Synced ${this.apartments.length} properties from Railway API`);
@@ -135,8 +168,7 @@ class RailwayDataManager {
       },
       
       media: {
-        images: Array.isArray(property.images) ? property.images : 
-                (typeof property.images === 'string' ? this.safeJSONParse(property.images, []) : []),
+        images: this.processImageArray(property.gallery_images) || ['wp-content/uploads/2025/02/unsplash.jpg'],
         videos: Array.isArray(property.videos) ? property.videos : 
                 (typeof property.videos === 'string' ? this.safeJSONParse(property.videos, []) : []),
         virtualTour: property.virtual_tour_url,
@@ -155,8 +187,8 @@ class RailwayDataManager {
       
       // Legacy compatibility fields
       description: property.description,
-      images: Array.isArray(property.images) ? property.images : 
-              (typeof property.images === 'string' ? this.safeJSONParse(property.images, []) : []),
+      main_image: property.main_image || 'wp-content/uploads/2025/02/unsplash.jpg',
+      images: this.processImageArray(property.gallery_images) || ['wp-content/uploads/2025/02/unsplash.jpg'],
       
       // Status fields
       available: property.available,
@@ -577,50 +609,35 @@ class RailwayDataManager {
   // Save to localStorage (fallback) - exclude large image data
   saveToStorage() {
     try {
-      // Create a lightweight version without large image data
-      const lightweightData = this.apartments.map(property => {
-        // Create a copy without images to save storage space
-        const lightProperty = { ...property };
-        
-        // Keep only image URLs, not full base64 data
-        if (lightProperty.images && Array.isArray(lightProperty.images)) {
-          lightProperty.images = lightProperty.images.map(img => {
-            if (typeof img === 'object' && img.url) {
-              // Keep only URL and metadata, remove large base64 data
-              return {
-                url: img.url.startsWith('data:') ? '[base64-image]' : img.url,
-                alt: img.alt,
-                isPrimary: img.isPrimary
-              };
-            }
-            return typeof img === 'string' && img.startsWith('data:') ? '[base64-image]' : img;
-          });
-        }
-        
-        return lightProperty;
-      });
+      // Only save essential data to avoid quota issues
+      const minimalData = this.apartments.map(property => ({
+        id: property.id,
+        uuid: property.uuid,
+        title: property.title,
+        slug: property.slug,
+        type: property.type,
+        status: property.status,
+        price: property.price,
+        currency: property.currency,
+        location: property.location,
+        features: property.features,
+        description: property.description ? property.description.substring(0, 200) + '...' : '',
+        // Keep only the main image URL, not full image objects
+        mainImageUrl: property.media?.images?.[0]?.url || property.images?.main?.url || null,
+        available: property.available,
+        featured: property.featured,
+        published: property.published,
+        dateAdded: property.dateAdded
+      }));
       
-      localStorage.setItem('zentro-apartments-railway', JSON.stringify(lightweightData));
+      localStorage.setItem('zentro-apartments-railway', JSON.stringify(minimalData));
       localStorage.setItem('zentro-last-update-railway', new Date().toISOString());
-      console.log('💾 Saved lightweight property data to localStorage (without large images)');
+      console.log('💾 Saved minimal property data to localStorage (without large images)');
     } catch (error) {
-      console.error('Failed to save to localStorage:', error);
-      // Try to clear some space and retry with even more minimal data
-      try {
-        const minimalData = this.apartments.map(p => ({
-          id: p.id,
-          title: p.title,
-          type: p.type,
-          status: p.status,
-          price: p.price
-        }));
-        localStorage.setItem('zentro-apartments-railway', JSON.stringify(minimalData));
-        console.log('💾 Saved minimal property data to localStorage');
-      } catch (retryError) {
-        console.error('Failed to save even minimal data to localStorage:', retryError);
-        // Clear the localStorage item to prevent corruption
-        localStorage.removeItem('zentro-apartments-railway');
-      }
+      console.warn('Failed to save to localStorage:', error.message);
+      // If still failing, just skip localStorage caching
+      localStorage.removeItem('zentro-apartments-railway');
+      console.log('💾 Skipped localStorage due to quota issues');
     }
   }
   
@@ -634,6 +651,7 @@ class RailwayDataManager {
         const storedApartments = JSON.parse(stored);
         if (storedApartments.length > 0) {
           this.apartments = storedApartments;
+          this.lastSync = lastUpdate ? new Date(lastUpdate) : new Date(); // Set lastSync from stored data
           console.log(`Loaded ${this.apartments.length} properties from localStorage`);
           
           if (lastUpdate) {
@@ -645,6 +663,7 @@ class RailwayDataManager {
       // Fallback to apartments-data if no stored data
       if (this.apartments.length === 0 && window.apartmentsData) {
         this.apartments = [...window.apartmentsData.apartments];
+        this.lastSync = new Date(); // Set lastSync for fallback data too
         console.log(`Loaded ${this.apartments.length} properties from fallback data`);
       }
     } catch (error) {
@@ -652,6 +671,7 @@ class RailwayDataManager {
       // Use apartments-data as final fallback
       if (window.apartmentsData) {
         this.apartments = [...window.apartmentsData.apartments];
+        this.lastSync = new Date(); // Set lastSync for fallback data too
         console.log(`Using fallback data: ${this.apartments.length} properties`);
       }
     }
@@ -663,7 +683,8 @@ class RailwayDataManager {
       isOnline: this.isOnline,
       lastSync: this.lastSync,
       totalProperties: this.apartments.length,
-      dataSource: this.isOnline ? 'Railway API' : 'local storage'
+      dataSource: this.isOnline ? 'Railway API' : 'local storage',
+      isInitialized: this.isInitialized
     };
   }
 
@@ -688,16 +709,25 @@ let railwayDataManager;
 document.addEventListener('DOMContentLoaded', async function() {
   railwayDataManager = new RailwayDataManager();
   
-  // Make it globally available
+  // Make it globally available BEFORE initialization
   window.sharedDataManager = railwayDataManager;
   window.railwayDataManager = railwayDataManager;
   
   // Initialize after Railway client is ready
+  console.log('🔄 Starting Railway Data Manager initialization...');
   await railwayDataManager.init();
+  
+  // Signal that initialization is complete
+  railwayDataManager.isInitialized = true;
   
   // Log connection status
   const connectionInfo = railwayDataManager.getConnectionInfo();
   console.log('🚀 Railway Data Manager Status:', connectionInfo);
+  
+  // Dispatch custom event to notify other components
+  window.dispatchEvent(new CustomEvent('railwayDataManagerReady', { 
+    detail: connectionInfo 
+  }));
 });
 
 // Export for compatibility

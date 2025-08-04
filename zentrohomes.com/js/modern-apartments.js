@@ -18,80 +18,69 @@ class ModernApartmentManager {
         this.bindEvents();
     }
 
+    // Simplified Railway data manager detection
+    async waitForRailwayDataReady() {
+        return new Promise((resolve) => {
+            // Check if already ready
+            if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
+                console.log('✅ Modern Apartments: Railway data manager already ready');
+                resolve(true);
+                return;
+            }
+
+            // Listen for ready event (no timeout, wait for actual completion)
+            const handleReady = (event) => {
+                console.log('✅ Modern Apartments: Railway data manager ready event received', event.detail);
+                window.removeEventListener('railwayDataManagerReady', handleReady);
+                resolve(true);
+            };
+
+            window.addEventListener('railwayDataManagerReady', handleReady);
+            
+            // Also poll every 200ms for faster detection
+            const pollInterval = setInterval(() => {
+                if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
+                    console.log('✅ Modern Apartments: Railway data manager ready via polling');
+                    clearInterval(pollInterval);
+                    window.removeEventListener('railwayDataManagerReady', handleReady);
+                    resolve(true);
+                }
+            }, 200);
+
+            // Clear polling if we get the event
+            window.addEventListener('railwayDataManagerReady', () => {
+                clearInterval(pollInterval);
+            });
+        });
+    }
+
     async loadApartments() {
         try {
             console.log('🕐 Modern Apartments: Starting to load apartments...');
             
-            // Wait for shared data manager to exist
-            let attempts = 0;
-            while (!window.sharedDataManager && attempts < 100) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                attempts++;
-            }
-            
-            if (!window.sharedDataManager) {
-                throw new Error('SharedDataManager not available');
-            }
-            
-            console.log('📡 Modern Apartments: SharedDataManager found, waiting for database sync...');
-            
-            // CRITICAL: Wait for actual database sync to complete (lastSync timestamp set)
-            attempts = 0;
-            while (attempts < 200) { // 20 seconds max
-                const connectionInfo = window.sharedDataManager.getConnectionInfo();
-                
-                if (attempts % 20 === 0) {
-                    console.log(`🔄 Modern Apartments: Waiting for database sync... (attempt ${attempts})`, {
-                        isOnline: connectionInfo.isOnline,
-                        lastSync: connectionInfo.lastSync,
-                        totalProperties: connectionInfo.totalProperties,
-                        dataSource: connectionInfo.dataSource
-                    });
-                }
-                
-                // Check if we have real database sync (lastSync exists and dataSource is 'database')
-                if (connectionInfo.isOnline && 
-                    connectionInfo.lastSync && 
-                    connectionInfo.dataSource === 'database' &&
-                    connectionInfo.totalProperties > 6) { // Expect more than 6 mock properties
-                    
-                    console.log('✅ Modern Apartments: Database sync confirmed! Loading real data...');
-                    break;
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, 100));
-                attempts++;
-            }
+            // Always wait for Railway data manager to be ready (no timeout)
+            await this.waitForRailwayDataReady();
 
-            // Get the apartments after database sync is confirmed
+            // Get the apartments from Railway
             this.apartments = await window.sharedDataManager.getAllApartments();
-            const finalConnectionInfo = window.sharedDataManager.getConnectionInfo();
             
-            console.log(`🎯 Modern Apartments: Loaded ${this.apartments.length} apartments from ${finalConnectionInfo.dataSource}`);
-            console.log(`📊 Final connection status:`, finalConnectionInfo);
-            console.log('🔢 Featured Apartments - Available apartment IDs:', this.apartments.map(apt => ({ id: apt.id, title: apt.title })));
-            
-            // Verify we got real database data, not mock data
-            if (this.apartments.length > 0) {
-                console.log(`🔍 First loaded apartment:`, this.apartments[0]);
-                if (this.apartments[0].title === 'Luxury Villa') {
-                    console.error('❌ Still getting mock data! Database sync failed.');
-                } else {
-                    console.log('✅ Real database data confirmed!');
-                }
+            // If no apartments loaded from Railway, use fallback data as last resort
+            if (!this.apartments || this.apartments.length === 0) {
+                console.log('⚠️ No apartments from Railway, using fallback data');
+                this.apartments = this.createFallbackData();
             }
             
             this.filteredApartments = [...this.apartments];
             this.isLoading = false;
             
-            console.log(`📦 Apartments ready for display:`, this.apartments.length);
+            console.log(`📦 Modern Apartments: ${this.apartments.length} apartments ready for display`);
         } catch (error) {
             console.error('❌ Error loading apartments:', error);
-            // Fallback to static data
-            this.apartments = [...apartmentsData.apartments];
+            // Only use static fallback on actual errors
+            this.apartments = this.createFallbackData();
             this.filteredApartments = [...this.apartments];
             this.isLoading = false;
-            console.log('⚠️ Modern Apartments: Using fallback static data due to error');
+            console.log('⚠️ Modern Apartments: Using fallback data due to error');
         }
     }
 
@@ -232,6 +221,48 @@ class ModernApartmentManager {
         return `${currency} ${formattedNumber}`;
     }
 
+    getImageUrl(imageData) {
+        if (!imageData) return null;
+        
+        // If Railway client is available, use its image URL helper
+        if (window.railwayClient && window.railwayClient.getImageUrl) {
+            return window.railwayClient.getImageUrl(imageData);
+        }
+        
+        // Handle Railway API image data structure
+        if (Array.isArray(imageData) && imageData.length > 0) {
+            return this.getImageUrl(imageData[0]); // Get first image from array
+        }
+        
+        // Handle string URLs
+        if (typeof imageData === 'string') {
+            // Railway Volume Storage URLs
+            if (imageData.startsWith('/uploads/')) {
+                return window.location.origin + imageData;
+            }
+            // Already a full URL
+            return imageData;
+        }
+        
+        // Handle object with url property
+        if (imageData && imageData.url) {
+            if (imageData.url.startsWith('/uploads/')) {
+                return window.location.origin + imageData.url;
+            }
+            return imageData.url;
+        }
+        
+        // Handle Railway API format with file path
+        if (imageData && imageData.path) {
+            if (imageData.path.startsWith('/uploads/')) {
+                return window.location.origin + imageData.path;
+            }
+            return imageData.path;
+        }
+        
+        return null;
+    }
+
     filterApartments(apartments, filters) {
         return apartments.filter(apartment => {
             // Type filter
@@ -317,13 +348,42 @@ class ModernApartmentManager {
         }
 
         apartmentsContainer.innerHTML = this.filteredApartments.map(apartment => {
-            // Debug: Log each apartment being rendered
-            console.log(`🏠 Rendering apartment:`, apartment.title, apartment.id);
+            // Try multiple image sources
+            let imageUrl = null;
+            
+            // Try different image property structures from Railway API
+            if (apartment.main_image && apartment.main_image !== 'wp-content/uploads/2025/02/unsplash.jpg') {
+                imageUrl = this.getImageUrl(apartment.main_image);
+            } else if (apartment.media?.images?.[0]) {
+                imageUrl = this.getImageUrl(apartment.media.images[0]);
+            } else if (apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
+                imageUrl = this.getImageUrl(apartment.images[0]);
+            } else if (apartment.images?.main) {
+                imageUrl = this.getImageUrl(apartment.images.main);
+            } else if (apartment.gallery_images?.[0]) {
+                imageUrl = this.getImageUrl(apartment.gallery_images[0]);
+            } else {
+                // Use fallback image
+                imageUrl = 'wp-content/uploads/2025/02/unsplash.jpg';
+            }
+            
+            // Debug: Log image data structure for first few apartments
+            if (apartment.id <= 3) {
+                console.log(`🖼️ Property ${apartment.id} (${apartment.title}) - Image data:`, {
+                    main_image: apartment.main_image,
+                    media_images: apartment.media?.images,
+                    images_array: apartment.images,
+                    gallery_images: apartment.gallery_images,
+                    final_url: imageUrl
+                });
+            }
+            
+            const finalImageUrl = imageUrl || 'wp-content/uploads/2025/02/unsplash.jpg';
             
             return `
-      <div class="property-card" data-id="${apartment.id}" onclick="modernApartmentManager.viewApartment(${apartment.id})" style="cursor: pointer;">
+      <div class="property-card" data-id="${apartment.id}" data-navigate-to="apartment-details" style="cursor: pointer;">
         <div class="property-image-wrapper">
-          <img src="${apartment.images?.main || 'wp-content/uploads/2025/02/unsplash.jpg'}" alt="${apartment.title}" class="property-image">
+          <img src="${finalImageUrl}" alt="${apartment.title}" class="property-image" onerror="this.src='wp-content/uploads/2025/02/unsplash.jpg'">
           <div class="property-tags">
             ${apartment.featured ? '<span class="property-tag tag-featured">FEATURED</span>' : ''}
             <span class="property-tag tag-${apartment.status?.toLowerCase().replace(' ', '-')}">${apartment.status}</span>
@@ -373,6 +433,9 @@ class ModernApartmentManager {
     }
 
     bindEvents() {
+        // Add property card navigation listeners
+        this.addPropertyCardListeners();
+        
         // Unified search bar selects
         document.getElementById('filter-type')?.addEventListener('change', (e) => {
             this.updateFilterValue('type', e.target.value);
@@ -554,6 +617,76 @@ class ModernApartmentManager {
                 button.style.boxShadow = '';
             }, 200);
         }, 100);
+    }
+
+    createFallbackData() {
+        return [
+            {
+                id: 1,
+                title: "Luxury Villa in Kilimani",
+                type: "Villa",
+                status: "For Sale",
+                price: 75000000,
+                currency: "KES",
+                location: { area: "Kilimani", city: "Nairobi", country: "Kenya" },
+                features: { bedrooms: 4, bathrooms: 3, parking: 2, size: 350, sizeUnit: "m²" },
+                images: { main: "wp-content/uploads/2025/02/unsplash.jpg" },
+                description: "Beautiful luxury villa with modern amenities.",
+                featured: true,
+                available: true,
+                published: true,
+                dateAdded: new Date().toISOString()
+            },
+            {
+                id: 2,
+                title: "Modern Apartment in Westlands",
+                type: "Apartment",
+                status: "For Sale",
+                price: 45000000,
+                currency: "KES",
+                location: { area: "Westlands", city: "Nairobi", country: "Kenya" },
+                features: { bedrooms: 3, bathrooms: 2, parking: 1, size: 180, sizeUnit: "m²" },
+                images: { main: "wp-content/uploads/2025/02/unsplash.jpg" },
+                description: "Contemporary apartment in prime location.",
+                featured: false,
+                available: true,
+                published: true,
+                dateAdded: new Date().toISOString()
+            },
+            {
+                id: 3,
+                title: "Penthouse in Lavington",
+                type: "Penthouse",
+                status: "For Sale",
+                price: 120000000,
+                currency: "KES",
+                location: { area: "Lavington", city: "Nairobi", country: "Kenya" },
+                features: { bedrooms: 5, bathrooms: 4, parking: 3, size: 450, sizeUnit: "m²" },
+                images: { main: "wp-content/uploads/2025/02/unsplash.jpg" },
+                description: "Exclusive penthouse with panoramic city views.",
+                featured: true,
+                available: true,
+                published: true,
+                dateAdded: new Date().toISOString()
+            }
+        ];
+    }
+
+    addPropertyCardListeners() {
+        // Remove existing listeners to avoid duplicates
+        document.removeEventListener('click', this.handlePropertyCardClick);
+        
+        // Add event delegation for property cards
+        this.handlePropertyCardClick = (event) => {
+            const propertyCard = event.target.closest('.property-card[data-navigate-to="apartment-details"]');
+            if (propertyCard) {
+                const apartmentId = propertyCard.getAttribute('data-id');
+                console.log('🔗 Featured Apartments: Navigating to apartment details with ID:', apartmentId);
+                window.location.href = `apartment-details.html?id=${apartmentId}`;
+            }
+        };
+        
+        document.addEventListener('click', this.handlePropertyCardClick);
     }
 
     viewApartment(id) {

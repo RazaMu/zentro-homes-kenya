@@ -1,0 +1,45 @@
+/* 
+Font CSP Fix for Zentro Homes
+Removes problematic inline base64 fonts and ensures proper external font loading
+*/
+
+/* Override any problematic font-face declarations with safe external fonts */
+@import url('https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,200..800;1,200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+/* Ensure all text uses safe fonts */
+* {
+    font-family: 'Karla', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* Specific font overrides for headings and titles */
+.title_big,
+.title_page,
+.title_section,
+.title_block,
+.title_category,
+h1, h2, h3, h4, h5, h6,
+.btn,
+.header_nav,
+.header_action_item {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* Playfair Display for emphasized text */
+em,
+.title_big em,
+.title_page em,
+.title_section em,
+.title_block em {
+    font-family: 'Playfair Display', Georgia, serif !important;
+}
+
+/* Body text */
+body,
+p,
+li,
+.typical_text li,
+.typical_text p {
+    font-family: 'Karla', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
