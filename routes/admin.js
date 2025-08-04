@@ -43,8 +43,17 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
+    // Debug logging
+    console.log('Login attempt:', { 
+      received_email: email, 
+      received_password: password,
+      expected_email: ADMIN_CREDENTIALS.email,
+      expected_password: ADMIN_CREDENTIALS.password 
+    });
+
     // Check against hardcoded credentials
     if (email.toLowerCase() !== ADMIN_CREDENTIALS.email.toLowerCase() || password !== ADMIN_CREDENTIALS.password) {
+      console.log('Login failed - credential mismatch');
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 

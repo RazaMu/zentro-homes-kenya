@@ -1,6 +1,6 @@
-// Zentro Homes Admin Dashboard - Consolidated Railway Integration
+// Zentro Homes Admin Dashboard - Consolidated Authentication System
 // Complete admin interface with authentication, property management, and database integration
-// Supports both Railway API (railwayClient) and direct database access (railwayManager)
+// Uses backend API endpoints for authentication and Railway database for data management
 class ZentroAdminRailway {
   constructor() {
     this.properties = [];
@@ -10,11 +10,10 @@ class ZentroAdminRailway {
     this.isLoading = false;
     this.isLoggedIn = false;
     this.currentUser = null;
-    this.client = null;
     
-    // Media management - KISS approach with filesystem storage
+    // Media management - single image approach
     this.selectedMedia = {
-      images: [], // Array of image files (first = main, rest = gallery)
+      image: null, // Single image file
       youtubeUrl: '' // YouTube URL for property video
     };
     this.maxImageSize = 10 * 1024 * 1024; // 10MB
@@ -28,8 +27,7 @@ class ZentroAdminRailway {
     this.bindModalEvents();
     this.bindAuthEvents();
     
-    // Wait for Railway client and manager to be initialized
-    await this.waitForRailwayClient();
+    // Wait for Railway manager to be initialized  
     await this.waitForRailwayManager();
     
     // Check if user is already logged in
@@ -42,26 +40,6 @@ class ZentroAdminRailway {
     }
   }
 
-  // Wait for Railway client to be initialized
-  async waitForRailwayClient() {
-    let attempts = 0;
-    const maxAttempts = 50; // 5 seconds max wait
-    
-    console.log('🔍 Admin: Waiting for railwayClient...');
-    
-    while (!window.railwayClient && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      attempts++;
-    }
-    
-    if (window.railwayClient) {
-      this.client = window.railwayClient;
-      console.log('✅ Admin: Connected to Railway client');
-    } else {
-      console.error('❌ Admin: Railway client not found');
-      this.showNotification('Failed to connect to Railway API. Please refresh the page.', 'error');
-    }
-  }
 
   // Wait for Railway manager to be initialized
   async waitForRailwayManager() {
@@ -87,18 +65,30 @@ class ZentroAdminRailway {
   // Check authentication status
   async checkAuthStatus() {
     try {
-      if (this.client && this.client.isAdminLoggedIn()) {
-        const result = await this.client.verifyAdminToken();
-        if (result.valid) {
-          this.isLoggedIn = true;
-          this.currentUser = result.admin;
-          console.log('✅ Admin authenticated:', this.currentUser.name);
-          return true;
+      const token = localStorage.getItem('admin_token');
+      
+      if (token) {
+        const response = await fetch('/api/admin/verify', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.valid) {
+            this.isLoggedIn = true;
+            this.currentUser = result.admin;
+            console.log('✅ Admin authenticated:', this.currentUser.name);
+            return true;
+          }
         }
       }
     } catch (error) {
       console.log('🔑 Admin not authenticated');
-      if (this.client) this.client.adminLogout(); // Clear invalid token
+      localStorage.removeItem('admin_token'); // Clear invalid token
     }
     
     this.isLoggedIn = false;
@@ -132,7 +122,7 @@ class ZentroAdminRailway {
           <form id="loginForm">
             <div class="form-group">
               <label for="loginEmail">Email:</label>
-              <input type="email" id="loginEmail" required value="admin@zentrohomes.com">
+              <input type="email" id="loginEmail" required value="admin">
             </div>
             <div class="form-group">
               <label for="loginPassword">Password:</label>
@@ -153,7 +143,7 @@ class ZentroAdminRailway {
   // Bind authentication events
   bindAuthEvents() {
     const loginForm = document.getElementById('loginForm') || document.getElementById('login-form');
-    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutBtn = document.getElementById('logoutBtn') || document.getElementById('logout-btn');
     
     if (loginForm) {
       loginForm.addEventListener('submit', async (e) => {
@@ -167,6 +157,32 @@ class ZentroAdminRailway {
         await this.handleLogout();
       });
     }
+
+    // Add click handlers for drop zones that were previously inline
+    const mediaVideoDropZone = document.getElementById('media-video-drop-zone');
+    const imagesDropZone = document.getElementById('images-drop-zone');
+
+    if (mediaVideoDropZone) {
+      mediaVideoDropZone.addEventListener('click', () => {
+        const videoInput = document.getElementById('video-input');
+        if (videoInput) videoInput.click();
+      });
+    }
+
+    if (imagesDropZone) {
+      imagesDropZone.addEventListener('click', () => {
+        const imagesInput = document.getElementById('images-input');
+        if (imagesInput) imagesInput.click();
+      });
+    }
+
+    // Add event delegation for dynamically created remove buttons
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove-image-btn')) {
+        const index = parseInt(e.target.getAttribute('data-remove-index'));
+        this.removeImage(index);
+      }
+    });
   }
 
   // Handle login
@@ -182,11 +198,23 @@ class ZentroAdminRailway {
     try {
       this.setLoading(true);
       
-      const result = await this.client.adminLogin(email, password);
+      // Direct API call to backend authentication
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
       
-      if (result.token) {
+      if (response.ok && result.token) {
         this.isLoggedIn = true;
         this.currentUser = result.admin;
+        
+        // Store token for future requests
+        localStorage.setItem('admin_token', result.token);
         
         // Hide login modal/screen
         const loginModal = document.getElementById('loginModal');
@@ -204,6 +232,8 @@ class ZentroAdminRailway {
         await this.loadDashboard();
         
         this.showNotification(`Welcome back, ${this.currentUser.name}!`, 'success');
+      } else {
+        throw new Error(result.error || 'Login failed');
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -216,7 +246,21 @@ class ZentroAdminRailway {
   // Handle logout
   async handleLogout() {
     try {
-      if (this.client) await this.client.adminLogout();
+      const token = localStorage.getItem('admin_token');
+      
+      if (token) {
+        // Call backend logout endpoint
+        await fetch('/api/admin/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+      
+      // Clear local data
+      localStorage.removeItem('admin_token');
       this.isLoggedIn = false;
       this.currentUser = null;
       
@@ -267,11 +311,19 @@ class ZentroAdminRailway {
   // Load contact inquiries
   async loadContactInquiries() {
     try {
-      if (this.client) {
+      const token = localStorage.getItem('admin_token');
+      if (token) {
         console.log('📧 Loading contact inquiries...');
-        const response = await this.client.getContactInquiries();
-        if (response.inquiries) {
-          this.contactInquiries = response.inquiries;
+        const response = await fetch('/api/admin/contacts', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          this.contactInquiries = data.inquiries || [];
           console.log(`✅ Loaded ${this.contactInquiries.length} inquiries`);
         }
       }
@@ -286,10 +338,11 @@ class ZentroAdminRailway {
     // Implementation would be added if needed
   }
 
-  // Load properties from Railway database
+  // Load properties from database via API
   async loadPropertiesFromDatabase() {
-    if (!window.railwayManager) {
-      console.warn('Railway manager not available, using local data');
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      console.warn('No authentication token, using local data');
       this.properties = [...apartmentsData.apartments];
       this.filteredProperties = [...this.properties];
       return;
@@ -297,12 +350,25 @@ class ZentroAdminRailway {
 
     try {
       this.setLoading(true);
-      this.properties = await window.railwayManager.getAllProperties();
-      this.filteredProperties = [...this.properties];
-      console.log(`✅ Loaded ${this.properties.length} properties from Railway database`);
+      
+      const response = await fetch('/api/admin/properties', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.properties = data.properties || [];
+        this.filteredProperties = [...this.properties];
+        console.log(`✅ Loaded ${this.properties.length} properties from database`);
+      } else {
+        throw new Error('Failed to load properties');
+      }
     } catch (error) {
-      console.error('Error loading properties from Railway:', error);
-      this.showNotification('Failed to load properties from Railway database', 'error');
+      console.error('Error loading properties:', error);
+      this.showNotification('Failed to load properties from database', 'error');
       // Fallback to local data
       this.properties = [...apartmentsData.apartments];
       this.filteredProperties = [...this.properties];
@@ -501,28 +567,33 @@ class ZentroAdminRailway {
     this.setFormValue('property-price', property.price);
     this.setFormValue('property-currency', property.currency);
     
-    // Location fields
-    this.setFormValue('property-area', property.location?.area);
-    this.setFormValue('property-city', property.location?.city);
-    this.setFormValue('property-country', property.location?.country);
-    this.setFormValue('property-coordinates-lat', property.location?.coordinates?.lat);
-    this.setFormValue('property-coordinates-lng', property.location?.coordinates?.lng);
+    // Location fields (flat structure from database)
+    this.setFormValue('property-area', property.location_area);
+    this.setFormValue('property-city', property.location_city);
+    this.setFormValue('property-country', property.location_country);
+    // Parse coordinates if they exist (stored as "lat,lng" string)
+    if (property.coordinates) {
+      const coords = property.coordinates.split(',');
+      this.setFormValue('property-coordinates-lat', coords[0]?.trim());
+      this.setFormValue('property-coordinates-lng', coords[1]?.trim());
+    }
     
-    // Features
-    this.setFormValue('property-bedrooms', property.features?.bedrooms);
-    this.setFormValue('property-bathrooms', property.features?.bathrooms);
-    this.setFormValue('property-parking', property.features?.parking);
-    this.setFormValue('property-size', property.features?.size);
-    this.setFormValue('property-size-unit', property.features?.sizeUnit);
+    // Features (flat structure from database)
+    this.setFormValue('property-bedrooms', property.bedrooms);
+    this.setFormValue('property-bathrooms', property.bathrooms);
+    this.setFormValue('property-parking', property.parking);
+    this.setFormValue('property-size', property.size);
+    this.setFormValue('property-size-unit', property.size_unit);
     
     // Additional details
-    this.setFormValue('property-year-built', property.details?.yearBuilt || property.yearBuilt);
-    this.setFormValue('property-furnished', property.details?.furnished !== false ? 'true' : 'false');
+    this.setFormValue('property-year-built', property.year_built);
+    this.setFormValue('property-furnished', property.furnished === true ? 'true' : 'false');
     
     // Content
-    this.setFormValue('property-description', property.description || property.details?.description);
-    this.setFormValue('property-short-description', property.details?.shortDescription || property.shortDescription);
-    this.setFormValue('property-amenities', Array.isArray(property.amenities) ? property.amenities.join(', ') : '');
+    this.setFormValue('property-description', property.description);
+    this.setFormValue('property-short-description', property.short_description);
+    // Parse amenities if they exist (stored as comma-separated string)
+    this.setFormValue('property-amenities', property.amenities || '');
     
     // Status fields
     this.setFormValue('property-available', property.available !== false ? 'true' : 'false');
@@ -530,14 +601,8 @@ class ZentroAdminRailway {
     this.setFormValue('property-published', property.published !== false ? 'true' : 'false');
     
     // Media URLs
-    this.setFormValue('property-youtube-url', property.youtubeUrl || property.media?.youtubeUrl);
-    this.setFormValue('property-virtual-tour-url', property.virtualTourUrl || property.media?.virtualTour);
-    
-    // SEO fields
-    this.setFormValue('property-meta-title', property.seo?.metaTitle || property.metaTitle);
-    this.setFormValue('property-meta-description', property.seo?.metaDescription || property.metaDescription);
-    this.setFormValue('property-meta-keywords', Array.isArray(property.seo?.metaKeywords || property.metaKeywords) ? 
-                     (property.seo?.metaKeywords || property.metaKeywords).join(', ') : '');
+    this.setFormValue('property-youtube-url', property.youtube_url);
+    this.setFormValue('property-virtual-tour-url', property.virtual_tour_url);
 
     // Clear any existing media selections
     this.clearAllMedia();
@@ -546,8 +611,8 @@ class ZentroAdminRailway {
     this.showExistingImages(property);
     
     // Populate YouTube URL if exists
-    if (property.youtubeUrl || property.media?.youtubeUrl) {
-      this.selectedMedia.youtubeUrl = property.youtubeUrl || property.media?.youtubeUrl;
+    if (property.youtube_url) {
+      this.selectedMedia.youtubeUrl = property.youtube_url;
     }
     
     console.log('✅ Property form populated for Railway editing:', property.title);
@@ -569,27 +634,28 @@ class ZentroAdminRailway {
     let existingImagesHtml = '';
     
     // Show main image
-    if (property.images?.main) {
+    if (property.main_image) {
       existingImagesHtml += `
         <div class="relative group border-2 border-blue-200 rounded-lg">
-          <img src="${property.images.main}" alt="Current main image" class="w-full h-24 object-cover rounded-lg">
+          <img src="${property.main_image}" alt="Current main image" class="w-full h-24 object-cover rounded-lg">
           <div class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Current Main</div>
           <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-            <span class="text-white text-xs">Upload new images to replace</span>
+            <span class="text-white text-xs">Upload new image to replace</span>
           </div>
         </div>
       `;
     }
 
-    // Show gallery images
-    if (property.images?.gallery && property.images.gallery.length > 0) {
-      property.images.gallery.forEach((galleryUrl, index) => {
+    // Show gallery images (stored as comma-separated string)
+    if (property.gallery_images) {
+      const galleryUrls = property.gallery_images.split(',').filter(url => url.trim());
+      galleryUrls.forEach((galleryUrl, index) => {
         existingImagesHtml += `
           <div class="relative group border-2 border-gray-200 rounded-lg">
-            <img src="${galleryUrl}" alt="Current gallery image ${index + 1}" class="w-full h-24 object-cover rounded-lg">
+            <img src="${galleryUrl.trim()}" alt="Current gallery image ${index + 1}" class="w-full h-24 object-cover rounded-lg">
             <div class="absolute top-2 left-2 bg-gray-600 text-white text-xs px-2 py-1 rounded-full">Gallery ${index + 1}</div>
             <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-              <span class="text-white text-xs">Upload new images to replace</span>
+              <span class="text-white text-xs">Upload new image to replace</span>
             </div>
           </div>
         `;
@@ -602,19 +668,31 @@ class ZentroAdminRailway {
   }
 
   getFormData() {
+    // Get form values and ensure they are not empty
+    const title = document.getElementById('property-title').value.trim();
+    const type = document.getElementById('property-type').value;
+    const status = document.getElementById('property-status').value;
+    const price = document.getElementById('property-price').value;
+    const area = document.getElementById('property-area').value.trim();
+    const city = document.getElementById('property-city').value.trim();
+    const bedrooms = document.getElementById('property-bedrooms').value;
+    const bathrooms = document.getElementById('property-bathrooms').value;
+    const size = document.getElementById('property-size').value;
+    const description = document.getElementById('property-description').value.trim();
+
     return {
       id: this.currentEditingId || 'new',
       // Basic information
-      title: document.getElementById('property-title').value || 'Property Title',
-      type: document.getElementById('property-type').value || 'Villa',  
-      status: document.getElementById('property-status').value || 'For Sale',
-      price: parseInt(document.getElementById('property-price').value) || 1000000,
+      title: title,
+      type: type,  
+      status: status,
+      price: price ? parseInt(price) : null,
       currency: document.getElementById('property-currency').value || 'KES',
       
       // Location information
       location: {
-        area: document.getElementById('property-area').value || 'Area',
-        city: document.getElementById('property-city').value || 'Nairobi', 
+        area: area,
+        city: city, 
         country: document.getElementById('property-country').value || 'Kenya',
         coordinates: { 
           lat: document.getElementById('property-coordinates-lat')?.value ? parseFloat(document.getElementById('property-coordinates-lat').value) : null,
@@ -624,16 +702,16 @@ class ZentroAdminRailway {
       
       // Property features
       features: {
-        bedrooms: parseInt(document.getElementById('property-bedrooms').value) || 3,
-        bathrooms: parseInt(document.getElementById('property-bathrooms').value) || 2,
-        parking: parseInt(document.getElementById('property-parking').value) || 1,
-        size: parseInt(document.getElementById('property-size').value) || 150,
+        bedrooms: bedrooms ? parseInt(bedrooms) : null,
+        bathrooms: bathrooms ? parseInt(bathrooms) : null,
+        parking: document.getElementById('property-parking').value ? parseInt(document.getElementById('property-parking').value) : 0,
+        size: size ? parseInt(size) : null,
         sizeUnit: document.getElementById('property-size-unit').value || 'm²'
       },
       
       // Content
-      description: document.getElementById('property-description').value || 'Property description',
-      shortDescription: document.getElementById('property-short-description')?.value || '',
+      description: description,
+      shortDescription: document.getElementById('property-short-description')?.value?.trim() || '',
       images: {
         main: null, // Images are handled separately in processMediaUploads
         gallery: []
@@ -648,16 +726,8 @@ class ZentroAdminRailway {
       published: document.getElementById('property-published')?.value !== 'false',
       
       // Media URLs
-      youtubeUrl: document.getElementById('property-youtube-url')?.value || '',
-      virtualTourUrl: document.getElementById('property-virtual-tour-url')?.value || '',
-      
-      // SEO fields
-      seo: {
-        metaTitle: document.getElementById('property-meta-title')?.value || '',
-        metaDescription: document.getElementById('property-meta-description')?.value || '',
-        metaKeywords: document.getElementById('property-meta-keywords')?.value ? 
-                      document.getElementById('property-meta-keywords').value.split(',').map(k => k.trim()).filter(k => k) : []
-      },
+      youtubeUrl: document.getElementById('property-youtube-url')?.value?.trim() || '',
+      virtualTourUrl: document.getElementById('property-virtual-tour-url')?.value?.trim() || '',
       
       // Timestamps
       dateAdded: new Date().toISOString().split('T')[0]
@@ -723,13 +793,31 @@ class ZentroAdminRailway {
     const formData = this.getFormData();
 
     // Validate required fields
-    if (!formData.title || !formData.price || !formData.location.area) {
-      this.showNotification('Please fill in all required fields', 'error');
+    const requiredFields = [
+      { field: formData.title, name: 'Title' },
+      { field: formData.type, name: 'Type' },
+      { field: formData.status, name: 'Status' },
+      { field: formData.price, name: 'Price' },
+      { field: formData.location.area, name: 'Area' },
+      { field: formData.location.city, name: 'City' },
+      { field: formData.features.bedrooms, name: 'Bedrooms' },
+      { field: formData.features.bathrooms, name: 'Bathrooms' },
+      { field: formData.features.size, name: 'Size' },
+      { field: formData.description, name: 'Description' }
+    ];
+
+    const missingFields = requiredFields
+      .filter(req => !req.field || req.field === '' || req.field === 0)
+      .map(req => req.name);
+
+    if (missingFields.length > 0) {
+      this.showNotification(`Please fill in all required fields: ${missingFields.join(', ')}`, 'error');
       return;
     }
 
-    if (!window.railwayManager) {
-      this.showNotification('Railway database not available. Cannot save property.', 'error');
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      this.showNotification('Authentication required. Please login again.', 'error');
       return;
     }
 
@@ -739,15 +827,61 @@ class ZentroAdminRailway {
       // Process media uploads and prepare media data
       const mediaData = await this.processMediaUploads();
       
-      if (this.currentEditingId && this.currentEditingId !== 'new') {
-        // Update existing property with media
-        await window.railwayManager.updateProperty(this.currentEditingId, formData, mediaData);
-        this.showNotification('Property updated successfully in Railway database!', 'success');
-      } else {
-        // Add new property with media
-        await window.railwayManager.addProperty(formData, mediaData);
-        this.showNotification('Property added successfully to Railway database!', 'success');
+      // Prepare property data for API - map to expected database schema
+      const propertyPayload = {
+        title: formData.title,
+        type: formData.type,
+        status: formData.status,
+        price: formData.price,
+        currency: formData.currency,
+        location_area: formData.location.area,
+        location_city: formData.location.city,
+        location_country: formData.location.country,
+        coordinates: formData.location.coordinates && formData.location.coordinates.lat && formData.location.coordinates.lng ? 
+          `${formData.location.coordinates.lat},${formData.location.coordinates.lng}` : null,
+        bedrooms: formData.features.bedrooms,
+        bathrooms: formData.features.bathrooms,
+        parking: formData.features.parking,
+        size: formData.features.size,
+        size_unit: formData.features.sizeUnit,
+        description: formData.description,
+        short_description: formData.shortDescription,
+        main_image: mediaData.images && mediaData.images.length > 0 ? mediaData.images[0].url : null,
+        gallery_images: mediaData.images && mediaData.images.length > 1 ? mediaData.images.slice(1).map(img => img.url).join(',') : null,
+        amenities: formData.amenities.join(','),
+        year_built: formData.yearBuilt,
+        furnished: formData.furnished,
+        available: formData.available,
+        featured: formData.featured,
+        published: formData.published,
+        youtube_url: mediaData.youtubeUrl,
+        virtual_tour_url: formData.virtualTourUrl
+      };
+
+      const endpoint = this.currentEditingId && this.currentEditingId !== 'new' 
+        ? `/api/admin/properties/${this.currentEditingId}`
+        : '/api/admin/properties';
+      
+      const method = this.currentEditingId && this.currentEditingId !== 'new' ? 'PUT' : 'POST';
+      
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(propertyPayload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save property');
       }
+
+      const result = await response.json();
+      
+      const action = this.currentEditingId && this.currentEditingId !== 'new' ? 'updated' : 'added';
+      this.showNotification(`Property ${action} successfully!`, 'success');
 
       this.closePropertyModal();
       await this.loadPropertiesFromDatabase();
@@ -792,7 +926,9 @@ class ZentroAdminRailway {
 
     // Handle file selection
     imagesInput.addEventListener('change', (e) => {
-      this.handleMultipleImages(Array.from(e.target.files));
+      if (e.target.files.length > 0) {
+        this.handleSingleImage(e.target.files[0]);
+      }
     });
 
     // Drag and drop functionality
@@ -811,65 +947,61 @@ class ZentroAdminRailway {
       imagesDropZone.classList.remove('border-zentro-gold', 'bg-zentro-gold/10');
       
       const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
-      this.handleMultipleImages(files);
+      if (files.length > 0) {
+        this.handleSingleImage(files[0]);
+      }
     });
   }
 
-  // Handle multiple image files
-  handleMultipleImages(files) {
-    if (files.length === 0) return;
+  // Handle single image file
+  handleSingleImage(file) {
+    if (!file) return;
 
-    // Store files in selectedMedia
-    this.selectedMedia.images = files;
+    // Store single file in selectedMedia
+    this.selectedMedia.image = file;
     
     // Update preview
-    this.renderMultipleImagesPreview(files);
+    this.renderSingleImagePreview(file);
     
-    console.log(`Selected ${files.length} images for Railway storage. First will be main image.`);
+    console.log(`Selected single image for Railway storage: ${file.name}`);
   }
 
-  // Render preview for multiple images  
-  renderMultipleImagesPreview(files) {
+  // Render preview for single image  
+  renderSingleImagePreview(file) {
     const previewContainer = document.getElementById('images-preview');
     previewContainer.innerHTML = '';
 
-    files.forEach((file, index) => {
-      const reader = new FileReader();
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const imageContainer = document.createElement('div');
+      imageContainer.className = 'relative group max-w-xs';
       
-      reader.onload = (e) => {
-        const imageContainer = document.createElement('div');
-        imageContainer.className = 'relative group';
-        
-        const badge = index === 0 ? 
-          '<div class="absolute top-2 left-2 bg-zentro-gold text-white text-xs px-2 py-1 rounded-full">Main</div>' :
-          `<div class="absolute top-2 left-2 bg-gray-600 text-white text-xs px-2 py-1 rounded-full">${index}</div>`;
-        
-        imageContainer.innerHTML = `
-          ${badge}
-          <img src="${e.target.result}" 
-               alt="Preview ${index + 1}" 
-               class="w-full h-24 object-cover rounded-lg border-2 border-gray-200">
-          <button onclick="zentroAdmin.removeImage(${index})" 
-                  class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            ×
-          </button>
-        `;
-        
-        previewContainer.appendChild(imageContainer);
-      };
+      imageContainer.innerHTML = `
+        <div class="absolute top-2 left-2 bg-zentro-gold text-white text-xs px-2 py-1 rounded-full">Main Image</div>
+        <img src="${e.target.result}" 
+             alt="Property Image Preview" 
+             class="w-full h-32 object-cover rounded-lg border-2 border-gray-200">
+        <button class="remove-image-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          ×
+        </button>
+      `;
       
-      reader.readAsDataURL(file);
-    });
+      // Add event listener for remove button
+      const removeBtn = imageContainer.querySelector('.remove-image-btn');
+      removeBtn.addEventListener('click', () => this.removeSingleImage());
+      
+      previewContainer.appendChild(imageContainer);
+    };
+    
+    reader.readAsDataURL(file);
   }
 
-  // Remove image from selection
-  removeImage(index) {
-    this.selectedMedia.images.splice(index, 1);
-    this.renderMultipleImagesPreview(this.selectedMedia.images);
-    
-    if (this.selectedMedia.images.length === 0) {
-      document.getElementById('images-preview').innerHTML = '';
-    }
+  // Remove single image from selection
+  removeSingleImage() {
+    this.selectedMedia.image = null;
+    document.getElementById('images-preview').innerHTML = '';
+    console.log('Removed selected image');
   }
 
   // Bind YouTube URL events
@@ -913,8 +1045,8 @@ class ZentroAdminRailway {
   validateRequiredMedia() {
     // For new properties, require at least one image
     if (!this.currentEditingId || this.currentEditingId === 'new') {
-      if (!this.selectedMedia.images || this.selectedMedia.images.length === 0) {
-        throw new Error('Please select at least one image for new properties');
+      if (!this.selectedMedia.image) {
+        throw new Error('Please select an image for new properties');
       }
     }
     // For existing properties, images are optional (keep existing if none uploaded)
@@ -931,29 +1063,26 @@ class ZentroAdminRailway {
       youtubeUrl: this.selectedMedia.youtubeUrl || ''
     };
 
-    // Process multiple images - store locally since Railway doesn't have built-in storage
-    if (this.selectedMedia.images && this.selectedMedia.images.length > 0) {
-      console.log(`📸 Processing ${this.selectedMedia.images.length} images for Railway...`);
+    // Process single image - store locally since Railway doesn't have built-in storage
+    if (this.selectedMedia.image) {
+      console.log(`📸 Processing single image for Railway...`);
       
-      const imagePromises = this.selectedMedia.images.map(async (imageFile, index) => {
-        // For Railway, we'll store files locally and save paths to database
-        const storageUrl = await this.saveToLocalStorage(imageFile, 'image');
-        
-        return {
-          url: storageUrl,
-          alt: `${this.getFormData().title} - ${index === 0 ? 'Main Image' : `Gallery Image ${index}`}`,
-          isPrimary: index === 0, // First image is main
-          displayOrder: index,
-          fileSize: imageFile.size,
-          mimeType: imageFile.type
-        };
-      });
+      // For Railway, we'll store files locally and save paths to database
+      const storageUrl = await this.saveToLocalStorage(this.selectedMedia.image, 'image');
+      
+      const imageData = {
+        url: storageUrl,
+        alt: `${this.getFormData().title} - Main Image`,
+        isPrimary: true,
+        displayOrder: 0,
+        fileSize: this.selectedMedia.image.size,
+        mimeType: this.selectedMedia.image.type
+      };
 
-      const imageData = await Promise.all(imagePromises);
-      mediaData.images.push(...imageData);
-      console.log(`✅ Processed ${imageData.length} images for Railway`);
+      mediaData.images = [imageData];
+      console.log(`✅ Processed single image for Railway`);
     } else {
-      console.log('📸 No new images to process for Railway');
+      console.log('📸 No new image to process for Railway');
     }
 
     // YouTube URL is already stored in mediaData.youtubeUrl
@@ -995,9 +1124,10 @@ class ZentroAdminRailway {
     }
   }
 
-  // Filter by status using Railway database
+  // Filter by status using API
   async filterByStatus(status) {
-    if (!window.railwayManager) {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
       this.filteredProperties = this.properties.filter(property => property.status === status);
       this.renderProperties();
       return;
@@ -1005,10 +1135,23 @@ class ZentroAdminRailway {
 
     try {
       this.setLoading(true);
-      this.filteredProperties = await window.railwayManager.getPropertiesByStatus(status);
-      this.renderProperties();
+      
+      const response = await fetch(`/api/admin/properties?status=${encodeURIComponent(status)}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.filteredProperties = data.properties || [];
+        this.renderProperties();
+      } else {
+        throw new Error('Failed to filter properties');
+      }
     } catch (error) {
-      console.error('Error filtering properties in Railway:', error);
+      console.error('Error filtering properties:', error);
       this.showNotification('Error filtering properties', 'error');
     } finally {
       this.setLoading(false);
@@ -1024,11 +1167,12 @@ class ZentroAdminRailway {
       return;
     }
 
-    if (!window.railwayManager) {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
       this.filteredProperties = this.properties.filter(property => {
         return property.title.toLowerCase().includes(search) ||
-               property.location.area.toLowerCase().includes(search) ||
-               property.location.city.toLowerCase().includes(search);
+               property.location_area?.toLowerCase().includes(search) ||
+               property.location_city?.toLowerCase().includes(search);
       });
       this.renderProperties();
       return;
@@ -1036,10 +1180,23 @@ class ZentroAdminRailway {
 
     try {
       this.setLoading(true);
-      this.filteredProperties = await window.railwayManager.searchProperties(search);
-      this.renderProperties();
+      
+      const response = await fetch(`/api/admin/properties?search=${encodeURIComponent(search)}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.filteredProperties = data.properties || [];
+        this.renderProperties();
+      } else {
+        throw new Error('Failed to search properties');
+      }
     } catch (error) {
-      console.error('Error searching properties in Railway:', error);
+      console.error('Error searching properties:', error);
       this.showNotification('Error searching properties', 'error');
     } finally {
       this.setLoading(false);
@@ -1095,11 +1252,11 @@ class ZentroAdminRailway {
                 <td class="h-[72px] px-4 py-2 text-zentro-dark text-sm font-normal">${property.id}</td>
                 <td class="h-[72px] px-4 py-2">
                   <div class="w-16 h-16 rounded-lg overflow-hidden">
-                    <img src="${property.images.main || '../wp-content/uploads/2025/02/default-property.jpg'}" alt="${property.title}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjBGMkY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg0NFY0NEgyMFYyMFoiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CjxjaXJjbGUgY3g9IjI2IiBjeT0iMjgiIHI9IjMiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDM2TDI4IDI4TDM2IDM2TDQ0IDI4VjQ0SDIwVjM2WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'">
+                    <img src="${property.main_image || '../wp-content/uploads/2025/02/default-property.jpg'}" alt="${property.title}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjBGMkY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg0NFY0NEgyMFYyMFoiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CjxjaXJjbGUgY3g9IjI2IiBjeT0iMjgiIHI9IjMiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDM2TDI4IDI4TDM2IDM2TDQ0IDI4VjQ0SDIwVjM2WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'">
                   </div>
                 </td>
                 <td class="h-[72px] px-4 py-2 text-zentro-dark text-sm font-normal">${property.title}</td>
-                <td class="h-[72px] px-4 py-2 text-gray-600 text-sm font-normal">${property.location.area}, ${property.location.city}</td>
+                <td class="h-[72px] px-4 py-2 text-gray-600 text-sm font-normal">${property.location_area}, ${property.location_city}</td>
                 <td class="h-[72px] px-4 py-2 text-gray-600 text-sm font-normal">${property.type}</td>
                 <td class="h-[72px] px-4 py-2">
                   <button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 ${property.status === 'For Sale' ? 'bg-zentro-green/10 text-zentro-green' : 'bg-zentro-gold/10 text-zentro-gold'} text-sm font-medium">
@@ -1133,35 +1290,49 @@ class ZentroAdminRailway {
   }
 
   async deleteProperty(id) {
-    if (!confirm('Are you sure you want to delete this property from Railway database?')) {
+    if (!confirm('Are you sure you want to delete this property?')) {
       return;
     }
 
-    if (!window.railwayManager) {
-      this.showNotification('Railway database not available. Cannot delete property.', 'error');
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      this.showNotification('Authentication required. Please login again.', 'error');
       return;
     }
 
     try {
       this.setLoading(true);
-      await window.railwayManager.deleteProperty(id);
       
+      const response = await fetch(`/api/admin/properties/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete property');
+      }
+
       await this.loadPropertiesFromDatabase();
       this.renderProperties();
       this.updateDashboard();
-      this.showNotification('Property deleted successfully from Railway database!', 'success');
+      this.showNotification('Property deleted successfully!', 'success');
       
     } catch (error) {
-      console.error('Error deleting property from Railway:', error);
+      console.error('Error deleting property:', error);
       this.showNotification('Error deleting property: ' + error.message, 'error');
     } finally {
       this.setLoading(false);
     }
   }
 
-  // Dashboard with Railway statistics
+  // Dashboard statistics via API
   async updateDashboard() {
-    if (!window.railwayManager) {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
       const totalProperties = this.properties.length;
       const forSaleCount = this.properties.filter(p => p.status === 'For Sale').length;
       const forRentCount = this.properties.filter(p => p.status === 'For Rent').length;
@@ -1175,15 +1346,23 @@ class ZentroAdminRailway {
     }
 
     try {
-      const stats = await window.railwayManager.getStatistics();
-      
-      document.getElementById('total-properties').textContent = stats.total;
-      document.getElementById('for-sale-count').textContent = stats.forSale;
-      document.getElementById('for-rent-count').textContent = stats.forRent;
-      document.getElementById('avg-price').textContent = this.formatPrice(stats.averagePrice, 'KES');
-      
+      const response = await fetch('/api/admin/dashboard/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const stats = await response.json();
+        
+        document.getElementById('total-properties').textContent = stats.properties?.total_properties || 0;
+        document.getElementById('for-sale-count').textContent = stats.properties?.for_sale_count || 0;
+        document.getElementById('for-rent-count').textContent = stats.properties?.for_rent_count || 0;
+        document.getElementById('avg-price').textContent = this.formatPrice(stats.properties?.average_price || 0, 'KES');
+      }
     } catch (error) {
-      console.error('Error updating Railway dashboard:', error);
+      console.error('Error updating dashboard:', error);
     }
   }
 

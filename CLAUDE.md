@@ -23,20 +23,20 @@ This is the Zentro Homes website - a real estate company website built with vani
 
 ### Data Management
 - Property data can be managed in two modes:
-  - **Database Mode**: Using Supabase PostgreSQL database (recommended for production)
+  - **Database Mode**: Using Railway PostgreSQL database (recommended for production)
   - **Offline Mode**: Using localStorage and static data (fallback)
 - Core files:
   - `js/apartments-data.js` - Fallback/sample property data
-  - `js/supabase-config.js` - Supabase client configuration
-  - `js/shared-data-manager-supabase.js` - Database-integrated data manager
-  - `js/admin-supabase.js` - Admin interface with database support
+  - `js/railway-config.js` - Railway client configuration
+  - `js/railway-data-manager.js` - Database-integrated data manager  
+  - `js/admin.js` - Admin interface with database support
 - Property images are stored in `wp-content/uploads/2025/02/`
 
 ### JavaScript Architecture
 - `apartments-data.js` - Mock property data definitions and fallback data
-- `supabase-config.js` - Supabase database configuration and client setup
-- `shared-data-manager-supabase.js` - Database-integrated data management layer
-- `admin-supabase.js` - Admin panel with database CRUD operations
+- `railway-config.js` - Railway database configuration and client setup
+- `railway-data-manager.js` - Database-integrated data management layer
+- `admin.js` - Admin panel with database CRUD operations
 - `modern-apartments.js` - Property display logic
 - `property-search.js` - Search and filtering functionality
 - `dynamic-text.js` - Text animations and effects
@@ -77,7 +77,7 @@ Properties include: id, title, type, status, price, location, features (bedrooms
 
 ### Admin Functionality
 - Professional admin interface available at `/admin/index.html`
-- Database-integrated property management with Supabase
+- Database-integrated property management with Railway
 - Features: Add/Edit/Delete properties, Search/Filter, Media management, Dashboard statistics
 - Fallback to localStorage when database is unavailable
 - Real-time data synchronization between admin and public website
@@ -102,13 +102,13 @@ Properties include: id, title, type, status, price, location, features (bedrooms
 - Basic language switching UI implemented (English/Somali)
 - Translation functionality exists in `translations.js`
 
-## Supabase Database Integration
+## Railway Database Integration
 
 ### Setup Process
-1. **Complete Setup Guide**: Follow `SUPABASE_SETUP_GUIDE.txt` for comprehensive instructions
-2. **Configuration**: Update `js/supabase-config.js` with your project credentials:
-   - Replace `SUPABASE_CONFIG.url` with your project URL
-   - Replace `SUPABASE_CONFIG.anonKey` with your anon key
+1. **Complete Setup Guide**: Follow `RAILWAY_IMPLEMENTATION_GUIDE.md` for comprehensive instructions
+2. **Configuration**: Update `js/railway-config.js` with your project credentials:
+   - Replace `RAILWAY_CONFIG.connectionUrl` with your Railway PostgreSQL URL
+   - Update connection parameters as needed
 3. **Database Schema**: Use provided SQL commands to create the properties table
 4. **Testing**: Admin panel will show connection status on load
 
@@ -121,12 +121,12 @@ The properties table includes these fields:
 - Metadata: year_built, furnished, available, created_at, updated_at
 
 ### Development vs Production
-- **Development**: Configure credentials directly in `supabase-config.js`
+- **Development**: Configure credentials directly in `railway-config.js`
 - **Production**: Use environment variables and secure deployment practices
 - **Fallback**: System gracefully handles offline mode with localStorage
 
 ### Data Flow
-1. Admin panel connects to Supabase for CRUD operations
+1. Admin panel connects to Railway for CRUD operations
 2. Main website loads properties from database via shared data manager
 3. Real-time updates reflect immediately across both interfaces
 4. Automatic fallback to local data if database is unavailable

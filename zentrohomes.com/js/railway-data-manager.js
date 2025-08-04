@@ -1,5 +1,5 @@
 // Railway Data Manager for Zentro Homes
-// Replaces the Supabase data manager with Railway API integration
+// Railway API integration for property data management
 
 class RailwayDataManager {
   constructor() {
@@ -630,7 +630,7 @@ let railwayDataManager;
 document.addEventListener('DOMContentLoaded', async function() {
   railwayDataManager = new RailwayDataManager();
   
-  // Make it globally available (replacing the Supabase manager)
+  // Make it globally available
   window.sharedDataManager = railwayDataManager;
   window.railwayDataManager = railwayDataManager;
   

@@ -26,7 +26,7 @@
           <label class="block text-zentro-dark text-sm font-semibold mb-2">Username</label>
           <input type="text" id="username" required 
             class="w-full px-4 py-3 text-zentro-dark bg-white border border-[#dbe0e6] rounded-xl focus:outline-none focus:ring-2 focus:ring-zentro-gold/50 focus:border-zentro-gold transition-all duration-300"
-            placeholder="Enter username">
+            placeholder="Enter your username">
         </div>
         
         <div>
@@ -506,52 +506,28 @@
             class="w-full px-4 py-3 text-zentro-dark bg-white border border-[#dbe0e6] rounded-xl focus:outline-none focus:ring-2 focus:ring-zentro-gold/50 focus:border-zentro-gold transition-all duration-300 font-medium resize-none"></textarea>
         </div>
 
-        <!-- SEO Section -->
-        <div class="border-t border-[#dbe0e6] pt-6">
-          <h3 class="text-zentro-dark text-lg font-bold mb-4">SEO & Marketing</h3>
-          <div class="grid grid-cols-1 gap-4">
-            <div>
-              <label class="block text-zentro-dark text-sm font-semibold mb-3">SEO Title</label>
-              <input type="text" id="property-meta-title" placeholder="Leave blank to use property title"
-                class="w-full px-4 py-3 text-zentro-dark bg-white border border-[#dbe0e6] rounded-xl focus:outline-none focus:ring-2 focus:ring-zentro-gold/50 focus:border-zentro-gold transition-all duration-300 font-medium">
-              <p class="text-xs text-gray-500 mt-1">Custom title for search engines (leave blank to use property title)</p>
-            </div>
-            <div>
-              <label class="block text-zentro-dark text-sm font-semibold mb-3">SEO Description</label>
-              <textarea id="property-meta-description" rows="2" placeholder="Leave blank to use property description"
-                class="w-full px-4 py-3 text-zentro-dark bg-white border border-[#dbe0e6] rounded-xl focus:outline-none focus:ring-2 focus:ring-zentro-gold/50 focus:border-zentro-gold transition-all duration-300 font-medium resize-none"></textarea>
-              <p class="text-xs text-gray-500 mt-1">Description for search engines (leave blank to use property description)</p>
-            </div>
-            <div>
-              <label class="block text-zentro-dark text-sm font-semibold mb-3">SEO Keywords</label>
-              <input type="text" id="property-meta-keywords" placeholder="luxury, apartment, nairobi, modern"
-                class="w-full px-4 py-3 text-zentro-dark bg-white border border-[#dbe0e6] rounded-xl focus:outline-none focus:ring-2 focus:ring-zentro-gold/50 focus:border-zentro-gold transition-all duration-300 font-medium">
-              <p class="text-xs text-gray-500 mt-1">Comma-separated keywords for search engines</p>
-            </div>
-          </div>
-        </div>
 
         <!-- Media Upload Section -->
         <div class="space-y-6">
           <div>
             <label class="block text-zentro-dark text-sm font-semibold mb-3">Property Images</label>
             
-            <!-- Multiple Images Upload -->
+            <!-- Single Image Upload -->
             <div class="mb-4">
-              <h4 class="text-sm font-medium text-zentro-dark mb-2">Property Images</h4>
-              <p class="text-xs text-gray-500 mb-3">First image will be the main thumbnail, rest will be gallery images</p>
+              <h4 class="text-sm font-medium text-zentro-dark mb-2">Property Image</h4>
+              <p class="text-xs text-gray-500 mb-3">Upload one main image for the property</p>
               <div id="images-drop-zone" 
                 class="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-[#dbe0e6] px-6 py-8 cursor-pointer hover:border-zentro-gold transition-colors">
                 <div class="flex flex-col items-center gap-2">
                   <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                  <p class="text-zentro-dark font-medium">Upload Multiple Images</p>
-                  <p class="text-sm text-gray-500">Drag and drop multiple images or click to browse</p>
+                  <p class="text-zentro-dark font-medium">Upload Single Image</p>
+                  <p class="text-sm text-gray-500">Drag and drop one image or click to browse</p>
                 </div>
               </div>
-              <div id="images-preview" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                <!-- Image previews will appear here -->
+              <div id="images-preview" class="mt-4 flex justify-center">
+                <!-- Image preview will appear here -->
               </div>
             </div>
 
@@ -600,68 +576,7 @@
   </div>
 
   <!-- Hidden file inputs for media upload -->
-  <input type="file" id="images-input" accept="image/*" multiple style="display: none;">
-
-  <!-- Authentication Script -->
-  <script>
-    // Simple authentication system
-    const AUTH_CONFIG = {
-      username: 'admin',
-      password: 'zentro2025'
-    };
-
-    function checkAuth() {
-      const isLoggedIn = sessionStorage.getItem('zentro_admin_logged_in');
-      const loginScreen = document.getElementById('login-screen');
-      const adminPanel = document.getElementById('admin-panel');
-      
-      if (isLoggedIn === 'true') {
-        loginScreen.classList.add('hidden');
-        adminPanel.classList.remove('hidden');
-      } else {
-        loginScreen.classList.remove('hidden');
-        adminPanel.classList.add('hidden');
-      }
-    }
-
-    function login(username, password) {
-      if (username === AUTH_CONFIG.username && password === AUTH_CONFIG.password) {
-        sessionStorage.setItem('zentro_admin_logged_in', 'true');
-        return true;
-      }
-      return false;
-    }
-
-    function logout() {
-      sessionStorage.removeItem('zentro_admin_logged_in');
-      checkAuth();
-    }
-
-    // Initialize authentication on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      checkAuth();
-      
-      // Handle login form submission
-      const loginForm = document.getElementById('login-form');
-      const loginError = document.getElementById('login-error');
-      
-      loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        
-        if (login(username, password)) {
-          loginError.classList.add('hidden');
-          checkAuth();
-        } else {
-          loginError.classList.remove('hidden');
-          // Clear password field
-          document.getElementById('password').value = '';
-        }
-      });
-    });
-  </script>
+  <input type="file" id="images-input" accept="image/*" style="display: none;">
 
   <!-- Railway Database Configuration -->
   
@@ -670,8 +585,8 @@
     document.addEventListener('DOMContentLoaded', function() {
       // Handle image file selection
       document.getElementById('images-input').addEventListener('change', function(e) {
-        if (window.zentroAdmin && window.zentroAdmin.handleMultipleImages) {
-          window.zentroAdmin.handleMultipleImages(Array.from(e.target.files));
+        if (window.zentroAdmin && window.zentroAdmin.handleSingleImage && e.target.files.length > 0) {
+          window.zentroAdmin.handleSingleImage(e.target.files[0]);
         }
       });
       
