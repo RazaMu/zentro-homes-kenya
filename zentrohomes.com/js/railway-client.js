@@ -5,7 +5,8 @@
 
 class RailwayClient {
   constructor() {
-    this.baseUrl = window.location.origin + '/api';
+    // Use the correct API server URL
+    this.baseUrl = 'http://localhost:3000/api';
     this.adminToken = localStorage.getItem('admin_token');
     this.defaultHeaders = {
       'Content-Type': 'application/json'

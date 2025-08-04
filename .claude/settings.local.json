@@ -9,7 +9,8 @@
       "Bash(cp:*)",
       "Bash(sed:*)",
       "Bash(node:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(npx tailwindcss:*)"
     ],
     "deny": []
   }

@@ -1,0 +1,77 @@
+
+/* Tailwind CSS Reset */
+*, ::before, ::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: #e5e7eb; }
+::before, ::after { --tw-content: ''; }
+html { line-height: 1.5; -webkit-text-size-adjust: 100%; -moz-tab-size: 4; tab-size: 4; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
+body { margin: 0; line-height: inherit; }
+
+/* Custom Zentro Homes styles */
+:root {
+  --zentro-gold: #bfa16b;
+  --zentro-dark: #171e22;
+  --zentro-green: #00987a;
+  --zentro-light: #f6f6f1;
+}
+
+body {
+  font-family: 'Public Sans', 'Noto Sans', system-ui, sans-serif;
+}
+
+/* Basic Tailwind-like utilities */
+.flex { display: flex; }
+.block { display: block; }
+.hidden { display: none; }
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.m-4 { margin: 1rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mt-4 { margin-top: 1rem; }
+.text-white { color: white; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-900 { color: #111827; }
+.bg-white { background-color: white; }
+.bg-gray-50 { background-color: #f9fafb; }
+.bg-gray-100 { background-color: #f3f4f6; }
+.rounded { border-radius: 0.25rem; }
+.rounded-lg { border-radius: 0.5rem; }
+.shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+
+.btn-primary {
+  background-color: var(--zentro-gold);
+  color: var(--zentro-dark);
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: rgba(191, 161, 107, 0.9);
+}
+
+.btn-secondary {
+  background-color: var(--zentro-green);
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(0, 152, 122, 0.9);
+}
+
+.card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
