@@ -379,10 +379,13 @@ class RailwayClient {
 
   async createProperty(propertyData) {
     try {
+      // Ensure all required database fields are present
+      const sanitizedData = this.sanitizePropertyData(propertyData);
+      
       const response = await fetch(`${this.baseUrl}/admin/properties`, {
         method: 'POST',
         headers: this.getHeaders(true),
-        body: JSON.stringify(propertyData)
+        body: JSON.stringify(sanitizedData)
       });
       
       return await this.handleResponse(response);
@@ -394,10 +397,13 @@ class RailwayClient {
 
   async updateProperty(propertyId, propertyData) {
     try {
+      // Ensure all required database fields are present
+      const sanitizedData = this.sanitizePropertyData(propertyData);
+      
       const response = await fetch(`${this.baseUrl}/admin/properties/${propertyId}`, {
         method: 'PUT',
         headers: this.getHeaders(true),
-        body: JSON.stringify(propertyData)
+        body: JSON.stringify(sanitizedData)
       });
       
       return await this.handleResponse(response);
@@ -485,6 +491,96 @@ class RailwayClient {
       console.error('Error fetching property analytics:', error);
       throw error;
     }
+  }
+
+  // ================================================================================
+  // DATA SANITIZATION METHODS
+  // ================================================================================
+
+  sanitizePropertyData(propertyData) {
+    // Sanitize and ensure all database fields are properly formatted
+    const sanitized = {
+      // Basic info
+      title: propertyData.title || '',
+      slug: propertyData.slug || this.generateSlug(propertyData.title || ''),
+      uuid: propertyData.uuid || this.generateUUID(),
+      type: propertyData.type || '',
+      status: propertyData.status || '',
+      price: parseFloat(propertyData.price) || 0,
+      currency: propertyData.currency || 'KES',
+      
+      // Location data
+      location_area: propertyData.location_area || propertyData.area || '',
+      location_city: propertyData.location_city || propertyData.city || '',
+      location_country: propertyData.location_country || propertyData.country || 'Kenya',
+      coordinates_lat: propertyData.coordinates_lat ? parseFloat(propertyData.coordinates_lat) : null,
+      coordinates_lng: propertyData.coordinates_lng ? parseFloat(propertyData.coordinates_lng) : null,
+      
+      // Features
+      bedrooms: parseInt(propertyData.bedrooms) || 0,
+      bathrooms: parseInt(propertyData.bathrooms) || 0,
+      parking: parseInt(propertyData.parking) || 0,
+      size: parseFloat(propertyData.size) || 0,
+      size_unit: propertyData.size_unit || 'm²',
+      year_built: propertyData.year_built ? parseInt(propertyData.year_built) : null,
+      furnished: propertyData.furnished === true || propertyData.furnished === 'true',
+      
+      // Content
+      description: propertyData.description || '',
+      short_description: propertyData.short_description || '',
+      images: this.sanitizeArrayField(propertyData.images),
+      videos: this.sanitizeArrayField(propertyData.videos),
+      virtual_tour_url: propertyData.virtual_tour_url || null,
+      youtube_url: propertyData.youtube_url || null,
+      amenities: this.sanitizeArrayField(propertyData.amenities),
+      features: this.sanitizeObjectField(propertyData.features || propertyData.customFeatures),
+      
+      // SEO
+      meta_title: propertyData.meta_title || propertyData.title || '',
+      meta_description: propertyData.meta_description || propertyData.description || '',
+      meta_keywords: this.sanitizeArrayField(propertyData.meta_keywords),
+      
+      // Status
+      available: propertyData.available !== false,
+      featured: propertyData.featured === true,
+      published: propertyData.published !== false
+    };
+    
+    return sanitized;
+  }
+
+  sanitizeArrayField(value) {
+    if (Array.isArray(value)) {
+      return value;
+    }
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        // If it's a comma-separated string
+        return value.split(',').map(item => item.trim()).filter(item => item.length > 0);
+      }
+    }
+    return [];
+  }
+
+  sanitizeObjectField(value) {
+    if (typeof value === 'object' && value !== null) {
+      return value;
+    }
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        return {};
+      }
+    }
+    return {};
+  }
+
+  generateUUID() {
+    return 'prop_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
   // ================================================================================

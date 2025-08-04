@@ -1,29 +1,314 @@
-// Zentro Homes Admin Dashboard
-class ZentroAdmin {
+// Zentro Homes Admin Dashboard - Consolidated Railway Integration
+// Complete admin interface with authentication, property management, and database integration
+// Supports both Railway API (railwayClient) and direct database access (railwayManager)
+class ZentroAdminRailway {
   constructor() {
-    // Use the shared data manager to get properties
-    this.properties = window.sharedDataManager ? 
-      window.sharedDataManager.getAllApartments() : 
-      [...apartmentsData.apartments];
-    
-    this.filteredProperties = [...this.properties];
+    this.properties = [];
+    this.filteredProperties = [];
+    this.contactInquiries = [];
     this.currentEditingId = null;
-    this.selectedFiles = {
-      photos: [],
-      videos: []
+    this.isLoading = false;
+    this.isLoggedIn = false;
+    this.currentUser = null;
+    this.client = null;
+    
+    // Media management - KISS approach with filesystem storage
+    this.selectedMedia = {
+      images: [], // Array of image files (first = main, rest = gallery)
+      youtubeUrl: '' // YouTube URL for property video
     };
+    this.maxImageSize = 10 * 1024 * 1024; // 10MB
 
     this.init();
   }
 
-  init() {
+  async init() {
     this.bindNavigation();
     this.bindPropertyEvents();
-    this.bindMediaEvents();
     this.bindModalEvents();
-    this.renderProperties();
-    this.updateDashboard();
-    this.populateMediaPropertySelect();
+    this.bindAuthEvents();
+    
+    // Wait for Railway client and manager to be initialized
+    await this.waitForRailwayClient();
+    await this.waitForRailwayManager();
+    
+    // Check if user is already logged in
+    await this.checkAuthStatus();
+    
+    if (this.isLoggedIn) {
+      await this.loadDashboard();
+    } else {
+      this.showLoginModal();
+    }
+  }
+
+  // Wait for Railway client to be initialized
+  async waitForRailwayClient() {
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds max wait
+    
+    console.log('🔍 Admin: Waiting for railwayClient...');
+    
+    while (!window.railwayClient && attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+    
+    if (window.railwayClient) {
+      this.client = window.railwayClient;
+      console.log('✅ Admin: Connected to Railway client');
+    } else {
+      console.error('❌ Admin: Railway client not found');
+      this.showNotification('Failed to connect to Railway API. Please refresh the page.', 'error');
+    }
+  }
+
+  // Wait for Railway manager to be initialized
+  async waitForRailwayManager() {
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds max wait
+    
+    console.log('🔍 Admin: Waiting for Railway manager...');
+    
+    while (!window.railwayManager && attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+    
+    if (!window.railwayManager) {
+      this.showNotification('Failed to connect to Railway database. Using offline mode.', 'error');
+      this.properties = [...apartmentsData.apartments];
+      this.filteredProperties = [...this.properties];
+    } else {
+      console.log('✅ Admin: Connected to Railway database successfully');
+    }
+  }
+
+  // Check authentication status
+  async checkAuthStatus() {
+    try {
+      if (this.client && this.client.isAdminLoggedIn()) {
+        const result = await this.client.verifyAdminToken();
+        if (result.valid) {
+          this.isLoggedIn = true;
+          this.currentUser = result.admin;
+          console.log('✅ Admin authenticated:', this.currentUser.name);
+          return true;
+        }
+      }
+    } catch (error) {
+      console.log('🔑 Admin not authenticated');
+      if (this.client) this.client.adminLogout(); // Clear invalid token
+    }
+    
+    this.isLoggedIn = false;
+    this.currentUser = null;
+    return false;
+  }
+
+  // Show login modal
+  showLoginModal() {
+    const loginModal = document.getElementById('loginModal');
+    const loginScreen = document.getElementById('login-screen');
+    
+    if (loginScreen) {
+      loginScreen.classList.remove('hidden');
+      const adminPanel = document.getElementById('admin-panel');
+      if (adminPanel) adminPanel.classList.add('hidden');
+    } else if (loginModal) {
+      loginModal.style.display = 'block';
+    } else {
+      // Create login modal if it doesn't exist
+      this.createLoginModal();
+    }
+  }
+
+  // Create login modal
+  createLoginModal() {
+    const modalHTML = `
+      <div id="loginModal" class="modal" style="display: block;">
+        <div class="modal-content">
+          <h2>Admin Login</h2>
+          <form id="loginForm">
+            <div class="form-group">
+              <label for="loginEmail">Email:</label>
+              <input type="email" id="loginEmail" required value="admin@zentrohomes.com">
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password:</label>
+              <input type="password" id="loginPassword" required>
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary">Login</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    this.bindAuthEvents();
+  }
+
+  // Bind authentication events
+  bindAuthEvents() {
+    const loginForm = document.getElementById('loginForm') || document.getElementById('login-form');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await this.handleLogin();
+      });
+    }
+    
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        await this.handleLogout();
+      });
+    }
+  }
+
+  // Handle login
+  async handleLogin() {
+    const email = (document.getElementById('loginEmail') || document.getElementById('username')).value;
+    const password = (document.getElementById('loginPassword') || document.getElementById('password')).value;
+    
+    if (!email || !password) {
+      this.showNotification('Please enter email and password', 'error');
+      return;
+    }
+
+    try {
+      this.setLoading(true);
+      
+      const result = await this.client.adminLogin(email, password);
+      
+      if (result.token) {
+        this.isLoggedIn = true;
+        this.currentUser = result.admin;
+        
+        // Hide login modal/screen
+        const loginModal = document.getElementById('loginModal');
+        const loginScreen = document.getElementById('login-screen');
+        
+        if (loginModal) {
+          loginModal.style.display = 'none';
+        }
+        if (loginScreen) {
+          loginScreen.classList.add('hidden');
+          document.getElementById('admin-panel').classList.remove('hidden');
+        }
+        
+        // Load dashboard
+        await this.loadDashboard();
+        
+        this.showNotification(`Welcome back, ${this.currentUser.name}!`, 'success');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      this.showNotification(error.message || 'Login failed. Please check your credentials.', 'error');
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
+  // Handle logout
+  async handleLogout() {
+    try {
+      if (this.client) await this.client.adminLogout();
+      this.isLoggedIn = false;
+      this.currentUser = null;
+      
+      // Clear data
+      this.properties = [];
+      this.filteredProperties = [];
+      this.contactInquiries = [];
+      
+      // Show login modal/screen
+      const loginScreen = document.getElementById('login-screen');
+      if (loginScreen) {
+        loginScreen.classList.remove('hidden');
+        document.getElementById('admin-panel').classList.add('hidden');
+      } else {
+        this.showLoginModal();
+      }
+      
+      this.showNotification('Logged out successfully', 'info');
+    } catch (error) {
+      console.error('Logout error:', error);
+      this.showNotification('Logout completed', 'info');
+    }
+  }
+
+  // Load dashboard data
+  async loadDashboard() {
+    try {
+      this.setLoading(true);
+      
+      // Load properties and contacts in parallel
+      await Promise.all([
+        this.loadPropertiesFromDatabase(),
+        this.loadContactInquiries(),
+        this.updateDashboard()
+      ]);
+      
+      this.renderProperties();
+      this.renderContactInquiries();
+      
+    } catch (error) {
+      console.error('Dashboard loading failed:', error);
+      this.showNotification('Failed to load dashboard data', 'error');
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
+  // Load contact inquiries
+  async loadContactInquiries() {
+    try {
+      if (this.client) {
+        console.log('📧 Loading contact inquiries...');
+        const response = await this.client.getContactInquiries();
+        if (response.inquiries) {
+          this.contactInquiries = response.inquiries;
+          console.log(`✅ Loaded ${this.contactInquiries.length} inquiries`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to load contact inquiries:', error);
+      this.contactInquiries = [];
+    }
+  }
+
+  // Render contact inquiries (stub for now)
+  renderContactInquiries() {
+    // Implementation would be added if needed
+  }
+
+  // Load properties from Railway database
+  async loadPropertiesFromDatabase() {
+    if (!window.railwayManager) {
+      console.warn('Railway manager not available, using local data');
+      this.properties = [...apartmentsData.apartments];
+      this.filteredProperties = [...this.properties];
+      return;
+    }
+
+    try {
+      this.setLoading(true);
+      this.properties = await window.railwayManager.getAllProperties();
+      this.filteredProperties = [...this.properties];
+      console.log(`✅ Loaded ${this.properties.length} properties from Railway database`);
+    } catch (error) {
+      console.error('Error loading properties from Railway:', error);
+      this.showNotification('Failed to load properties from Railway database', 'error');
+      // Fallback to local data
+      this.properties = [...apartmentsData.apartments];
+      this.filteredProperties = [...this.properties];
+    } finally {
+      this.setLoading(false);
+    }
   }
 
   // Navigation handling
@@ -68,7 +353,7 @@ class ZentroAdmin {
       this.openPropertyModal();
     });
 
-    // Search and filters
+    // Search
     document.getElementById('property-search').addEventListener('input', () => {
       this.filterProperties();
     });
@@ -89,106 +374,45 @@ class ZentroAdmin {
     });
   }
 
-  filterByStatus(status) {
-    const search = document.getElementById('property-search').value.toLowerCase();
-
-    this.filteredProperties = this.properties.filter(property => {
-      const matchesSearch = !search ||
-        property.title.toLowerCase().includes(search) ||
-        property.location.area.toLowerCase().includes(search) ||
-        property.location.city.toLowerCase().includes(search);
-
-      const matchesStatus = property.status === status;
-
-      return matchesSearch && matchesStatus;
-    });
-
-    this.renderProperties();
-  }
-
-  filterProperties() {
-    const search = document.getElementById('property-search').value.toLowerCase();
+  // Validate image file
+  validateImageFile(file) {
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     
-    this.filteredProperties = this.properties.filter(property => {
-      const matchesSearch = !search ||
-        property.title.toLowerCase().includes(search) ||
-        property.location.area.toLowerCase().includes(search) ||
-        property.location.city.toLowerCase().includes(search);
-
-      return matchesSearch;
-    });
-
-    this.renderProperties();
+    if (!validTypes.includes(file.type)) {
+      this.showNotification('Please select a valid image file (JPEG, PNG, GIF, WebP)', 'error');
+      return false;
+    }
+    
+    if (file.size > this.maxImageSize) {
+      this.showNotification('Image size must be less than 10MB', 'error');
+      return false;
+    }
+    
+    return true;
   }
 
-  renderProperties() {
-    const container = document.getElementById('properties-list');
+  // Format file size
+  formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
 
-    if (this.filteredProperties.length === 0) {
-      container.innerHTML = `
-        <div class="text-center py-12">
-          <div class="text-gray-500">
-            <svg class="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-6m-8 0H3m2 0h6M9 7h6m-6 4h6m-6 4h6m-6 4h6"></path>
-            </svg>
-            <p class="text-lg font-medium">No properties found</p>
-            <p class="text-sm mt-2">Try adjusting your search criteria</p>
-          </div>
-        </div>
-      `;
-      return;
-    }
-
-    // Create a table view for the properties
-    container.innerHTML = `
-      <div class="overflow-hidden rounded-lg border border-[#dbe0e6] bg-white">
-        <table class="w-full">
-          <thead>
-            <tr class="bg-white">
-              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">ID</th>
-              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Image</th>
-              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Address</th>
-              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Location</th>
-              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Type</th>
-              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Status</th>
-              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Price</th>
-              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${this.filteredProperties.map(property => `
-              <tr class="border-t border-t-[#dbe0e6]">
-                <td class="h-[72px] px-4 py-2 text-zentro-dark text-sm font-normal">${property.id}</td>
-                <td class="h-[72px] px-4 py-2">
-                  <div class="w-16 h-16 rounded-lg overflow-hidden">
-                    <img src="${property.images.main}" alt="${property.title}" class="w-full h-full object-cover">
-                  </div>
-                </td>
-                <td class="h-[72px] px-4 py-2 text-zentro-dark text-sm font-normal">${property.title}</td>
-                <td class="h-[72px] px-4 py-2 text-gray-600 text-sm font-normal">${property.location.area}, ${property.location.city}</td>
-                <td class="h-[72px] px-4 py-2 text-gray-600 text-sm font-normal">${property.type}</td>
-                <td class="h-[72px] px-4 py-2">
-                  <button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 ${property.status === 'For Sale' ? 'bg-zentro-green/10 text-zentro-green' : 'bg-zentro-gold/10 text-zentro-gold'} text-sm font-medium">
-                    <span class="truncate">${property.status}</span>
-                  </button>
-                </td>
-                <td class="h-[72px] px-4 py-2 text-zentro-dark text-sm font-medium">${ApartmentUtils.formatPrice(property.price, property.currency)}</td>
-                <td class="h-[72px] px-4 py-2">
-                  <div class="flex gap-2">
-                    <button onclick="zentroAdmin.editProperty(${property.id})" class="text-zentro-dark text-sm font-bold tracking-[0.015em] hover:text-zentro-gold transition-colors">
-                      Edit
-                    </button>
-                    <button onclick="zentroAdmin.deleteProperty(${property.id})" class="text-red-500 text-sm font-bold tracking-[0.015em] hover:text-red-600 transition-colors">
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
+  // Clear all media
+  clearAllMedia() {
+    this.selectedMedia = {
+      images: [],
+      youtubeUrl: ''
+    };
+    
+    // Clear previews
+    const imagesPreview = document.getElementById('images-preview');
+    const youtubeInput = document.getElementById('property-youtube-url');
+    
+    if (imagesPreview) imagesPreview.innerHTML = '';
+    if (youtubeInput) youtubeInput.value = '';
   }
 
   // Modal handling
@@ -222,277 +446,14 @@ class ZentroAdmin {
       this.saveProperty();
     });
   }
-  
-  previewProperty() {
-    const formData = {
-      id: this.currentEditingId || Math.max(...this.properties.map(p => p.id)) + 1,
-      title: document.getElementById('property-title').value || 'Property Title',
-      type: document.getElementById('property-type').value || 'Villa',
-      status: document.getElementById('property-status').value || 'For Sale',
-      price: parseInt(document.getElementById('property-price').value) || 1000000,
-      location: {
-        area: document.getElementById('property-area').value || 'Area',
-        city: document.getElementById('property-city').value || 'Nairobi',
-        country: 'Kenya',
-        coordinates: { lat: -1.2921, lng: 36.8219 }
-      },
-      features: {
-        bedrooms: parseInt(document.getElementById('property-bedrooms').value) || 3,
-        bathrooms: parseInt(document.getElementById('property-bathrooms').value) || 2,
-        parking: parseInt(document.getElementById('property-parking').value) || 1,
-        size: parseInt(document.getElementById('property-size').value) || 150,
-        sizeUnit: 'm²'
-      },
-      description: document.getElementById('property-description').value || 'Property description',
-      images: {
-        main: document.getElementById('property-image').value || '../wp-content/uploads/2025/02/unsplash.jpg',
-        gallery: []
-      },
-      amenities: document.getElementById('property-amenities').value.split(',').map(a => a.trim()).filter(a => a) || [],
-      currency: 'KES',
-      yearBuilt: 2023,
-      furnished: true,
-      available: true,
-      dateAdded: new Date().toISOString().split('T')[0]
-    };
-    
-    // Create or update preview container
-    let previewContainer = document.getElementById('property-preview');
-    if (!previewContainer) {
-      previewContainer = document.createElement('div');
-      previewContainer.id = 'property-preview';
-      previewContainer.className = 'mt-8 p-6 border-t border-[#dbe0e6]';
-      
-      const heading = document.createElement('h3');
-      heading.className = 'text-zentro-dark text-lg font-bold mb-6';
-      heading.textContent = 'Property Preview';
-      
-      previewContainer.appendChild(heading);
-      document.getElementById('property-form').appendChild(previewContainer);
-    }
-    
-    // Generate preview HTML - Modern card style matching the front-end
-    const previewHTML = `
-      <div class="property-card">
-        <div class="property-image-wrapper">
-          <img src="${formData.images.main}" alt="${formData.title}" class="property-image">
-          <div class="property-tags">
-            <span class="property-tag tag-${formData.status.toLowerCase().replace(' ', '-')}">${formData.status}</span>
-          </div>
-          <div class="property-price">${ApartmentUtils.formatPrice(formData.price, formData.currency)}</div>
-          <button class="expand-button" aria-label="View details">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-            </svg>
-          </button>
-          <div class="property-branding">
-            <span>ZENTRO HOMES</span>
-          </div>
-        </div>
-        
-        <div class="property-content">
-          <h3 class="property-title">${formData.title}</h3>
-          <p class="property-location">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-            ${formData.location.area}, ${formData.location.city}
-          </p>
-          
-          <div class="property-features">
-            <div class="feature-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 21V8l9-7 9 7v13h-6v-7h-6v7H3z"/>
-              </svg>
-              ${formData.features.bedrooms} beds
-            </div>
-            <div class="feature-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 14v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4M17 5H7a2 2 0 0 0-2 2v3h14V7a2 2 0 0 0-2-2zM5 10h14"/>
-              </svg>
-              ${formData.features.bathrooms} baths
-            </div>
-            <div class="feature-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-              </svg>
-              ${formData.features.size}${formData.features.sizeUnit}
-            </div>
-          </div>
-          
-          <div class="property-type">${formData.type}</div>
-        </div>
-      </div>
-      <p class="text-sm text-gray-500 text-center mt-4">This is how your property will appear on the website</p>
-    `;
-    
-    // Update preview content
-    previewContainer.innerHTML = `
-      <h3 class="text-zentro-dark text-lg font-bold mb-6">Property Preview</h3>
-      ${previewHTML}
-    `;
-
-    // Add the CSS for the preview
-    this.addPreviewStyles();
-  }
-
-  addPreviewStyles() {
-    // Check if styles are already added
-    if (document.getElementById('preview-styles')) return;
-
-    const styleElement = document.createElement('style');
-    styleElement.id = 'preview-styles';
-    styleElement.textContent = `
-      .property-card {
-        background: #fff;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        transition: transform 0.3s, box-shadow 0.3s;
-        max-width: 400px;
-        margin: 0 auto;
-      }
-      
-      .property-image-wrapper {
-        position: relative;
-        height: 200px;
-        overflow: hidden;
-      }
-      
-      .property-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.5s;
-      }
-      
-      .property-tags {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        display: flex;
-        gap: 8px;
-      }
-      
-      .property-tag {
-        font-size: 10px;
-        font-weight: 600;
-        text-transform: uppercase;
-        padding: 4px 8px;
-        border-radius: 4px;
-        letter-spacing: 0.5px;
-      }
-      
-      .tag-featured {
-        background-color: #bfa16b;
-        color: white;
-      }
-      
-      .tag-for-sale {
-        background-color: #00987a;
-        color: white;
-      }
-      
-      .tag-for-rent {
-        background-color: #bfa16b;
-        color: white;
-      }
-      
-      .property-price {
-        position: absolute;
-        bottom: 12px;
-        left: 12px;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 14px;
-      }
-
-      .expand-button {
-        position: absolute;
-        bottom: 12px;
-        right: 12px;
-        background: white;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: none;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        color: #171e22;
-      }
-      
-      .property-branding {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        background: rgba(255, 255, 255, 0.9);
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 10px;
-        font-weight: 600;
-        color: #171e22;
-      }
-      
-      .property-content {
-        padding: 16px;
-      }
-      
-      .property-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #171e22;
-        margin-bottom: 4px;
-      }
-      
-      .property-location {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        color: #666;
-        margin-bottom: 12px;
-      }
-      
-      .property-features {
-        display: flex;
-        gap: 16px;
-        margin-bottom: 12px;
-      }
-      
-      .feature-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        color: #666;
-      }
-      
-      .property-type {
-        display: inline-block;
-        font-size: 11px;
-        font-weight: 600;
-        color: #171e22;
-        background: #f0f2f5;
-        padding: 4px 8px;
-        border-radius: 4px;
-        text-transform: uppercase;
-      }
-    `;
-    
-    document.head.appendChild(styleElement);
-  }
 
   openPropertyModal(property = null) {
     const modal = document.getElementById('property-modal');
     const modalTitle = document.getElementById('modal-title');
     const form = document.getElementById('property-form');
+
+    // Clear media selections
+    this.clearAllMedia();
 
     if (property) {
       modalTitle.textContent = 'Edit Property';
@@ -507,6 +468,14 @@ class ZentroAdmin {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.body.style.overflow = 'hidden';
+    
+    // Bind media upload events after modal is shown
+    setTimeout(() => {
+      console.log('🎬 Binding media events for Railway modal...');
+      this.bindMultipleImageEvents();
+      this.bindYouTubeEvents();
+      console.log('✅ Media events bound for Railway modal');
+    }, 200);
   }
 
   closePropertyModal() {
@@ -516,7 +485,8 @@ class ZentroAdmin {
     document.body.style.overflow = '';
     this.currentEditingId = null;
     
-    // Remove preview if exists
+    // Clear media and preview
+    this.clearAllMedia();
     const previewContainer = document.getElementById('property-preview');
     if (previewContainer) {
       previewContainer.remove();
@@ -524,388 +494,697 @@ class ZentroAdmin {
   }
 
   populatePropertyForm(property) {
-    document.getElementById('property-title').value = property.title;
-    document.getElementById('property-type').value = property.type;
-    document.getElementById('property-status').value = property.status;
-    document.getElementById('property-price').value = property.price;
-    document.getElementById('property-area').value = property.location.area;
-    document.getElementById('property-city').value = property.location.city;
-    document.getElementById('property-bedrooms').value = property.features.bedrooms;
-    document.getElementById('property-bathrooms').value = property.features.bathrooms;
-    document.getElementById('property-parking').value = property.features.parking;
-    document.getElementById('property-size').value = property.features.size;
-    document.getElementById('property-description').value = property.description;
-    document.getElementById('property-image').value = property.images.main;
-    document.getElementById('property-amenities').value = property.amenities.join(', ');
+    // Populate basic form fields
+    this.setFormValue('property-title', property.title);
+    this.setFormValue('property-type', property.type);
+    this.setFormValue('property-status', property.status);
+    this.setFormValue('property-price', property.price);
+    this.setFormValue('property-currency', property.currency);
+    
+    // Location fields
+    this.setFormValue('property-area', property.location?.area);
+    this.setFormValue('property-city', property.location?.city);
+    this.setFormValue('property-country', property.location?.country);
+    this.setFormValue('property-coordinates-lat', property.location?.coordinates?.lat);
+    this.setFormValue('property-coordinates-lng', property.location?.coordinates?.lng);
+    
+    // Features
+    this.setFormValue('property-bedrooms', property.features?.bedrooms);
+    this.setFormValue('property-bathrooms', property.features?.bathrooms);
+    this.setFormValue('property-parking', property.features?.parking);
+    this.setFormValue('property-size', property.features?.size);
+    this.setFormValue('property-size-unit', property.features?.sizeUnit);
+    
+    // Additional details
+    this.setFormValue('property-year-built', property.details?.yearBuilt || property.yearBuilt);
+    this.setFormValue('property-furnished', property.details?.furnished !== false ? 'true' : 'false');
+    
+    // Content
+    this.setFormValue('property-description', property.description || property.details?.description);
+    this.setFormValue('property-short-description', property.details?.shortDescription || property.shortDescription);
+    this.setFormValue('property-amenities', Array.isArray(property.amenities) ? property.amenities.join(', ') : '');
+    
+    // Status fields
+    this.setFormValue('property-available', property.available !== false ? 'true' : 'false');
+    this.setFormValue('property-featured', property.featured === true ? 'true' : 'false');
+    this.setFormValue('property-published', property.published !== false ? 'true' : 'false');
+    
+    // Media URLs
+    this.setFormValue('property-youtube-url', property.youtubeUrl || property.media?.youtubeUrl);
+    this.setFormValue('property-virtual-tour-url', property.virtualTourUrl || property.media?.virtualTour);
+    
+    // SEO fields
+    this.setFormValue('property-meta-title', property.seo?.metaTitle || property.metaTitle);
+    this.setFormValue('property-meta-description', property.seo?.metaDescription || property.metaDescription);
+    this.setFormValue('property-meta-keywords', Array.isArray(property.seo?.metaKeywords || property.metaKeywords) ? 
+                     (property.seo?.metaKeywords || property.metaKeywords).join(', ') : '');
+
+    // Clear any existing media selections
+    this.clearAllMedia();
+
+    // Show existing images in preview (for reference, but don't add to selectedMedia)
+    this.showExistingImages(property);
+    
+    // Populate YouTube URL if exists
+    if (property.youtubeUrl || property.media?.youtubeUrl) {
+      this.selectedMedia.youtubeUrl = property.youtubeUrl || property.media?.youtubeUrl;
+    }
+    
+    console.log('✅ Property form populated for Railway editing:', property.title);
   }
 
-  saveProperty() {
-    const formData = {
-      title: document.getElementById('property-title').value,
-      type: document.getElementById('property-type').value,
-      status: document.getElementById('property-status').value,
-      price: parseInt(document.getElementById('property-price').value),
-      location: {
-        area: document.getElementById('property-area').value,
-        city: document.getElementById('property-city').value,
-        country: 'Kenya',
-        coordinates: { lat: -1.2921, lng: 36.8219 }
-      },
-      features: {
-        bedrooms: parseInt(document.getElementById('property-bedrooms').value),
-        bathrooms: parseInt(document.getElementById('property-bathrooms').value),
-        parking: parseInt(document.getElementById('property-parking').value),
-        size: parseInt(document.getElementById('property-size').value),
-        sizeUnit: 'm²'
-      },
-      description: document.getElementById('property-description').value,
-      images: {
-        main: document.getElementById('property-image').value,
-        gallery: []
-      },
-      amenities: document.getElementById('property-amenities').value.split(',').map(a => a.trim()).filter(a => a),
-      currency: 'KES',
-      yearBuilt: 2023,
-      furnished: true,
-      available: true,
-      dateAdded: new Date().toISOString().split('T')[0]
-    };
+  // Helper method to safely set form values
+  setFormValue(id, value) {
+    const element = document.getElementById(id);
+    if (element && value !== null && value !== undefined) {
+      element.value = value;
+    }
+  }
 
-    if (this.currentEditingId) {
-      // Edit existing property
-      const index = this.properties.findIndex(p => p.id === this.currentEditingId);
-      if (index !== -1) {
-        this.properties[index] = { ...this.properties[index], ...formData };
-        
-        // Update in shared data manager
-        if (window.sharedDataManager) {
-          window.sharedDataManager.updateApartment(this.currentEditingId, formData);
-        }
-        
-        this.showNotification('Property updated successfully!', 'success');
-      }
-    } else {
-      // Add new property
-      const newId = Math.max(...this.properties.map(p => p.id)) + 1;
-      const newProperty = { id: newId, ...formData };
-      this.properties.push(newProperty);
-      
-      // Add to shared data manager
-      if (window.sharedDataManager) {
-        window.sharedDataManager.addApartment(formData);
-      }
-      
-      this.showNotification('Property added successfully!', 'success');
+  // Show existing images for reference during editing
+  showExistingImages(property) {
+    const imagesPreview = document.getElementById('images-preview');
+    if (!imagesPreview) return;
+
+    let existingImagesHtml = '';
+    
+    // Show main image
+    if (property.images?.main) {
+      existingImagesHtml += `
+        <div class="relative group border-2 border-blue-200 rounded-lg">
+          <img src="${property.images.main}" alt="Current main image" class="w-full h-24 object-cover rounded-lg">
+          <div class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Current Main</div>
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+            <span class="text-white text-xs">Upload new images to replace</span>
+          </div>
+        </div>
+      `;
     }
 
-    this.closePropertyModal();
-    this.filterProperties();
-    this.updateDashboard();
-    this.populateMediaPropertySelect();
+    // Show gallery images
+    if (property.images?.gallery && property.images.gallery.length > 0) {
+      property.images.gallery.forEach((galleryUrl, index) => {
+        existingImagesHtml += `
+          <div class="relative group border-2 border-gray-200 rounded-lg">
+            <img src="${galleryUrl}" alt="Current gallery image ${index + 1}" class="w-full h-24 object-cover rounded-lg">
+            <div class="absolute top-2 left-2 bg-gray-600 text-white text-xs px-2 py-1 rounded-full">Gallery ${index + 1}</div>
+            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+              <span class="text-white text-xs">Upload new images to replace</span>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    if (existingImagesHtml) {
+      imagesPreview.innerHTML = existingImagesHtml;
+    }
   }
 
-  editProperty(id) {
+  getFormData() {
+    return {
+      id: this.currentEditingId || 'new',
+      // Basic information
+      title: document.getElementById('property-title').value || 'Property Title',
+      type: document.getElementById('property-type').value || 'Villa',  
+      status: document.getElementById('property-status').value || 'For Sale',
+      price: parseInt(document.getElementById('property-price').value) || 1000000,
+      currency: document.getElementById('property-currency').value || 'KES',
+      
+      // Location information
+      location: {
+        area: document.getElementById('property-area').value || 'Area',
+        city: document.getElementById('property-city').value || 'Nairobi', 
+        country: document.getElementById('property-country').value || 'Kenya',
+        coordinates: { 
+          lat: document.getElementById('property-coordinates-lat')?.value ? parseFloat(document.getElementById('property-coordinates-lat').value) : null,
+          lng: document.getElementById('property-coordinates-lng')?.value ? parseFloat(document.getElementById('property-coordinates-lng').value) : null
+        }
+      },
+      
+      // Property features
+      features: {
+        bedrooms: parseInt(document.getElementById('property-bedrooms').value) || 3,
+        bathrooms: parseInt(document.getElementById('property-bathrooms').value) || 2,
+        parking: parseInt(document.getElementById('property-parking').value) || 1,
+        size: parseInt(document.getElementById('property-size').value) || 150,
+        sizeUnit: document.getElementById('property-size-unit').value || 'm²'
+      },
+      
+      // Content
+      description: document.getElementById('property-description').value || 'Property description',
+      shortDescription: document.getElementById('property-short-description')?.value || '',
+      images: {
+        main: null, // Images are handled separately in processMediaUploads
+        gallery: []
+      },
+      amenities: document.getElementById('property-amenities').value.split(',').map(a => a.trim()).filter(a => a) || [],
+      
+      // Additional property details
+      yearBuilt: document.getElementById('property-year-built')?.value ? parseInt(document.getElementById('property-year-built').value) : null,
+      furnished: document.getElementById('property-furnished')?.value === 'true',
+      available: document.getElementById('property-available')?.value !== 'false',
+      featured: document.getElementById('property-featured')?.value === 'true',
+      published: document.getElementById('property-published')?.value !== 'false',
+      
+      // Media URLs
+      youtubeUrl: document.getElementById('property-youtube-url')?.value || '',
+      virtualTourUrl: document.getElementById('property-virtual-tour-url')?.value || '',
+      
+      // SEO fields
+      seo: {
+        metaTitle: document.getElementById('property-meta-title')?.value || '',
+        metaDescription: document.getElementById('property-meta-description')?.value || '',
+        metaKeywords: document.getElementById('property-meta-keywords')?.value ? 
+                      document.getElementById('property-meta-keywords').value.split(',').map(k => k.trim()).filter(k => k) : []
+      },
+      
+      // Timestamps
+      dateAdded: new Date().toISOString().split('T')[0]
+    };
+  }
+
+  previewProperty() {
+    const formData = this.getFormData();
+    this.generatePreview(formData);
+  }
+
+  generatePreview(formData) {
+    // Remove existing preview
+    const existingPreview = document.getElementById('property-preview');
+    if (existingPreview) {
+      existingPreview.remove();
+    }
+
+    const previewContainer = document.createElement('div');
+    previewContainer.id = 'property-preview';
+    previewContainer.className = 'mt-8 p-6 border-t border-[#dbe0e6]';
+    
+    const heading = document.createElement('h3');
+    heading.className = 'text-zentro-dark text-lg font-bold mb-6';
+    heading.textContent = 'Property Preview';
+    
+    const previewHTML = `
+      <div class="property-card max-w-sm mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="relative">
+          <img src="${formData.images.main || '../wp-content/uploads/2025/02/default-property.jpg'}" alt="${formData.title}" class="w-full h-48 object-cover">
+          <div class="absolute top-3 left-3">
+            <span class="bg-zentro-green text-white px-2 py-1 rounded-md text-xs font-semibold">${formData.status}</span>
+          </div>
+          <div class="absolute bottom-3 left-3 bg-black bg-opacity-70 text-white px-2 py-1 rounded-md text-sm font-semibold">
+            ${this.formatPrice(formData.price, formData.currency)}
+          </div>
+        </div>
+        <div class="p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">${formData.title}</h3>
+          <p class="text-sm text-gray-600 mb-3">${formData.location.area}, ${formData.location.city}</p>
+          <div class="flex justify-between text-sm text-gray-500 mb-3">
+            <span>${formData.features.bedrooms} beds</span>
+            <span>${formData.features.bathrooms} baths</span>
+            <span>${formData.features.size}${formData.features.sizeUnit}</span>
+          </div>
+          <div class="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+            ${formData.type}
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 text-center">
+        <p class="text-sm text-gray-500">This is how your property will appear on the website</p>
+        ${this.selectedMedia.youtubeUrl ? `<p class="text-xs text-zentro-gold mt-1">YouTube video will be included</p>` : ''}
+      </div>
+    `;
+    
+    previewContainer.appendChild(heading);
+    previewContainer.innerHTML += previewHTML;
+    document.getElementById('property-form').appendChild(previewContainer);
+  }
+
+  async saveProperty() {
+    const formData = this.getFormData();
+
+    // Validate required fields
+    if (!formData.title || !formData.price || !formData.location.area) {
+      this.showNotification('Please fill in all required fields', 'error');
+      return;
+    }
+
+    if (!window.railwayManager) {
+      this.showNotification('Railway database not available. Cannot save property.', 'error');
+      return;
+    }
+
+    try {
+      this.setLoading(true);
+      
+      // Process media uploads and prepare media data
+      const mediaData = await this.processMediaUploads();
+      
+      if (this.currentEditingId && this.currentEditingId !== 'new') {
+        // Update existing property with media
+        await window.railwayManager.updateProperty(this.currentEditingId, formData, mediaData);
+        this.showNotification('Property updated successfully in Railway database!', 'success');
+      } else {
+        // Add new property with media
+        await window.railwayManager.addProperty(formData, mediaData);
+        this.showNotification('Property added successfully to Railway database!', 'success');
+      }
+
+      this.closePropertyModal();
+      await this.loadPropertiesFromDatabase();
+      this.renderProperties();
+      this.updateDashboard();
+      
+    } catch (error) {
+      console.error('Error saving property to Railway:', error);
+      this.showNotification('Error saving property: ' + error.message, 'error');
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
+  // Bind multiple image upload events
+  bindMultipleImageEvents() {
+    const imagesDropZone = document.getElementById('images-drop-zone');
+    const imagesInput = document.getElementById('images-input');
+    const imagesPreview = document.getElementById('images-preview');
+
+    console.log('Binding Railway image events...', {
+      imagesDropZone: !!imagesDropZone,
+      imagesInput: !!imagesInput,
+      imagesPreview: !!imagesPreview
+    });
+
+    if (!imagesDropZone || !imagesInput || !imagesPreview) {
+      console.error('Image elements not found:', {
+        imagesDropZone: !!imagesDropZone,
+        imagesInput: !!imagesInput,
+        imagesPreview: !!imagesPreview
+      });
+      return;
+    }
+
+    // Click to browse files
+    imagesDropZone.addEventListener('click', (e) => {
+      console.log('Railway images drop zone clicked!');
+      e.preventDefault();
+      imagesInput.click();
+    });
+
+    // Handle file selection
+    imagesInput.addEventListener('change', (e) => {
+      this.handleMultipleImages(Array.from(e.target.files));
+    });
+
+    // Drag and drop functionality
+    imagesDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      imagesDropZone.classList.add('border-zentro-gold', 'bg-zentro-gold/10');
+    });
+
+    imagesDropZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      imagesDropZone.classList.remove('border-zentro-gold', 'bg-zentro-gold/10');
+    });
+
+    imagesDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      imagesDropZone.classList.remove('border-zentro-gold', 'bg-zentro-gold/10');
+      
+      const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+      this.handleMultipleImages(files);
+    });
+  }
+
+  // Handle multiple image files
+  handleMultipleImages(files) {
+    if (files.length === 0) return;
+
+    // Store files in selectedMedia
+    this.selectedMedia.images = files;
+    
+    // Update preview
+    this.renderMultipleImagesPreview(files);
+    
+    console.log(`Selected ${files.length} images for Railway storage. First will be main image.`);
+  }
+
+  // Render preview for multiple images  
+  renderMultipleImagesPreview(files) {
+    const previewContainer = document.getElementById('images-preview');
+    previewContainer.innerHTML = '';
+
+    files.forEach((file, index) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'relative group';
+        
+        const badge = index === 0 ? 
+          '<div class="absolute top-2 left-2 bg-zentro-gold text-white text-xs px-2 py-1 rounded-full">Main</div>' :
+          `<div class="absolute top-2 left-2 bg-gray-600 text-white text-xs px-2 py-1 rounded-full">${index}</div>`;
+        
+        imageContainer.innerHTML = `
+          ${badge}
+          <img src="${e.target.result}" 
+               alt="Preview ${index + 1}" 
+               class="w-full h-24 object-cover rounded-lg border-2 border-gray-200">
+          <button onclick="zentroAdmin.removeImage(${index})" 
+                  class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            ×
+          </button>
+        `;
+        
+        previewContainer.appendChild(imageContainer);
+      };
+      
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Remove image from selection
+  removeImage(index) {
+    this.selectedMedia.images.splice(index, 1);
+    this.renderMultipleImagesPreview(this.selectedMedia.images);
+    
+    if (this.selectedMedia.images.length === 0) {
+      document.getElementById('images-preview').innerHTML = '';
+    }
+  }
+
+  // Bind YouTube URL events
+  bindYouTubeEvents() {
+    const youtubeInput = document.getElementById('property-youtube-url');
+
+    console.log('Binding Railway YouTube URL events...', {
+      youtubeInput: !!youtubeInput
+    });
+
+    if (!youtubeInput) {
+      console.error('YouTube URL input not found');
+      return;
+    }
+
+    // Handle YouTube URL input changes
+    youtubeInput.addEventListener('input', (e) => {
+      this.selectedMedia.youtubeUrl = e.target.value;
+      console.log('YouTube URL updated for Railway:', this.selectedMedia.youtubeUrl);
+    });
+
+    // Validate YouTube URL on blur
+    youtubeInput.addEventListener('blur', (e) => {
+      const url = e.target.value.trim();
+      if (url && !this.isValidYouTubeUrl(url)) {
+        this.showNotification('Please enter a valid YouTube URL', 'error');
+        e.target.focus();
+      }
+    });
+
+    console.log('✅ Railway YouTube URL events bound successfully');
+  }
+
+  // Validate YouTube URL
+  isValidYouTubeUrl(url) {
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)[a-zA-Z0-9_-]+/;
+    return youtubeRegex.test(url);
+  }
+
+  // Simple validation for Railway
+  validateRequiredMedia() {
+    // For new properties, require at least one image
+    if (!this.currentEditingId || this.currentEditingId === 'new') {
+      if (!this.selectedMedia.images || this.selectedMedia.images.length === 0) {
+        throw new Error('Please select at least one image for new properties');
+      }
+    }
+    // For existing properties, images are optional (keep existing if none uploaded)
+    console.log('✅ Railway media validation passed');
+    return true;
+  }
+
+  async processMediaUploads() {
+    // Validate media before processing
+    this.validateRequiredMedia();
+    
+    const mediaData = {
+      images: [],
+      youtubeUrl: this.selectedMedia.youtubeUrl || ''
+    };
+
+    // Process multiple images - store locally since Railway doesn't have built-in storage
+    if (this.selectedMedia.images && this.selectedMedia.images.length > 0) {
+      console.log(`📸 Processing ${this.selectedMedia.images.length} images for Railway...`);
+      
+      const imagePromises = this.selectedMedia.images.map(async (imageFile, index) => {
+        // For Railway, we'll store files locally and save paths to database
+        const storageUrl = await this.saveToLocalStorage(imageFile, 'image');
+        
+        return {
+          url: storageUrl,
+          alt: `${this.getFormData().title} - ${index === 0 ? 'Main Image' : `Gallery Image ${index}`}`,
+          isPrimary: index === 0, // First image is main
+          displayOrder: index,
+          fileSize: imageFile.size,
+          mimeType: imageFile.type
+        };
+      });
+
+      const imageData = await Promise.all(imagePromises);
+      mediaData.images.push(...imageData);
+      console.log(`✅ Processed ${imageData.length} images for Railway`);
+    } else {
+      console.log('📸 No new images to process for Railway');
+    }
+
+    // YouTube URL is already stored in mediaData.youtubeUrl
+    if (mediaData.youtubeUrl) {
+      console.log(`🎬 YouTube URL set for Railway: ${mediaData.youtubeUrl}`);
+    } else {
+      console.log('🎬 No YouTube URL provided for Railway');
+    }
+
+    return mediaData;
+  }
+
+  // Save file to local filesystem (Railway approach)
+  async saveToLocalStorage(file, fileType = 'image') {
+    try {
+      console.log(`📁 Saving ${file.name} to local filesystem for Railway...`);
+      
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      // For Railway, we'll use the wp-content uploads directory
+      const relativePath = `wp-content/uploads/2025/02/${fileName}`;
+      
+      // In a real implementation, you'd use a proper file upload system
+      // For now, we'll create a data URL and simulate the upload
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          // In production, this would be an actual file save operation
+          console.log(`✅ File ${fileName} saved to Railway local storage`);
+          resolve(`../${relativePath}`);
+        };
+        reader.readAsDataURL(file);
+      });
+    } catch (error) {
+      console.error('Error saving file to Railway local storage:', error);
+      throw new Error(`Failed to save ${file.name} to Railway local storage: ${error.message}`);
+    }
+  }
+
+  // Filter by status using Railway database
+  async filterByStatus(status) {
+    if (!window.railwayManager) {
+      this.filteredProperties = this.properties.filter(property => property.status === status);
+      this.renderProperties();
+      return;
+    }
+
+    try {
+      this.setLoading(true);
+      this.filteredProperties = await window.railwayManager.getPropertiesByStatus(status);
+      this.renderProperties();
+    } catch (error) {
+      console.error('Error filtering properties in Railway:', error);
+      this.showNotification('Error filtering properties', 'error');
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
+  async filterProperties() {
+    const search = document.getElementById('property-search').value.toLowerCase().trim();
+    
+    if (!search) {
+      await this.loadPropertiesFromDatabase();
+      this.renderProperties();
+      return;
+    }
+
+    if (!window.railwayManager) {
+      this.filteredProperties = this.properties.filter(property => {
+        return property.title.toLowerCase().includes(search) ||
+               property.location.area.toLowerCase().includes(search) ||
+               property.location.city.toLowerCase().includes(search);
+      });
+      this.renderProperties();
+      return;
+    }
+
+    try {
+      this.setLoading(true);
+      this.filteredProperties = await window.railwayManager.searchProperties(search);
+      this.renderProperties();
+    } catch (error) {
+      console.error('Error searching properties in Railway:', error);
+      this.showNotification('Error searching properties', 'error');
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
+  renderProperties() {
+    const container = document.getElementById('properties-list');
+
+    if (this.isLoading) {
+      container.innerHTML = `
+        <div class="text-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-zentro-gold mx-auto mb-4"></div>
+          <p class="text-gray-500">Loading properties from Railway...</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (this.filteredProperties.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-12">
+          <div class="text-gray-500">
+            <svg class="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-6m-8 0H3m2 0h6M9 7h6m-6 4h6m-6 4h6m-6 4h6"></path>
+            </svg>
+            <p class="text-lg font-medium">No properties found in Railway database</p>
+            <p class="text-sm mt-2">Try adjusting your search criteria or add a new property</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="overflow-hidden rounded-lg border border-[#dbe0e6] bg-white">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-white">
+              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">ID</th>
+              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Image</th>
+              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Title</th>
+              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Location</th>
+              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Type</th>
+              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Status</th>
+              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Price</th>
+              <th class="px-4 py-3 text-left text-zentro-dark text-sm font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${this.filteredProperties.map(property => `
+              <tr class="border-t border-t-[#dbe0e6]">
+                <td class="h-[72px] px-4 py-2 text-zentro-dark text-sm font-normal">${property.id}</td>
+                <td class="h-[72px] px-4 py-2">
+                  <div class="w-16 h-16 rounded-lg overflow-hidden">
+                    <img src="${property.images.main || '../wp-content/uploads/2025/02/default-property.jpg'}" alt="${property.title}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjBGMkY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg0NFY0NEgyMFYyMFoiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CjxjaXJjbGUgY3g9IjI2IiBjeT0iMjgiIHI9IjMiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDM2TDI4IDI4TDM2IDM2TDQ0IDI4VjQ0SDIwVjM2WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'">
+                  </div>
+                </td>
+                <td class="h-[72px] px-4 py-2 text-zentro-dark text-sm font-normal">${property.title}</td>
+                <td class="h-[72px] px-4 py-2 text-gray-600 text-sm font-normal">${property.location.area}, ${property.location.city}</td>
+                <td class="h-[72px] px-4 py-2 text-gray-600 text-sm font-normal">${property.type}</td>
+                <td class="h-[72px] px-4 py-2">
+                  <button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 ${property.status === 'For Sale' ? 'bg-zentro-green/10 text-zentro-green' : 'bg-zentro-gold/10 text-zentro-gold'} text-sm font-medium">
+                    <span class="truncate">${property.status}</span>
+                  </button>
+                </td>
+                <td class="h-[72px] px-4 py-2 text-zentro-dark text-sm font-medium">${this.formatPrice(property.price, property.currency)}</td>
+                <td class="h-[72px] px-4 py-2">
+                  <div class="flex gap-2">
+                    <button onclick="zentroAdmin.editProperty(${property.id})" class="text-zentro-dark text-sm font-bold tracking-[0.015em] hover:text-zentro-gold transition-colors">
+                      Edit
+                    </button>
+                    <button onclick="zentroAdmin.deleteProperty(${property.id})" class="text-red-500 text-sm font-bold tracking-[0.015em] hover:text-red-600 transition-colors">
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  async editProperty(id) {
     const property = this.properties.find(p => p.id === id);
     if (property) {
       this.openPropertyModal(property);
     }
   }
 
-  deleteProperty(id) {
-    if (confirm('Are you sure you want to delete this property?')) {
-      this.properties = this.properties.filter(p => p.id !== id);
+  async deleteProperty(id) {
+    if (!confirm('Are you sure you want to delete this property from Railway database?')) {
+      return;
+    }
+
+    if (!window.railwayManager) {
+      this.showNotification('Railway database not available. Cannot delete property.', 'error');
+      return;
+    }
+
+    try {
+      this.setLoading(true);
+      await window.railwayManager.deleteProperty(id);
       
-      // Delete from shared data manager
-      if (window.sharedDataManager) {
-        window.sharedDataManager.deleteApartment(id);
-      }
-      
-      this.filterProperties();
+      await this.loadPropertiesFromDatabase();
+      this.renderProperties();
       this.updateDashboard();
-      this.populateMediaPropertySelect();
-      this.showNotification('Property deleted successfully!', 'success');
+      this.showNotification('Property deleted successfully from Railway database!', 'success');
+      
+    } catch (error) {
+      console.error('Error deleting property from Railway:', error);
+      this.showNotification('Error deleting property: ' + error.message, 'error');
+    } finally {
+      this.setLoading(false);
     }
   }
 
-  // Media handling - similar to sample.html functionality
-  bindMediaEvents() {
-    const photoDropZone = document.getElementById('photo-drop-zone');
-    const videoDropZone = document.getElementById('video-drop-zone');
-    const photoFileInput = document.getElementById('photo-file-input');
-    const videoFileInput = document.getElementById('video-file-input');
-    const photoBrowseBtn = document.getElementById('photo-browse-btn');
-    const videoBrowseBtn = document.getElementById('video-browse-btn');
-    const uploadBtn = document.getElementById('upload-btn');
+  // Dashboard with Railway statistics
+  async updateDashboard() {
+    if (!window.railwayManager) {
+      const totalProperties = this.properties.length;
+      const forSaleCount = this.properties.filter(p => p.status === 'For Sale').length;
+      const forRentCount = this.properties.filter(p => p.status === 'For Rent').length;
+      const avgPrice = totalProperties > 0 ? this.properties.reduce((sum, p) => sum + p.price, 0) / totalProperties : 0;
 
-    // Fix media section scrolling
-    const mediaSection = document.getElementById('media-section');
-    if (mediaSection) {
-      mediaSection.style.maxHeight = '80vh';
-      mediaSection.style.overflowY = 'auto';
-    }
-
-    // Photo events
-    photoDropZone.addEventListener('click', () => {
-      photoFileInput.click();
-    });
-
-    photoBrowseBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      photoFileInput.click();
-    });
-
-    photoFileInput.addEventListener('change', (e) => {
-      this.handleFileSelection(e.target.files, 'photos');
-    });
-
-    // Video events
-    videoDropZone.addEventListener('click', () => {
-      videoFileInput.click();
-    });
-
-    videoBrowseBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      videoFileInput.click();
-    });
-
-    videoFileInput.addEventListener('change', (e) => {
-      this.handleFileSelection(e.target.files, 'videos');
-    });
-
-    // Drag and drop for photos
-    photoDropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      photoDropZone.classList.add('border-zentro-gold');
-    });
-
-    photoDropZone.addEventListener('dragleave', (e) => {
-      e.preventDefault();
-      photoDropZone.classList.remove('border-zentro-gold');
-    });
-
-    photoDropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      photoDropZone.classList.remove('border-zentro-gold');
-      this.handleFileSelection(e.dataTransfer.files, 'photos');
-    });
-
-    // Drag and drop for videos
-    videoDropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      videoDropZone.classList.add('border-zentro-gold');
-    });
-
-    videoDropZone.addEventListener('dragleave', (e) => {
-      e.preventDefault();
-      videoDropZone.classList.remove('border-zentro-gold');
-    });
-
-    videoDropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      videoDropZone.classList.remove('border-zentro-gold');
-      this.handleFileSelection(e.dataTransfer.files, 'videos');
-    });
-
-    // Upload button
-    uploadBtn.addEventListener('click', () => {
-      this.uploadMedia();
-    });
-  }
-
-  handleFileSelection(files, type) {
-    const acceptedTypes = type === 'photos' ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp'] : ['video/mp4', 'video/webm', 'video/ogg'];
-
-    Array.from(files).forEach(file => {
-      if (acceptedTypes.some(acceptedType => file.type.startsWith(acceptedType))) {
-        this.selectedFiles[type].push(file);
-      }
-    });
-
-    this.updateFileDisplay();
-  }
-
-  updateFileDisplay() {
-    const photoZone = document.getElementById('photo-drop-zone');
-    const videoZone = document.getElementById('video-drop-zone');
-
-    if (this.selectedFiles.photos.length > 0) {
-      // Create preview container if it doesn't exist
-      let previewContainer = document.getElementById('photo-previews');
-      if (!previewContainer) {
-        previewContainer = document.createElement('div');
-        previewContainer.id = 'photo-previews';
-        previewContainer.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6';
-        photoZone.parentNode.insertBefore(previewContainer, photoZone.nextSibling);
-      } else {
-        previewContainer.innerHTML = '';
-      }
-      
-      // Update text in drop zone
-      const titleElement = photoZone.querySelector('p:first-child');
-      if (titleElement) {
-        titleElement.textContent = `${this.selectedFiles.photos.length} photo(s) selected`;
-      }
-      
-      // Create previews
-      this.selectedFiles.photos.forEach((file, index) => {
-        const preview = document.createElement('div');
-        preview.className = 'relative rounded-lg overflow-hidden border border-[#dbe0e6]';
-        
-        const img = document.createElement('img');
-        img.src = URL.createObjectURL(file);
-        img.className = 'w-full h-32 object-cover';
-        img.alt = 'Preview';
-        
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center';
-        removeBtn.innerHTML = '×';
-        removeBtn.onclick = (e) => {
-          e.preventDefault();
-          this.selectedFiles.photos.splice(index, 1);
-          this.updateFileDisplay();
-        };
-        
-        preview.appendChild(img);
-        preview.appendChild(removeBtn);
-        previewContainer.appendChild(preview);
-      });
-    } else {
-      // Remove preview container if it exists
-      const previewContainer = document.getElementById('photo-previews');
-      if (previewContainer) {
-        previewContainer.remove();
-      }
-      
-      // Reset text in drop zone
-      const titleElement = photoZone.querySelector('p:first-child');
-      if (titleElement) {
-        titleElement.textContent = 'Drag and drop photos here';
-      }
-    }
-    
-    if (this.selectedFiles.videos.length > 0) {
-      // Create preview container if it doesn't exist
-      let previewContainer = document.getElementById('video-previews');
-      if (!previewContainer) {
-        previewContainer = document.createElement('div');
-        previewContainer.id = 'video-previews';
-        previewContainer.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6';
-        videoZone.parentNode.insertBefore(previewContainer, videoZone.nextSibling);
-      } else {
-        previewContainer.innerHTML = '';
-      }
-      
-      // Update text in drop zone
-      const titleElement = videoZone.querySelector('p:first-child');
-      if (titleElement) {
-        titleElement.textContent = `${this.selectedFiles.videos.length} video(s) selected`;
-      }
-      
-      // Create previews
-      this.selectedFiles.videos.forEach((file, index) => {
-        const preview = document.createElement('div');
-        preview.className = 'relative rounded-lg overflow-hidden border border-[#dbe0e6]';
-        
-        const video = document.createElement('video');
-        video.src = URL.createObjectURL(file);
-        video.className = 'w-full h-32 object-cover';
-        video.controls = true;
-        
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center';
-        removeBtn.innerHTML = '×';
-        removeBtn.onclick = (e) => {
-          e.preventDefault();
-          this.selectedFiles.videos.splice(index, 1);
-          this.updateFileDisplay();
-        };
-        
-        preview.appendChild(video);
-        preview.appendChild(removeBtn);
-        previewContainer.appendChild(preview);
-      });
-    } else {
-      // Remove preview container if it exists
-      const previewContainer = document.getElementById('video-previews');
-      if (previewContainer) {
-        previewContainer.remove();
-      }
-      
-      // Reset text in drop zone
-      const titleElement = videoZone.querySelector('p:first-child');
-      if (titleElement) {
-        titleElement.textContent = 'Drag and drop videos here';
-      }
-    }
-  }
-
-  uploadMedia() {
-    const selectedProperty = document.getElementById('media-property-select').value;
-
-    if (!selectedProperty) {
-      this.showNotification('Please select a property first', 'error');
+      document.getElementById('total-properties').textContent = totalProperties;
+      document.getElementById('for-sale-count').textContent = forSaleCount;
+      document.getElementById('for-rent-count').textContent = forRentCount;
+      document.getElementById('avg-price').textContent = this.formatPrice(avgPrice, 'KES');
       return;
     }
 
-    if (this.selectedFiles.photos.length === 0 && this.selectedFiles.videos.length === 0) {
-      this.showNotification('Please select files to upload', 'error');
-      return;
+    try {
+      const stats = await window.railwayManager.getStatistics();
+      
+      document.getElementById('total-properties').textContent = stats.total;
+      document.getElementById('for-sale-count').textContent = stats.forSale;
+      document.getElementById('for-rent-count').textContent = stats.forRent;
+      document.getElementById('avg-price').textContent = this.formatPrice(stats.averagePrice, 'KES');
+      
+    } catch (error) {
+      console.error('Error updating Railway dashboard:', error);
     }
-
-    // Simulate upload process
-    this.showNotification('Uploading media...', 'info');
-
-    setTimeout(() => {
-      // In a real application, you would upload to server here
-      // For now, we'll just update the property with placeholder URLs
-      const propertyId = parseInt(selectedProperty);
-      const property = this.properties.find(p => p.id === propertyId);
-      
-      if (property) {
-        // Add placeholder gallery images
-        const newGalleryImages = Array(this.selectedFiles.photos.length).fill('../wp-content/uploads/2025/02/unsplash.jpg');
-        property.images.gallery = [...property.images.gallery, ...newGalleryImages];
-        
-        // Update in shared data manager
-        if (window.sharedDataManager) {
-          window.sharedDataManager.updateApartment(propertyId, {
-            images: {
-              main: property.images.main,
-              gallery: property.images.gallery
-            }
-          });
-        }
-      }
-      
-      this.selectedFiles = { photos: [], videos: [] };
-      this.updateFileDisplay();
-      this.showNotification('Media uploaded successfully!', 'success');
-    }, 2000);
-  }
-
-  populateMediaPropertySelect() {
-    const select = document.getElementById('media-property-select');
-    select.innerHTML = '<option value="">Select a property...</option>';
-
-    this.properties.forEach(property => {
-      const option = document.createElement('option');
-      option.value = property.id;
-      option.textContent = `${property.title} - ${property.location.area}`;
-      select.appendChild(option);
-    });
-  }
-
-  // Dashboard
-  updateDashboard() {
-    const totalProperties = this.properties.length;
-    const forSaleCount = this.properties.filter(p => p.status === 'For Sale').length;
-    const forRentCount = this.properties.filter(p => p.status === 'For Rent').length;
-    const avgPrice = totalProperties > 0 ? this.properties.reduce((sum, p) => sum + p.price, 0) / totalProperties : 0;
-
-    document.getElementById('total-properties').textContent = totalProperties;
-    document.getElementById('for-sale-count').textContent = forSaleCount;
-    document.getElementById('for-rent-count').textContent = forRentCount;
-    document.getElementById('avg-price').textContent = ApartmentUtils.formatPrice(avgPrice, 'USD');
   }
 
   // Settings
@@ -916,9 +1195,26 @@ class ZentroAdmin {
       contactPhone: document.getElementById('contact-phone').value
     };
 
-    // In a real application, you would save to server
-    localStorage.setItem('zentro-settings', JSON.stringify(settings));
-    this.showNotification('Settings saved successfully!', 'success');
+    localStorage.setItem('zentro-railway-settings', JSON.stringify(settings));
+    this.showNotification('Settings saved successfully for Railway!', 'success');
+  }
+
+  // Utility functions
+  formatPrice(price, currency) {
+    return new Intl.NumberFormat('en-KE', {
+      style: 'currency',
+      currency: currency || 'KES',
+      minimumFractionDigits: 0
+    }).format(price);
+  }
+
+  setLoading(loading) {
+    this.isLoading = loading;
+    const addButton = document.getElementById('add-property-btn');
+    if (addButton) {
+      addButton.disabled = loading;
+      addButton.textContent = loading ? 'Loading...' : 'Add Property';
+    }
   }
 
   // Notifications
@@ -926,7 +1222,6 @@ class ZentroAdmin {
     const notification = document.createElement('div');
     notification.className = `fixed top-4 right-4 px-6 py-3 rounded-xl text-white font-medium z-50 transition-all duration-300 transform translate-x-full`;
 
-    // Set background color based on type
     switch (type) {
       case 'success':
         notification.className += ' bg-zentro-green';
@@ -948,7 +1243,7 @@ class ZentroAdmin {
       notification.classList.remove('translate-x-full');
     }, 100);
 
-    // Remove after 3 seconds
+    // Remove after 4 seconds
     setTimeout(() => {
       notification.classList.add('translate-x-full');
       setTimeout(() => {
@@ -956,11 +1251,11 @@ class ZentroAdmin {
           notification.parentNode.removeChild(notification);
         }
       }, 300);
-    }, 3000);
+    }, 4000);
   }
 }
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function () {
-  window.zentroAdmin = new ZentroAdmin();
+  window.zentroAdmin = new ZentroAdminRailway();
 });

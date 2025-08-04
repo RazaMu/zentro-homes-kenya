@@ -157,45 +157,64 @@ class RailwayDataManager {
   // Convert legacy format back to Railway API format
   convertFromLegacyFormat(apartment) {
     return {
-      title: apartment.title,
-      type: apartment.type,
-      status: apartment.status,
-      price: apartment.price,
+      // Basic info
+      title: apartment.title || '',
+      slug: apartment.slug || this.generateSlug(apartment.title || ''),
+      uuid: apartment.uuid || this.generateUUID(),
+      type: apartment.type || '',
+      status: apartment.status || '',
+      price: parseFloat(apartment.price) || 0,
       currency: apartment.currency || 'KES',
       
-      location_area: apartment.location?.area || '',
-      location_city: apartment.location?.city || '',
-      location_country: apartment.location?.country || 'Kenya',
-      coordinates_lat: apartment.location?.coordinates?.lat,
-      coordinates_lng: apartment.location?.coordinates?.lng,
+      // Location data
+      location_area: apartment.location?.area || apartment.area || '',
+      location_city: apartment.location?.city || apartment.city || '',
+      location_country: apartment.location?.country || apartment.country || 'Kenya',
+      coordinates_lat: apartment.location?.coordinates?.lat ? parseFloat(apartment.location.coordinates.lat) : null,
+      coordinates_lng: apartment.location?.coordinates?.lng ? parseFloat(apartment.location.coordinates.lng) : null,
       
-      bedrooms: apartment.features?.bedrooms || 0,
-      bathrooms: apartment.features?.bathrooms || 0,
-      parking: apartment.features?.parking || 0,
-      size: apartment.features?.size || 0,
-      size_unit: apartment.features?.sizeUnit || 'm²',
+      // Features
+      bedrooms: parseInt(apartment.features?.bedrooms || apartment.bedrooms) || 0,
+      bathrooms: parseInt(apartment.features?.bathrooms || apartment.bathrooms) || 0,
+      parking: parseInt(apartment.features?.parking || apartment.parking) || 0,
+      size: parseFloat(apartment.features?.size || apartment.size) || 0,
+      size_unit: apartment.features?.sizeUnit || apartment.sizeUnit || 'm²',
+      year_built: apartment.details?.yearBuilt || apartment.yearBuilt ? parseInt(apartment.details?.yearBuilt || apartment.yearBuilt) : null,
+      furnished: apartment.details?.furnished !== false && apartment.furnished !== false,
       
-      year_built: apartment.details?.yearBuilt,
-      furnished: apartment.details?.furnished !== false,
+      // Content
       description: apartment.description || apartment.details?.description || '',
-      short_description: apartment.details?.shortDescription || apartment.shortDescription,
-      
+      short_description: apartment.details?.shortDescription || apartment.shortDescription || '',
       images: apartment.images || apartment.media?.images || [],
       videos: apartment.media?.videos || [],
-      virtual_tour_url: apartment.media?.virtualTour,
-      youtube_url: apartment.media?.youtubeUrl,
-      
+      virtual_tour_url: apartment.media?.virtualTour || apartment.virtualTour || null,
+      youtube_url: apartment.media?.youtubeUrl || apartment.youtubeUrl || null,
       amenities: apartment.amenities || [],
-      features: apartment.customFeatures || {},
+      features: apartment.customFeatures || apartment.features || {},
       
-      meta_title: apartment.seo?.metaTitle,
-      meta_description: apartment.seo?.metaDescription,
-      meta_keywords: apartment.seo?.metaKeywords || [],
+      // SEO
+      meta_title: apartment.seo?.metaTitle || apartment.metaTitle || apartment.title || '',
+      meta_description: apartment.seo?.metaDescription || apartment.metaDescription || apartment.description || '',
+      meta_keywords: apartment.seo?.metaKeywords || apartment.metaKeywords || [],
       
+      // Status
       available: apartment.available !== false,
       featured: apartment.featured === true,
       published: apartment.published !== false
     };
+  }
+
+  generateSlug(title) {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim('-');
+  }
+
+  generateUUID() {
+    return 'prop_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
   // Get all apartments
