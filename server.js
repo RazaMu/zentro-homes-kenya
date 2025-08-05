@@ -71,9 +71,16 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Health check endpoint
-app.get('/health', async (req, res) => {
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Database health check endpoint
+app.get('/health/db', async (req, res) => {
   try {
-    // A quick query to check the database connection
     await pool.query('SELECT 1');
     res.json({ 
       status: 'healthy', 
