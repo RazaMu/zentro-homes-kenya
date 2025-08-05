@@ -12,13 +12,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Database connection with Railway PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
+let pool;
+try {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  });
+  console.log('📊 Database pool created');
+} catch (error) {
+  console.warn('⚠️ Database connection failed:', error.message);
+}
 
 // Security middleware
 app.use(helmet({
@@ -102,11 +108,15 @@ app.get('/health/db', async (req, res) => {
   }
 });
 
-// API Routes
-app.use('/api/properties', require('./routes/properties'));
-app.use('/api/contacts', require('./routes/contacts'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/analytics', require('./routes/analytics'));
+// API Routes - wrapped in try-catch to prevent startup failures
+try {
+  app.use('/api/properties', require('./routes/properties'));
+  app.use('/api/contacts', require('./routes/contacts'));
+  app.use('/api/admin', require('./routes/admin'));
+  app.use('/api/analytics', require('./routes/analytics'));
+} catch (error) {
+  console.warn('⚠️ API routes failed to load:', error.message);
+}
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'zentrohomes.com'), {
