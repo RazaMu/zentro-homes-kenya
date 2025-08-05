@@ -11,6 +11,16 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Health check endpoint - MUST be first
+app.get('/health', (req, res) => {
+  console.log('Health check requested');
+  res.status(200).send('OK');
+});
+
+app.get('/healthz', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // Database connection with Railway PostgreSQL
 let pool;
 try {
@@ -76,26 +86,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  console.log('Health check requested');
-  try {
-    res.status(200).send('OK');
-    console.log('Health check responded OK');
-  } catch (error) {
-    console.error('Health check error:', error);
-    res.status(500).send('ERROR');
-  }
-});
 
-// Alternative health check
-app.get('/healthz', (req, res) => {
-  console.log('Healthz check requested');
-  res.status(200).json({ 
-    status: 'healthy',
-    timestamp: new Date().toISOString()
-  });
-});
 
 // Database health check endpoint
 app.get('/health/db', async (req, res) => {
