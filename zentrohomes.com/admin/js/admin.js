@@ -1638,7 +1638,10 @@ class ZentroAdminRailway {
     
     // Show custom danger confirmation
     console.log('🚨 DEBUG: Showing danger confirmation modal...');
-    const confirmed = await this.showDangerConfirmation('UKO SURE BOSS?', 'This action cannot be undone. The property will be permanently deleted from the database.');
+    const confirmed = await this.showDangerConfirmation(
+      'Delete Property?', 
+      'This action cannot be undone. The property will be permanently deleted from the database.'
+    );
     
     console.log('🤔 DEBUG: User confirmation result:', confirmed);
     
@@ -1727,12 +1730,12 @@ class ZentroAdminRailway {
             <p class="text-gray-600 text-base leading-relaxed mb-8">${message}</p>
             
             <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-3 justify-center">
-              <button id="cancel-danger" class="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-gray-100 text-gray-700 text-base font-medium hover:bg-gray-200 transition-all duration-200 transform hover:scale-105">
-                <span class="truncate">Cancel</span>
+            <div class="flex gap-4 justify-center">
+              <button id="cancel-danger" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200">
+                Cancel
               </button>
-              <button id="confirm-danger" class="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-red-500 text-white text-base font-bold hover:bg-red-600 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                <span class="truncate">Yes, Delete</span>
+              <button id="confirm-danger" class="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600">
+                Yes, Delete
               </button>
             </div>
           </div>
@@ -1746,57 +1749,57 @@ class ZentroAdminRailway {
       // Prevent body scroll
       document.body.style.overflow = 'hidden';
 
-      // Check if buttons exist
-      const cancelBtn = modal.querySelector('#cancel-danger');
-      const confirmBtn = modal.querySelector('#confirm-danger');
-      
-      console.log('🔍 DEBUG: Button elements found:');
-      console.log('   - Cancel button:', !!cancelBtn);
-      console.log('   - Confirm button:', !!confirmBtn);
-      
-      if (cancelBtn) {
-        console.log('   - Cancel button text:', cancelBtn.textContent.trim());
-        console.log('   - Cancel button visible:', cancelBtn.offsetWidth > 0 && cancelBtn.offsetHeight > 0);
-      }
-      
-      if (confirmBtn) {
-        console.log('   - Confirm button text:', confirmBtn.textContent.trim());
-        console.log('   - Confirm button visible:', confirmBtn.offsetWidth > 0 && confirmBtn.offsetHeight > 0);
-        console.log('   - Confirm button styles:', window.getComputedStyle(confirmBtn).display);
-      }
+      // Wait for DOM to render then attach events
+      setTimeout(() => {
+        const cancelBtn = modal.querySelector('#cancel-danger');
+        const confirmBtn = modal.querySelector('#confirm-danger');
+        
+        console.log('🔍 DEBUG: Button elements found:');
+        console.log('   - Cancel button:', !!cancelBtn);
+        console.log('   - Confirm button:', !!confirmBtn);
+        
+        if (cancelBtn) {
+          console.log('   - Cancel button text:', cancelBtn.textContent.trim());
+          console.log('   - Cancel button visible:', cancelBtn.offsetWidth > 0 && cancelBtn.offsetHeight > 0);
+          
+          cancelBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('❌ DEBUG: Cancel button clicked');
+            modal.classList.add('animate-fadeOut');
+            setTimeout(() => {
+              if (modal.parentNode) {
+                document.body.removeChild(modal);
+                document.body.style.overflow = '';
+              }
+            }, 200);
+            resolve(false);
+          });
+        } else {
+          console.error('❌ CRITICAL: Cancel button not found!');
+        }
 
-      // Handle button clicks with debugging
-      if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-          console.log('❌ DEBUG: Cancel button clicked');
-          modal.classList.add('animate-fadeOut');
-          setTimeout(() => {
-            if (modal.parentNode) {
-              document.body.removeChild(modal);
-              document.body.style.overflow = '';
-            }
-          }, 200);
-          resolve(false);
-        });
-      } else {
-        console.error('❌ CRITICAL: Cancel button not found!');
-      }
-
-      if (confirmBtn) {
-        confirmBtn.addEventListener('click', () => {
-          console.log('✅ DEBUG: Confirm/Delete button clicked - proceeding with deletion');
-          modal.classList.add('animate-fadeOut');
-          setTimeout(() => {
-            if (modal.parentNode) {
-              document.body.removeChild(modal);
-              document.body.style.overflow = '';
-            }
-          }, 200);
-          resolve(true);
-        });
-      } else {
-        console.error('❌ CRITICAL: Confirm button not found!');
-      }
+        if (confirmBtn) {
+          console.log('   - Confirm button text:', confirmBtn.textContent.trim());
+          console.log('   - Confirm button visible:', confirmBtn.offsetWidth > 0 && confirmBtn.offsetHeight > 0);
+          
+          confirmBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('✅ DEBUG: Confirm/Delete button clicked - proceeding with deletion');
+            modal.classList.add('animate-fadeOut');
+            setTimeout(() => {
+              if (modal.parentNode) {
+                document.body.removeChild(modal);
+                document.body.style.overflow = '';
+              }
+            }, 200);
+            resolve(true);
+          });
+        } else {
+          console.error('❌ CRITICAL: Confirm button not found!');
+        }
+      }, 50);
 
       // Close on background click
       modal.addEventListener('click', (e) => {
@@ -1829,22 +1832,6 @@ class ZentroAdminRailway {
         }
       };
       document.addEventListener('keydown', handleEscape);
-
-      // Debug modal final state
-      setTimeout(() => {
-        console.log('🔍 DEBUG: Modal final state check:');
-        console.log('   - Modal in DOM:', document.body.contains(modal));
-        console.log('   - Modal visible:', modal.offsetWidth > 0 && modal.offsetHeight > 0);
-        console.log('   - Modal z-index:', window.getComputedStyle(modal).zIndex);
-        
-        const buttonsContainer = modal.querySelector('.flex.gap-3');
-        if (buttonsContainer) {
-          console.log('   - Buttons container children:', buttonsContainer.children.length);
-          Array.from(buttonsContainer.children).forEach((child, index) => {
-            console.log(`   - Button ${index + 1}:`, child.textContent.trim(), child.offsetWidth > 0 ? 'visible' : 'hidden');
-          });
-        }
-      }, 100);
     });
   }
 
