@@ -78,11 +78,19 @@ if (process.env.NODE_ENV === 'production') {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).send('OK');
+  console.log('Health check requested');
+  try {
+    res.status(200).send('OK');
+    console.log('Health check responded OK');
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).send('ERROR');
+  }
 });
 
 // Alternative health check
 app.get('/healthz', (req, res) => {
+  console.log('Healthz check requested');
   res.status(200).json({ 
     status: 'healthy',
     timestamp: new Date().toISOString()
@@ -193,10 +201,15 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Zentro Homes server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
+  console.log(`🏥 Health check available at http://0.0.0.0:${PORT}/health`);
+});
+
+server.on('error', (error) => {
+  console.error('Server error:', error);
 });
 
 module.exports = app;
