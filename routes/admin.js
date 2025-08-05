@@ -321,6 +321,123 @@ router.post('/upload/images', verifyAdminToken, upload.array('images', 10), asyn
   }
 });
 
+// Local file upload endpoint with Img_X naming and property ID folder organization
+router.post('/upload-local', verifyAdminToken, (req, res) => {
+  // Custom multer instance for local storage with property-specific folders
+  const localStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      const propertyId = req.body.propertyId;
+      if (!propertyId) {
+        return cb(new Error('Property ID is required for local upload'), null);
+      }
+      
+      // Create property-specific folder in uploads directory
+      const propertyUploadPath = path.join(uploadPath, propertyId.toString());
+      
+      // Ensure property directory exists
+      if (!fs.existsSync(propertyUploadPath)) {
+        fs.mkdirSync(propertyUploadPath, { recursive: true });
+        console.log(`📁 Created property directory: ${propertyUploadPath}`);
+      }
+      
+      cb(null, propertyUploadPath);
+    },
+    filename: function (req, file, cb) {
+      // Use custom filename from request body (Img_X format)
+      const customFileName = req.body.fileName;
+      if (!customFileName) {
+        return cb(new Error('Custom filename is required'), null);
+      }
+      cb(null, customFileName);
+    }
+  });
+
+  const localUpload = multer({
+    storage: localStorage,
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+    fileFilter: function (req, file, cb) {
+      // Only allow image files
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed!'), false);
+      }
+    }
+  }).single('file');
+
+  localUpload(req, res, function (err) {
+    if (err) {
+      console.error('Local upload error:', err);
+      return res.status(400).json({ 
+        error: 'File upload failed',
+        message: err.message 
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const propertyId = req.body.propertyId;
+    const relativePath = `/uploads/${propertyId}/${req.file.filename}`;
+    
+    console.log(`📸 Uploaded file locally: ${req.file.filename} for property ${propertyId}`);
+
+    res.json({
+      success: true,
+      message: 'File uploaded successfully to local storage',
+      url: relativePath, // Relative path for database storage
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+      propertyId: propertyId,
+      fullPath: req.file.path
+    });
+  });
+});
+
+// Delete property images (used when updating property images)
+router.delete('/properties/:id/images', verifyAdminToken, async (req, res) => {
+  try {
+    const propertyId = req.params.id;
+    const propertyUploadPath = path.join(uploadPath, propertyId.toString());
+    
+    // Check if property folder exists
+    if (fs.existsSync(propertyUploadPath)) {
+      // Get all files in the property folder
+      const files = fs.readdirSync(propertyUploadPath);
+      
+      // Delete all image files
+      files.forEach(file => {
+        const filePath = path.join(propertyUploadPath, file);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`🗑️ Deleted image file: ${filePath}`);
+        }
+      });
+      
+      // Remove the empty directory
+      fs.rmdirSync(propertyUploadPath);
+      console.log(`🗑️ Deleted property directory: ${propertyUploadPath}`);
+    }
+    
+    res.json({
+      success: true,
+      message: `Successfully deleted all images for property ${propertyId}`
+    });
+    
+  } catch (error) {
+    console.error('Error deleting property images:', error);
+    res.status(500).json({ 
+      error: 'Failed to delete property images',
+      message: error.message 
+    });
+  }
+});
+
 // Admin CRUD operations for properties
 router.get('/properties', verifyAdminToken, async (req, res) => {
   try {
@@ -634,6 +751,31 @@ router.delete('/properties/:id', verifyAdminToken, async (req, res) => {
     console.log('🗑️ BACKEND DEBUG: Request method:', req.method);
     console.log('🗑️ BACKEND DEBUG: Request URL:', req.url);
 
+    // Clean up associated images first
+    const propertyUploadPath = path.join(uploadPath, id.toString());
+    
+    try {
+      if (fs.existsSync(propertyUploadPath)) {
+        // Get all files in the property folder
+        const files = fs.readdirSync(propertyUploadPath);
+        
+        // Delete all image files
+        files.forEach(file => {
+          const filePath = path.join(propertyUploadPath, file);
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log(`🗑️ Deleted image file: ${filePath}`);
+          }
+        });
+        
+        // Remove the empty directory
+        fs.rmdirSync(propertyUploadPath);
+        console.log(`🗑️ Deleted property directory: ${propertyUploadPath}`);
+      }
+    } catch (imageCleanupError) {
+      console.warn('⚠️ Warning: Failed to clean up images (continuing with property deletion):', imageCleanupError.message);
+    }
+
     const result = await pool.query(
       'DELETE FROM properties WHERE id = $1 RETURNING id, title',
       [parseInt(id)]
@@ -647,7 +789,7 @@ router.delete('/properties/:id', verifyAdminToken, async (req, res) => {
     }
 
     const response = {
-      message: 'Property deleted successfully',
+      message: 'Property and associated images deleted successfully',
       property: result.rows[0]
     };
 

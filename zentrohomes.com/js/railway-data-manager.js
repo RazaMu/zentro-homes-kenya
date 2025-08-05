@@ -32,7 +32,7 @@ class RailwayDataManager {
     }
   }
 
-  // Unified image URL processing method for Railway uploads
+  // Unified image URL processing method for local uploads with property ID folders
   getImageUrl(imageData) {
     if (!imageData) {
       console.log('🔍 getImageUrl: Input is null/undefined');
@@ -44,11 +44,6 @@ class RailwayDataManager {
     // Debug logging for troubleshooting
     if (Array.isArray(imageData) && imageData.length > 0) {
       console.log('🔍 getImageUrl: Processing array, first item:', imageData[0]);
-    }
-    
-    // Handle Railway client URL helper if available
-    if (window.railwayClient && window.railwayClient.getImageUrl) {
-      return window.railwayClient.getImageUrl(imageData);
     }
     
     // Handle array of images - get first image
@@ -70,11 +65,19 @@ class RailwayDataManager {
         
         return imageData;
       }
-      // Railway Volume Storage URLs - convert to full URL
+      // Local uploads with property ID folders - convert to full URL
       if (imageData.startsWith('/uploads/')) {
         return window.location.origin + imageData;
       }
-      // Already a full URL or relative path
+      // Handle relative paths for local images
+      if (imageData.includes('Img_')) {
+        // If it's already a relative path with property ID, ensure it starts with /uploads/
+        if (!imageData.startsWith('/uploads/')) {
+          return window.location.origin + '/uploads/' + imageData;
+        }
+        return window.location.origin + imageData;
+      }
+      // Already a full URL or other relative path
       return imageData;
     }
     
@@ -88,15 +91,22 @@ class RailwayDataManager {
           console.log(`🔍 getImageUrl: Found base64 data URL in object (${sizeKB}KB), using directly`);
           return url;
         }
-        // Railway Volume Storage URLs
+        // Local uploads with property ID folders
         if (url.startsWith('/uploads/')) {
+          return window.location.origin + url;
+        }
+        // Handle relative paths with Img_ naming
+        if (url.includes('Img_')) {
+          if (!url.startsWith('/uploads/')) {
+            return window.location.origin + '/uploads/' + url;
+          }
           return window.location.origin + url;
         }
         return url;
       }
     }
     
-    // Handle Railway API format with file path
+    // Handle local upload format with file path
     if (imageData && typeof imageData === 'object' && imageData.path) {
       const path = imageData.path;
       if (typeof path === 'string') {
@@ -107,7 +117,7 @@ class RailwayDataManager {
       }
     }
     
-    // Handle Railway API format with direct file property
+    // Handle local upload format with direct file property
     if (imageData && typeof imageData === 'object' && imageData.file) {
       const file = imageData.file;
       if (typeof file === 'string') {
@@ -118,12 +128,15 @@ class RailwayDataManager {
       }
     }
     
-    // Handle Railway API image object with filename
+    // Handle local upload image object with filename (Img_X format)
     if (imageData && typeof imageData === 'object' && imageData.filename) {
       const filename = imageData.filename;
       if (typeof filename === 'string') {
         if (filename.startsWith('/uploads/')) {
           return window.location.origin + filename;
+        } else if (filename.includes('Img_')) {
+          // Filename with Img_ format but no path - assume it needs uploads prefix
+          return window.location.origin + '/uploads/' + filename;
         } else {
           return window.location.origin + '/uploads/' + filename;
         }

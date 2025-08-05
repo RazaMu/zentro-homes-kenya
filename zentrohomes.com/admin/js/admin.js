@@ -1008,7 +1008,9 @@ class ZentroAdminRailway {
         // For editing: preserve existing images if no new ones uploaded
         if (this.selectedMedia.images && this.selectedMedia.images.length > 0) {
           console.log('📸 DEBUG: Processing new images for edited property...');
-          const mediaData = await this.processMediaUploads();
+          // Clean up old images first
+          await this.cleanupPropertyImages(this.currentEditingId);
+          const mediaData = await this.processMediaUploads(this.currentEditingId);
           imagesToSave = mediaData.images || [];
         } else {
           console.log('📸 DEBUG: No new images - preserving existing images...');
@@ -1019,7 +1021,9 @@ class ZentroAdminRailway {
         }
       } else {
         console.log('📸 DEBUG: New property - processing uploaded images...');
-        const mediaData = await this.processMediaUploads();
+        // For new properties, we'll need to handle the property ID after creation
+        const tempPropertyId = Date.now(); // Temporary ID for new properties
+        const mediaData = await this.processMediaUploads(tempPropertyId);
         imagesToSave = mediaData.images || [];
       }
       
@@ -1300,7 +1304,7 @@ class ZentroAdminRailway {
     return true;
   }
 
-  async processMediaUploads() {
+  async processMediaUploads(propertyId = null) {
     // Validate media before processing
     this.validateRequiredMedia();
     
@@ -1309,15 +1313,18 @@ class ZentroAdminRailway {
       youtubeUrl: this.selectedMedia.youtubeUrl || ''
     };
 
-    // Process multiple images - store locally since Railway doesn't have built-in storage
+    // Use existing property ID or generate a temporary one for new properties
+    const targetPropertyId = propertyId || this.currentEditingId || Date.now();
+
+    // Process multiple images - store locally with Img_X naming
     if (this.selectedMedia.images && this.selectedMedia.images.length > 0) {
-      console.log(`📸 Processing ${this.selectedMedia.images.length} images for Railway...`);
+      console.log(`📸 Processing ${this.selectedMedia.images.length} images for local storage...`);
       
       for (let i = 0; i < this.selectedMedia.images.length; i++) {
         const imageFile = this.selectedMedia.images[i];
         
-        // Upload image to Railway storage via API
-        const storageUrl = await this.saveToRailwayStorage(imageFile, 'image');
+        // Upload image to local storage with Img_X naming
+        const storageUrl = await this.saveToLocalStorage(imageFile, 'image', targetPropertyId, i);
         
         const imageData = {
           url: storageUrl,
@@ -1330,38 +1337,44 @@ class ZentroAdminRailway {
 
         mediaData.images.push(imageData);
       }
-      console.log(`✅ Processed ${this.selectedMedia.images.length} images for Railway`);
+      console.log(`✅ Processed ${this.selectedMedia.images.length} images for local storage`);
     } else {
-      console.log('📸 No new images to process for Railway');
+      console.log('📸 No new images to process for local storage');
     }
 
     // YouTube URL is already stored in mediaData.youtubeUrl
     if (mediaData.youtubeUrl) {
-      console.log(`🎬 YouTube URL set for Railway: ${mediaData.youtubeUrl}`);
+      console.log(`🎬 YouTube URL set: ${mediaData.youtubeUrl}`);
     } else {
-      console.log('🎬 No YouTube URL provided for Railway');
+      console.log('🎬 No YouTube URL provided');
     }
 
     return mediaData;
   }
 
-  // Upload file to Railway storage via API
-  async saveToRailwayStorage(file, fileType = 'image') {
+  // Save images locally with Img_X naming convention
+  async saveToLocalStorage(file, fileType = 'image', propertyId, imageIndex) {
     try {
-      console.log(`📁 Uploading ${file.name} to Railway storage...`);
+      console.log(`📁 Saving ${file.name} locally for property ${propertyId}...`);
       
       const token = localStorage.getItem('admin_token');
       if (!token) {
         throw new Error('Authentication required for file upload');
       }
 
-      // Create FormData for file upload
+      // Generate the new filename with Img_X format
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      const newFileName = `Img_${imageIndex + 1}.${fileExtension}`;
+      
+      // Create FormData for local file upload
       const formData = new FormData();
       formData.append('file', file);
       formData.append('fileType', fileType);
+      formData.append('propertyId', propertyId);
+      formData.append('fileName', newFileName);
       
-      // Upload to Railway API endpoint
-      const response = await fetch('/api/admin/upload', {
+      // Upload to local storage API endpoint
+      const response = await fetch('/api/admin/upload-local', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -1371,16 +1384,16 @@ class ZentroAdminRailway {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+        throw new Error(errorData.error || `Local upload failed with status ${response.status}`);
       }
 
       const result = await response.json();
-      console.log(`✅ File ${file.name} uploaded to Railway storage:`, result.url);
+      console.log(`✅ File ${file.name} saved locally as ${newFileName}:`, result.url);
       
-      return result.url; // Returns the accessible URL for the image
+      return result.url; // Returns the local file path
       
     } catch (error) {
-      console.error('Error uploading file to Railway storage:', error);
+      console.error('Error saving file locally:', error);
       
       // Fallback: Convert to base64 data URL for temporary display
       console.log('⚠️ Falling back to base64 storage for', file.name);
@@ -1392,6 +1405,37 @@ class ZentroAdminRailway {
         };
         reader.readAsDataURL(file);
       });
+    }
+  }
+
+  // Clean up property images (delete old images when updating with new ones)
+  async cleanupPropertyImages(propertyId) {
+    try {
+      const token = localStorage.getItem('admin_token');
+      if (!token) {
+        console.warn('⚠️ No authentication token - skipping image cleanup');
+        return;
+      }
+
+      console.log(`🗑️ Cleaning up images for property ${propertyId}...`);
+      
+      const response = await fetch(`/api/admin/properties/${propertyId}/images`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`✅ Successfully cleaned up images for property ${propertyId}`);
+      } else {
+        const errorData = await response.json();
+        console.warn(`⚠️ Failed to cleanup images: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.warn('⚠️ Error during image cleanup (continuing with upload):', error.message);
     }
   }
 
