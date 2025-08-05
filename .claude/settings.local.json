@@ -15,7 +15,8 @@
       "WebFetch(domain:station.railway.com)",
       "WebFetch(domain:railway.com)",
       "Bash(npm start)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }

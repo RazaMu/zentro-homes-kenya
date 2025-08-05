@@ -6,8 +6,24 @@ class ModernApartmentManager {
         this.currentFilters = {};
         this.currentSort = 'newest';
         this.isLoading = true;
+        this.targetGridId = this.detectGridId(); // Auto-detect correct grid ID
 
         this.init();
+    }
+
+    detectGridId() {
+        // Priority order: featured-apartments-grid (index page) -> apartments-grid (legacy)
+        if (document.getElementById('featured-apartments-grid')) {
+            console.log('🎯 ModernApartmentManager: Using featured-apartments-grid');
+            return 'featured-apartments-grid';
+        }
+        if (document.getElementById('apartments-grid')) {
+            console.log('🎯 ModernApartmentManager: Using apartments-grid');
+            return 'apartments-grid';
+        }
+        
+        console.warn('⚠️ ModernApartmentManager: No compatible grid found, defaulting to apartments-grid');
+        return 'apartments-grid';
     }
 
     async init() {
@@ -85,7 +101,7 @@ class ModernApartmentManager {
     }
 
     showLoadingState() {
-        const apartmentsContainer = document.getElementById('apartments-grid');
+        const apartmentsContainer = document.getElementById(this.targetGridId);
         if (!apartmentsContainer) return;
 
         apartmentsContainer.innerHTML = `
@@ -346,9 +362,9 @@ class ModernApartmentManager {
     }
 
     renderApartments() {
-        const apartmentsContainer = document.getElementById('apartments-grid');
+        const apartmentsContainer = document.getElementById(this.targetGridId);
         if (!apartmentsContainer) {
-            console.error('❌ apartments-grid container not found');
+            console.error(`❌ ${this.targetGridId} container not found`);
             return;
         }
 
@@ -578,6 +594,11 @@ class ModernApartmentManager {
         this.renderApartments();
     }
 
+    setTargetGrid(gridId) {
+        this.targetGridId = gridId;
+        console.log(`🎯 ModernApartmentManager target grid set to: ${gridId}`);
+    }
+
     applySorting() {
         this.filteredApartments = this.sortApartments(this.filteredApartments, this.currentSort);
         this.renderApartments();
@@ -754,7 +775,31 @@ apartmentsData.apartments.forEach((apartment, index) => {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function () {
-    if (document.getElementById('apartments-grid')) {
+    // Debug current page info
+    console.log('🔍 ModernApartmentManager: Current page info:', {
+        pathname: window.location.pathname,
+        href: window.location.href,
+        hasAllApartmentsGrid: !!document.getElementById('all-apartments-grid'),
+        hasFeaturedApartmentsGrid: !!document.getElementById('featured-apartments-grid'),
+        hasRegularApartmentsGrid: !!document.getElementById('apartments-grid')
+    });
+    
+    // Don't initialize on all-properties page - it has its own AllPropertiesManager
+    // Check multiple conditions to be sure
+    const isAllPropertiesPage = window.location.pathname.includes('all-properties') || 
+                               window.location.href.includes('all-properties') ||
+                               document.getElementById('all-apartments-grid') !== null;
+    
+    if (isAllPropertiesPage) {
+        console.log('🚫 ModernApartmentManager: Skipping initialization on all-properties page');
+        return;
+    }
+    
+    // Only initialize for featured apartments (index page) or regular apartments grid
+    if (document.getElementById('apartments-grid') || document.getElementById('featured-apartments-grid')) {
+        console.log('🚀 ModernApartmentManager: Initializing for featured apartments');
         window.modernApartmentManager = new ModernApartmentManager();
+    } else {
+        console.log('🚫 ModernApartmentManager: No compatible grid found, skipping initialization');
     }
 });

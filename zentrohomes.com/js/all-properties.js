@@ -102,7 +102,7 @@ class AllPropertiesManager {
 
     showLoadingState() {
         const loadingElement = document.getElementById('loading-state');
-        const apartmentsContainer = document.getElementById('apartments-grid');
+        const apartmentsContainer = document.getElementById('all-apartments-grid');
         
         if (loadingElement) loadingElement.style.display = 'flex';
         if (apartmentsContainer) apartmentsContainer.innerHTML = '';
@@ -127,7 +127,7 @@ class AllPropertiesManager {
     renderApartments() {
         this.hideLoadingState();
         
-        const apartmentsContainer = document.getElementById('apartments-grid');
+        const apartmentsContainer = document.getElementById('all-apartments-grid');
         const resultsCount = document.getElementById('results-count');
         const noResults = document.getElementById('no-results');
         const loadMoreContainer = document.getElementById('load-more-container');
@@ -313,16 +313,16 @@ class AllPropertiesManager {
         const bedrooms = [1, 2, 3, 4, 5, 6, 7, 8];
 
         // Populate location dropdown
-        this.populateDropdown('location-dropdown', locations.map(loc => ({ value: loc, label: loc })));
+        this.populateDropdown('all-location-dropdown', locations.map(loc => ({ value: loc, label: loc })));
         
         // Populate type dropdown
-        this.populateDropdown('type-dropdown', types.map(type => ({ value: type, label: type })));
+        this.populateDropdown('all-type-dropdown', types.map(type => ({ value: type, label: type })));
         
         // Populate price dropdown
-        this.populateDropdown('price-dropdown', priceRanges);
+        this.populateDropdown('all-price-dropdown', priceRanges);
         
         // Populate bedrooms dropdown
-        this.populateDropdown('bedrooms-dropdown', bedrooms.map(bed => ({ value: bed.toString(), label: `${bed}+ Beds` })));
+        this.populateDropdown('all-bedrooms-dropdown', bedrooms.map(bed => ({ value: bed.toString(), label: `${bed}+ Beds` })));
     }
 
     populateDropdown(dropdownId, options) {
@@ -338,10 +338,10 @@ class AllPropertiesManager {
             item.addEventListener('click', (e) => {
                 const value = e.target.dataset.value;
                 const label = e.target.textContent;
-                const fieldType = dropdownId.replace('-dropdown', '');
+                const fieldType = dropdownId.replace('all-', '').replace('-dropdown', '');
                 
                 // Update display value
-                const displayElement = document.getElementById(`${fieldType}-display`);
+                const displayElement = document.getElementById(`all-${fieldType}-display`);
                 if (displayElement) {
                     displayElement.textContent = label;
                 }
@@ -395,7 +395,7 @@ class AllPropertiesManager {
         });
 
         // Search button
-        const searchButton = document.getElementById('search-button');
+        const searchButton = document.getElementById('all-search-button');
         if (searchButton) {
             searchButton.addEventListener('click', () => {
                 this.applyFilters();
@@ -700,10 +700,10 @@ class AllPropertiesManager {
 function clearAllFilters() {
     if (window.allPropertiesManager) {
         // Reset display values
-        const locationDisplay = document.getElementById('location-display');
-        const typeDisplay = document.getElementById('type-display');
-        const priceDisplay = document.getElementById('price-display');
-        const bedroomsDisplay = document.getElementById('bedrooms-display');
+        const locationDisplay = document.getElementById('all-location-display');
+        const typeDisplay = document.getElementById('all-type-display');
+        const priceDisplay = document.getElementById('all-price-display');
+        const bedroomsDisplay = document.getElementById('all-bedrooms-display');
         const tabs = document.querySelectorAll('.property-search-tab');
 
         if (locationDisplay) locationDisplay.textContent = 'Nairobi';
