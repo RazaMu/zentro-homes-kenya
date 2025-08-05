@@ -221,13 +221,38 @@ class ModernApartmentManager {
         return `${currency} ${formattedNumber}`;
     }
 
-    getImageUrl(imageData) {
-        // Use the unified image URL processing from Railway Data Manager
+    getImageUrl(imageData, propertyId = null) {
+        // Priority 1: Use local storage path for thumbnail if propertyId is provided
+        if (propertyId) {
+            const localImagePath = `/uploads/${propertyId}/Img_1.jpg`;
+            console.log(`🔍 getImageUrl: Using local storage path for property ${propertyId}: ${localImagePath}`);
+            return window.location.origin + localImagePath;
+        }
+        
+        // Priority 2: Check if imageData contains local storage paths with Img_X format
+        if (imageData && typeof imageData === 'string' && imageData.includes('/uploads/') && imageData.includes('Img_')) {
+            console.log(`🔍 getImageUrl: Found local Img_X path: ${imageData}`);
+            if (!imageData.startsWith('http')) {
+                return window.location.origin + imageData;
+            }
+            return imageData;
+        }
+        
+        // Priority 3: Handle object with url property that contains local Img_X paths
+        if (imageData && imageData.url && imageData.url.includes('/uploads/') && imageData.url.includes('Img_')) {
+            console.log(`🔍 getImageUrl: Found local Img_X URL in object: ${imageData.url}`);
+            if (!imageData.url.startsWith('http')) {
+                return window.location.origin + imageData.url;
+            }
+            return imageData.url;
+        }
+        
+        // Fallback: Use the unified image URL processing from Railway Data Manager
         if (window.sharedDataManager && window.sharedDataManager.getImageUrl) {
             return window.sharedDataManager.getImageUrl(imageData);
         }
         
-        // Fallback implementation if Railway Data Manager not available
+        // Additional fallback implementation if Railway Data Manager not available
         if (!imageData) return null;
         
         // Handle Railway client URL helper if available
@@ -354,43 +379,40 @@ class ModernApartmentManager {
         }
 
         apartmentsContainer.innerHTML = this.filteredApartments.map(apartment => {
-            // Use unified image processing with improved fallback logic
-            let imageUrl = null;
+            // Priority 1: Use local storage thumbnail path (Img_1.jpg in property folder)
+            let imageUrl = this.getImageUrl(null, apartment.id);
+            console.log(`🖼️ Featured Property ${apartment.id} (${apartment.title}) - Using local thumbnail: ${imageUrl}`);
             
-            // Try different image property structures from Railway API
-            if (apartment.main_image) {
-                imageUrl = this.getImageUrl(apartment.main_image);
-            }
-            
-            if (!imageUrl && apartment.media?.images?.[0]) {
-                imageUrl = this.getImageUrl(apartment.media.images[0]);
-            }
-            
-            if (!imageUrl && apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
-                imageUrl = this.getImageUrl(apartment.images[0]);
-            }
-            
-            if (!imageUrl && apartment.images?.main) {
-                imageUrl = this.getImageUrl(apartment.images.main);
-            }
-            
-            if (!imageUrl && apartment.gallery_images?.[0]) {
-                imageUrl = this.getImageUrl(apartment.gallery_images[0]);
+            // Priority 2: If local thumbnail fails, try different image property structures from Railway API
+            if (!imageUrl) {
+                if (apartment.main_image) {
+                    imageUrl = this.getImageUrl(apartment.main_image);
+                }
+                
+                if (!imageUrl && apartment.media?.images?.[0]) {
+                    imageUrl = this.getImageUrl(apartment.media.images[0]);
+                }
+                
+                if (!imageUrl && apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
+                    imageUrl = this.getImageUrl(apartment.images[0]);
+                }
+                
+                if (!imageUrl && apartment.images?.main) {
+                    imageUrl = this.getImageUrl(apartment.images.main);
+                }
+                
+                if (!imageUrl && apartment.gallery_images?.[0]) {
+                    imageUrl = this.getImageUrl(apartment.gallery_images[0]);
+                }
+                
+                console.log(`🔄 Featured Property ${apartment.id} - Fallback image URL: ${imageUrl}`);
             }
             
             // Use Railway uploads placeholder if no image found
             const finalImageUrl = imageUrl || '/uploads/placeholder.jpg';
             
-            // Debug: Log image data structure for first few apartments
-            if (apartment.id <= 3) {
-                console.log(`🖼️ Property ${apartment.id} (${apartment.title}) - Image data:`, {
-                    main_image: apartment.main_image,
-                    media_images: apartment.media?.images,
-                    images_array: apartment.images,
-                    gallery_images: apartment.gallery_images,
-                    final_url: finalImageUrl
-                });
-            }
+            // Debug: Log final image URL for verification
+            console.log(`✅ Featured Property ${apartment.id} - Final thumbnail URL: ${finalImageUrl}`);
             
             return `
       <div class="property-card" data-id="${apartment.id}" data-navigate-to="apartment-details" style="cursor: pointer;">

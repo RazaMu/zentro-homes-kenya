@@ -151,61 +151,21 @@ class ApartmentDetailsManager {
     `;
   }
 
-  renderImageGallery() {
+  async renderImageGallery() {
     const apartment = this.apartment;
     
-    // Build image array from Railway API data structure with improved logic
-    const allImages = [];
+    // Priority: Only use local storage images with Img_X naming
+    const allImages = await this.discoverLocalImages(apartment.id);
     
-    // Add main image if available
-    if (apartment.main_image) {
-      const mainImageUrl = this.getImageUrl(apartment.main_image);
-      if (mainImageUrl) {
-        allImages.push(mainImageUrl);
-      }
-    }
-    
-    // Add gallery images from various possible sources
-    if (apartment.media && apartment.media.images && apartment.media.images.length > 0) {
-      apartment.media.images.forEach(image => {
-        const imageUrl = this.getImageUrl(image);
-        if (imageUrl && !allImages.includes(imageUrl)) {
-          allImages.push(imageUrl);
-        }
-      });
-    }
-    
-    // Add from direct images array if available (for legacy compatibility)
-    if (apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
-      apartment.images.forEach(image => {
-        const imageUrl = this.getImageUrl(image);
-        if (imageUrl && !allImages.includes(imageUrl)) {
-          allImages.push(imageUrl);
-        }
-      });
-    }
-    
-    // Add from gallery_images array if available (Railway API format)
-    if (apartment.gallery_images && Array.isArray(apartment.gallery_images) && apartment.gallery_images.length > 0) {
-      apartment.gallery_images.forEach(image => {
-        const imageUrl = this.getImageUrl(image);
-        if (imageUrl && !allImages.includes(imageUrl)) {
-          allImages.push(imageUrl);
-        }
-      });
-    }
-    
-    // Fallback image if no images found
+    // Fallback image if no local images found
     if (allImages.length === 0) {
       allImages.push('/uploads/placeholder.jpg');
+      console.log(`⚠️ No local images found for property ${apartment.id}, using placeholder`);
     }
     
-    console.log('🖼️ Apartment Details - Image gallery:', {
+    console.log('🖼️ Apartment Details - Local image gallery:', {
       apartment_id: apartment.id,
-      main_image: apartment.main_image,
-      media_images: apartment.media?.images,
-      direct_images: apartment.images,
-      gallery_images: apartment.gallery_images,
+      total_local_images: allImages.length,
       final_images: allImages
     });
     
@@ -240,6 +200,16 @@ class ApartmentDetailsManager {
       <div class="swipe-indicator">Swipe to navigate</div>
     `;
 
+    // Store images array for gallery navigation
+    this.currentGalleryImages = allImages;
+
+    // Add click handlers for thumbnails
+    document.querySelectorAll('.thumbnail').forEach((thumbnail, index) => {
+      thumbnail.addEventListener('click', () => {
+        this.changeMainImageByIndex(index);
+      });
+    });
+
     // Make main image clickable to open modal
     document.getElementById('main-image').addEventListener('click', () => {
       this.openModal();
@@ -262,6 +232,88 @@ class ApartmentDetailsManager {
         thumb.setAttribute('tabindex', '0');
       });
     }
+  }
+
+  // Discover available local images for a property
+  async discoverLocalImages(propertyId) {
+    const localImages = [];
+    const maxImages = 20; // Check for up to 20 images
+    
+    console.log(`🔍 Apartment Details - Discovering local images for property ${propertyId}`);
+    
+    for (let i = 1; i <= maxImages; i++) {
+      const imageUrl = this.getImageUrl(null, propertyId, i - 1);
+      
+      try {
+        // Test if image exists by trying to load it
+        const imageExists = await this.checkImageExists(imageUrl);
+        if (imageExists) {
+          localImages.push(imageUrl);
+          console.log(`✅ Found local image: Img_${i}.jpg`);
+        } else {
+          // If we find a gap in the sequence, stop looking
+          if (i === 1) {
+            // If Img_1 doesn't exist, no local images are available
+            break;
+          }
+          // Allow for small gaps but stop after 3 consecutive missing images
+          let gapCount = 0;
+          for (let j = i; j <= i + 2 && j <= maxImages; j++) {
+            const nextImageUrl = this.getImageUrl(null, propertyId, j - 1);
+            const nextExists = await this.checkImageExists(nextImageUrl);
+            if (!nextExists) {
+              gapCount++;
+            } else {
+              localImages.push(nextImageUrl);
+              console.log(`✅ Found local image: Img_${j}.jpg`);
+              i = j; // Continue from this found image
+              break;
+            }
+          }
+          if (gapCount >= 3) {
+            break; // Stop if we encounter 3 consecutive missing images
+          }
+        }
+      } catch (error) {
+        console.log(`❌ Error checking image Img_${i}.jpg:`, error);
+        break;
+      }
+    }
+    
+    console.log(`🎯 Discovered ${localImages.length} local images for property ${propertyId}`);
+    return localImages;
+  }
+
+  // Check if an image exists by attempting to load it
+  checkImageExists(imageUrl) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      // Set a timeout to avoid hanging on slow networks
+      setTimeout(() => resolve(false), 3000);
+      img.src = imageUrl;
+    });
+  }
+
+  // Update main image by index
+  changeMainImageByIndex(index) {
+    if (!this.currentGalleryImages || index >= this.currentGalleryImages.length) return;
+    
+    const mainImage = document.getElementById('main-image');
+    const currentImageSpan = document.getElementById('current-image');
+
+    // Update main image
+    mainImage.src = this.currentGalleryImages[index];
+    this.currentImageIndex = index;
+
+    // Update counter
+    currentImageSpan.textContent = index + 1;
+
+    // Update thumbnail active state
+    document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+      thumb.classList.toggle('active', i === index);
+    });
   }
 
   renderPropertyInfo() {
@@ -607,12 +659,10 @@ class ApartmentDetailsManager {
     }
 
     similarContainer.innerHTML = similarProperties.map(similar => {
-      // Use unified image processing for similar properties too
-      const similarImageUrl = this.getImageUrl(similar.main_image) || 
-                             this.getImageUrl(similar.media?.images?.[0]) || 
-                             this.getImageUrl(similar.images?.[0]) || 
-                             this.getImageUrl(similar.images?.main) || 
-                             '/uploads/placeholder.jpg';
+      // Only use local storage thumbnail (Img_1.jpg) for similar properties
+      const similarImageUrl = this.getImageUrl(null, similar.id, 0) || '/uploads/placeholder.jpg';
+      
+      console.log(`🖼️ Similar Property ${similar.id} - Using local thumbnail: ${similarImageUrl}`);
       
       return `
       <div class="similar-property-card" data-property-id="${similar.id}">
@@ -636,31 +686,17 @@ class ApartmentDetailsManager {
   }
 
   changeMainImage(index) {
-    const apartment = this.apartment;
-    const allImages = [apartment.images.main, ...apartment.images.gallery];
-    const mainImage = document.getElementById('main-image');
-    const currentImageSpan = document.getElementById('current-image');
-
-    // Update main image
-    mainImage.src = allImages[index];
-    this.currentImageIndex = index;
-
-    // Update counter
-    currentImageSpan.textContent = index + 1;
-
-    // Update thumbnail active state
-    document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
-      thumb.classList.toggle('active', i === index);
-    });
+    // Use the new gallery system
+    this.changeMainImageByIndex(index);
   }
 
   openModal() {
     const modal = document.getElementById('gallery-modal');
     const modalImage = document.getElementById('modal-image');
-    const apartment = this.apartment;
-    const allImages = [apartment.images.main, ...apartment.images.gallery];
 
-    modalImage.src = allImages[this.currentImageIndex];
+    if (this.currentGalleryImages && this.currentGalleryImages[this.currentImageIndex]) {
+      modalImage.src = this.currentGalleryImages[this.currentImageIndex];
+    }
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
@@ -672,26 +708,26 @@ class ApartmentDetailsManager {
   }
 
   prevImage() {
-    const apartment = this.apartment;
-    const allImages = [apartment.images.main, ...apartment.images.gallery];
-    this.currentImageIndex = (this.currentImageIndex - 1 + allImages.length) % allImages.length;
+    if (!this.currentGalleryImages || this.currentGalleryImages.length === 0) return;
+    
+    this.currentImageIndex = (this.currentImageIndex - 1 + this.currentGalleryImages.length) % this.currentGalleryImages.length;
     this.updateModalImage();
-    this.changeMainImage(this.currentImageIndex);
+    this.changeMainImageByIndex(this.currentImageIndex);
   }
 
   nextImage() {
-    const apartment = this.apartment;
-    const allImages = [apartment.images.main, ...apartment.images.gallery];
-    this.currentImageIndex = (this.currentImageIndex + 1) % allImages.length;
+    if (!this.currentGalleryImages || this.currentGalleryImages.length === 0) return;
+    
+    this.currentImageIndex = (this.currentImageIndex + 1) % this.currentGalleryImages.length;
     this.updateModalImage();
-    this.changeMainImage(this.currentImageIndex);
+    this.changeMainImageByIndex(this.currentImageIndex);
   }
 
   updateModalImage() {
-    const apartment = this.apartment;
-    const allImages = [apartment.images.main, ...apartment.images.gallery];
     const modalImage = document.getElementById('modal-image');
-    modalImage.src = allImages[this.currentImageIndex];
+    if (this.currentGalleryImages && this.currentGalleryImages[this.currentImageIndex]) {
+      modalImage.src = this.currentGalleryImages[this.currentImageIndex];
+    }
   }
 
   scheduleVisit() {
@@ -1019,51 +1055,24 @@ class ApartmentDetailsManager {
     }
   }
 
-  getImageUrl(imageData) {
-    // Use the unified image URL processing from Railway Data Manager
-    if (window.sharedDataManager && window.sharedDataManager.getImageUrl) {
-      return window.sharedDataManager.getImageUrl(imageData);
+  getImageUrl(imageData, propertyId = null, imageIndex = null) {
+    // Only handle local storage paths with Img_X naming
+    if (propertyId && imageIndex !== null) {
+      const localImagePath = `/uploads/${propertyId}/Img_${imageIndex + 1}.jpg`;
+      console.log(`🔍 Apartment Details getImageUrl: Using local storage path for property ${propertyId}, image ${imageIndex + 1}: ${localImagePath}`);
+      return window.location.origin + localImagePath;
     }
     
-    // Fallback implementation if Railway Data Manager not available
-    if (!imageData) return null;
-    
-    // If Railway client is available, use its image URL helper
-    if (window.railwayClient && window.railwayClient.getImageUrl) {
-      return window.railwayClient.getImageUrl(imageData);
-    }
-    
-    // Handle array of images - get first image
-    if (Array.isArray(imageData) && imageData.length > 0) {
-      return this.getImageUrl(imageData[0]);
-    }
-    
-    // Handle string URLs
-    if (typeof imageData === 'string') {
-      // Railway Volume Storage URLs - convert to full URL
-      if (imageData.startsWith('/uploads/')) {
+    // Handle existing local Img_X paths
+    if (imageData && typeof imageData === 'string' && imageData.includes('/uploads/') && imageData.includes('Img_')) {
+      console.log(`🔍 Apartment Details getImageUrl: Found local Img_X path: ${imageData}`);
+      if (!imageData.startsWith('http')) {
         return window.location.origin + imageData;
       }
-      // Already a full URL or relative path
       return imageData;
     }
     
-    // Handle object with url property
-    if (imageData && imageData.url) {
-      if (imageData.url.startsWith('/uploads/')) {
-        return window.location.origin + imageData.url;
-      }
-      return imageData.url;
-    }
-    
-    // Handle Railway API format with file path
-    if (imageData && imageData.path) {
-      if (imageData.path.startsWith('/uploads/')) {
-        return window.location.origin + imageData.path;
-      }
-      return imageData.path;
-    }
-    
+    // Return null for any other input - no Railway support
     return null;
   }
 

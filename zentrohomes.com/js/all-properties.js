@@ -173,35 +173,32 @@ class AllPropertiesManager {
     createApartmentCard(apartment) {
         const formattedPrice = this.formatCurrency(apartment.price, apartment.currency);
         
-        // Try multiple image sources
-        let imageUrl = null;
+        // Priority 1: Use local storage thumbnail path (Img_1.jpg in property folder)
+        let imageUrl = this.getImageUrl(null, apartment.id);
+        console.log(`🖼️ All Properties Property ${apartment.id} (${apartment.title}) - Using local thumbnail: ${imageUrl}`);
         
-        // Try different image property structures from Railway API
-        if (apartment.main_image && apartment.main_image !== 'wp-content/uploads/2025/02/unsplash.jpg') {
-            imageUrl = this.getImageUrl(apartment.main_image);
-        } else if (apartment.media?.images?.[0]) {
-            imageUrl = this.getImageUrl(apartment.media.images[0]);
-        } else if (apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
-            imageUrl = this.getImageUrl(apartment.images[0]);
-        } else if (apartment.images?.main) {
-            imageUrl = this.getImageUrl(apartment.images.main);
-        } else if (apartment.gallery_images?.[0]) {
-            imageUrl = this.getImageUrl(apartment.gallery_images[0]);
-        } else {
-            // Use fallback image
-            imageUrl = 'wp-content/uploads/2025/02/unsplash.jpg';
+        // Priority 2: If local thumbnail fails, try different image property structures from Railway API
+        if (!imageUrl) {
+            if (apartment.main_image && apartment.main_image !== 'wp-content/uploads/2025/02/unsplash.jpg') {
+                imageUrl = this.getImageUrl(apartment.main_image);
+            } else if (apartment.media?.images?.[0]) {
+                imageUrl = this.getImageUrl(apartment.media.images[0]);
+            } else if (apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
+                imageUrl = this.getImageUrl(apartment.images[0]);
+            } else if (apartment.images?.main) {
+                imageUrl = this.getImageUrl(apartment.images.main);
+            } else if (apartment.gallery_images?.[0]) {
+                imageUrl = this.getImageUrl(apartment.gallery_images[0]);
+            } else {
+                // Use fallback image
+                imageUrl = 'wp-content/uploads/2025/02/unsplash.jpg';
+            }
+            
+            console.log(`🔄 All Properties Property ${apartment.id} - Fallback image URL: ${imageUrl}`);
         }
         
-        // Debug: Log image data structure for first few apartments
-        if (apartment.id <= 3) {
-            console.log(`🖼️ Property ${apartment.id} (${apartment.title}) - Image data:`, {
-                main_image: apartment.main_image,
-                media_images: apartment.media?.images,
-                images_array: apartment.images,
-                gallery_images: apartment.gallery_images,
-                final_url: imageUrl
-            });
-        }
+        // Debug: Log final image URL for verification
+        console.log(`✅ All Properties Property ${apartment.id} - Final thumbnail URL: ${imageUrl}`);
         
         const finalImageUrl = imageUrl || 'wp-content/uploads/2025/02/unsplash.jpg';
         
@@ -523,13 +520,38 @@ class AllPropertiesManager {
         return `${currency} ${formattedNumber}`;
     }
 
-    getImageUrl(imageData) {
-        // Use the unified image URL processing from Railway Data Manager
+    getImageUrl(imageData, propertyId = null) {
+        // Priority 1: Use local storage path for thumbnail if propertyId is provided
+        if (propertyId) {
+            const localImagePath = `/uploads/${propertyId}/Img_1.jpg`;
+            console.log(`🔍 All Properties getImageUrl: Using local storage path for property ${propertyId}: ${localImagePath}`);
+            return window.location.origin + localImagePath;
+        }
+        
+        // Priority 2: Check if imageData contains local storage paths with Img_X format
+        if (imageData && typeof imageData === 'string' && imageData.includes('/uploads/') && imageData.includes('Img_')) {
+            console.log(`🔍 All Properties getImageUrl: Found local Img_X path: ${imageData}`);
+            if (!imageData.startsWith('http')) {
+                return window.location.origin + imageData;
+            }
+            return imageData;
+        }
+        
+        // Priority 3: Handle object with url property that contains local Img_X paths
+        if (imageData && imageData.url && imageData.url.includes('/uploads/') && imageData.url.includes('Img_')) {
+            console.log(`🔍 All Properties getImageUrl: Found local Img_X URL in object: ${imageData.url}`);
+            if (!imageData.url.startsWith('http')) {
+                return window.location.origin + imageData.url;
+            }
+            return imageData.url;
+        }
+        
+        // Fallback: Use the unified image URL processing from Railway Data Manager
         if (window.sharedDataManager && window.sharedDataManager.getImageUrl) {
             return window.sharedDataManager.getImageUrl(imageData);
         }
         
-        // Fallback implementation if Railway Data Manager not available
+        // Additional fallback implementation if Railway Data Manager not available
         if (!imageData) return null;
         
         // Handle Railway client URL helper if available
