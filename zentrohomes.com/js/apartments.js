@@ -1,18 +1,121 @@
 // Zentro Homes - Featured Apartments JavaScript
 class ApartmentManager {
   constructor() {
-    this.apartments = apartmentsData.apartments;
-    this.filteredApartments = [...this.apartments];
+    this.apartments = [];
+    this.filteredApartments = [];
     this.currentFilters = {};
     this.currentSort = 'newest';
+    this.isLoading = true;
     
     this.init();
   }
   
-  init() {
+  async init() {
+    this.showLoadingState();
+    await this.loadApartments();
     this.renderSearchAndFilters();
     this.renderApartments();
     this.bindEvents();
+  }
+  
+  // Wait for Railway data manager to be ready
+  async waitForRailwayDataReady() {
+    return new Promise((resolve) => {
+      // Check if already ready
+      if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
+        console.log('✅ Legacy Apartments: Railway data manager already ready');
+        resolve(true);
+        return;
+      }
+
+      // Listen for ready event (no timeout, wait for actual completion)
+      const handleReady = (event) => {
+        console.log('✅ Legacy Apartments: Railway data manager ready event received', event.detail);
+        window.removeEventListener('railwayDataManagerReady', handleReady);
+        resolve(true);
+      };
+
+      window.addEventListener('railwayDataManagerReady', handleReady);
+      
+      // Also poll every 200ms for faster detection
+      const pollInterval = setInterval(() => {
+        if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
+          console.log('✅ Legacy Apartments: Railway data manager ready via polling');
+          clearInterval(pollInterval);
+          window.removeEventListener('railwayDataManagerReady', handleReady);
+          resolve(true);
+        }
+      }, 200);
+
+      // Clear polling if we get the event
+      window.addEventListener('railwayDataManagerReady', () => {
+        clearInterval(pollInterval);
+      });
+    });
+  }
+
+  async loadApartments() {
+    try {
+      console.log('🕐 Legacy Apartments: Starting to load apartments...');
+      
+      // Always wait for Railway data manager to be ready
+      await this.waitForRailwayDataReady();
+
+      // Get the apartments from Railway
+      this.apartments = await window.sharedDataManager.getAllApartments();
+      
+      // If no apartments loaded from Railway, use fallback data as last resort
+      if (!this.apartments || this.apartments.length === 0) {
+        console.log('⚠️ No apartments from Railway, using fallback data');
+        this.apartments = apartmentsData.apartments;
+      }
+      
+      this.filteredApartments = [...this.apartments];
+      this.isLoading = false;
+      
+      console.log(`📦 Legacy Apartments: ${this.apartments.length} apartments ready for display`);
+    } catch (error) {
+      console.error('❌ Error loading apartments:', error);
+      // Only use static fallback on actual errors
+      this.apartments = apartmentsData.apartments;
+      this.filteredApartments = [...this.apartments];
+      this.isLoading = false;
+      console.log('⚠️ Legacy Apartments: Using fallback data due to error');
+    }
+  }
+
+  showLoadingState() {
+    const apartmentsContainer = document.getElementById('apartments-grid');
+    if (!apartmentsContainer) return;
+
+    apartmentsContainer.innerHTML = `
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading properties...</p>
+      </div>
+    `;
+  }
+  
+  getImageUrl(imageData) {
+    // Use the unified image URL processing from Railway Data Manager
+    if (window.sharedDataManager && window.sharedDataManager.getImageUrl) {
+      return window.sharedDataManager.getImageUrl(imageData);
+    }
+    
+    // Fallback implementation if Railway Data Manager not available
+    if (!imageData) return null;
+    
+    // Handle string URLs
+    if (typeof imageData === 'string') {
+      // Railway Volume Storage URLs - convert to full URL
+      if (imageData.startsWith('/uploads/')) {
+        return window.location.origin + imageData;
+      }
+      // Already a full URL or relative path
+      return imageData;
+    }
+    
+    return imageData;
   }
   
   renderSearchAndFilters() {
@@ -125,15 +228,15 @@ class ApartmentManager {
     apartmentsContainer.innerHTML = this.filteredApartments.map(apartment => `
       <div class="apartment-card" data-id="${apartment.id}">
         <div class="apartment-image-container">
-          <img src="${apartment.images.main}" alt="${apartment.title}" class="apartment-image">
-          <div class="apartment-price">${ApartmentUtils.formatPrice(apartment.price, apartment.currency)}</div>
+          <img src="${this.getImageUrl(apartment.main_image) || this.getImageUrl(apartment.media?.images?.[0]) || this.getImageUrl(apartment.images?.main) || '/uploads/placeholder.jpg'}" alt="${apartment.title}" class="apartment-image" onerror="this.src='/uploads/placeholder.jpg'">
+          <div class="apartment-price">${this.formatCurrency(apartment.price, apartment.currency)}</div>
           <div class="apartment-status ${apartment.status.toLowerCase().replace(' ', '-')}">${apartment.status}</div>
           <div class="image-count">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 4H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="currentColor" stroke-width="2"/>
               <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/>
             </svg>
-            ${apartment.images.gallery.length + 1}
+            ${(apartment.media?.images?.length || apartment.images?.gallery?.length || apartment.images?.length || 1)}
           </div>
         </div>
         
@@ -148,7 +251,7 @@ class ApartmentManager {
               <path d="M21 10C21 17 12 23 12 23S3 17 3 10C3 5.58172 7.58172 1 12 1C16.4183 1 21 5.58172 21 10Z" stroke="currentColor" stroke-width="2"/>
               <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
             </svg>
-            ${apartment.location.area}, ${apartment.location.city}
+            ${apartment.location?.area || 'Unknown'}, ${apartment.location?.city || 'Unknown'}
           </div>
           
           <div class="apartment-features">
@@ -156,27 +259,27 @@ class ApartmentManager {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M3 21V11L12 3L21 11V21H15V15H9V21H3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              ${apartment.features.bedrooms} beds
+              ${apartment.features?.bedrooms || apartment.bedrooms || 0} beds
             </div>
             <div class="feature-item">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M9 6L20 6C20.5523 6 21 6.44772 21 7V17C21 17.5523 20.5523 18 20 18H4C3.44772 18 3 17.5523 3 17V7C3 6.44772 3.44772 6 4 6H5" stroke="currentColor" stroke-width="2"/>
                 <circle cx="9" cy="12" r="2" stroke="currentColor" stroke-width="2"/>
               </svg>
-              ${apartment.features.bathrooms} baths
+              ${apartment.features?.bathrooms || apartment.bathrooms || 0} baths
             </div>
             <div class="feature-item">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M5 17H19L21 7H3L5 17ZM5 17L4 19M19 17L20 19M9 7V4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V7M9 11H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              ${apartment.features.parking} parking
+              ${apartment.features?.parking || apartment.parking || 0} parking
             </div>
             <div class="feature-item">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <rect x="3" y="3" width="18" height="18" stroke="currentColor" stroke-width="2"/>
                 <path d="M9 9L15 15M15 9L9 15" stroke="currentColor" stroke-width="2"/>
               </svg>
-              ${apartment.features.size}${apartment.features.sizeUnit}
+              ${apartment.features?.size || apartment.size || 0}${apartment.features?.sizeUnit || apartment.sizeUnit || 'm²'}
             </div>
           </div>
           
@@ -318,6 +421,11 @@ class ApartmentManager {
   
   viewApartment(id) {
     window.location.href = `apartment-details.html?id=${id}`;
+  }
+  
+  formatCurrency(price, currency = 'KES') {
+    const formattedNumber = new Intl.NumberFormat('en-KE').format(price);
+    return `${currency} ${formattedNumber}`;
   }
   
   scheduleVisit(id) {

@@ -222,25 +222,31 @@ class ModernApartmentManager {
     }
 
     getImageUrl(imageData) {
+        // Use the unified image URL processing from Railway Data Manager
+        if (window.sharedDataManager && window.sharedDataManager.getImageUrl) {
+            return window.sharedDataManager.getImageUrl(imageData);
+        }
+        
+        // Fallback implementation if Railway Data Manager not available
         if (!imageData) return null;
         
-        // If Railway client is available, use its image URL helper
+        // Handle Railway client URL helper if available
         if (window.railwayClient && window.railwayClient.getImageUrl) {
             return window.railwayClient.getImageUrl(imageData);
         }
         
-        // Handle Railway API image data structure
+        // Handle array of images - get first image
         if (Array.isArray(imageData) && imageData.length > 0) {
-            return this.getImageUrl(imageData[0]); // Get first image from array
+            return this.getImageUrl(imageData[0]);
         }
         
         // Handle string URLs
         if (typeof imageData === 'string') {
-            // Railway Volume Storage URLs
+            // Railway Volume Storage URLs - convert to full URL
             if (imageData.startsWith('/uploads/')) {
                 return window.location.origin + imageData;
             }
-            // Already a full URL
+            // Already a full URL or relative path
             return imageData;
         }
         
@@ -348,24 +354,32 @@ class ModernApartmentManager {
         }
 
         apartmentsContainer.innerHTML = this.filteredApartments.map(apartment => {
-            // Try multiple image sources
+            // Use unified image processing with improved fallback logic
             let imageUrl = null;
             
             // Try different image property structures from Railway API
-            if (apartment.main_image && apartment.main_image !== 'wp-content/uploads/2025/02/unsplash.jpg') {
+            if (apartment.main_image) {
                 imageUrl = this.getImageUrl(apartment.main_image);
-            } else if (apartment.media?.images?.[0]) {
-                imageUrl = this.getImageUrl(apartment.media.images[0]);
-            } else if (apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
-                imageUrl = this.getImageUrl(apartment.images[0]);
-            } else if (apartment.images?.main) {
-                imageUrl = this.getImageUrl(apartment.images.main);
-            } else if (apartment.gallery_images?.[0]) {
-                imageUrl = this.getImageUrl(apartment.gallery_images[0]);
-            } else {
-                // Use fallback image
-                imageUrl = 'wp-content/uploads/2025/02/unsplash.jpg';
             }
+            
+            if (!imageUrl && apartment.media?.images?.[0]) {
+                imageUrl = this.getImageUrl(apartment.media.images[0]);
+            }
+            
+            if (!imageUrl && apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
+                imageUrl = this.getImageUrl(apartment.images[0]);
+            }
+            
+            if (!imageUrl && apartment.images?.main) {
+                imageUrl = this.getImageUrl(apartment.images.main);
+            }
+            
+            if (!imageUrl && apartment.gallery_images?.[0]) {
+                imageUrl = this.getImageUrl(apartment.gallery_images[0]);
+            }
+            
+            // Use Railway uploads placeholder if no image found
+            const finalImageUrl = imageUrl || '/uploads/placeholder.jpg';
             
             // Debug: Log image data structure for first few apartments
             if (apartment.id <= 3) {
@@ -374,16 +388,14 @@ class ModernApartmentManager {
                     media_images: apartment.media?.images,
                     images_array: apartment.images,
                     gallery_images: apartment.gallery_images,
-                    final_url: imageUrl
+                    final_url: finalImageUrl
                 });
             }
-            
-            const finalImageUrl = imageUrl || 'wp-content/uploads/2025/02/unsplash.jpg';
             
             return `
       <div class="property-card" data-id="${apartment.id}" data-navigate-to="apartment-details" style="cursor: pointer;">
         <div class="property-image-wrapper">
-          <img src="${finalImageUrl}" alt="${apartment.title}" class="property-image" onerror="this.src='wp-content/uploads/2025/02/unsplash.jpg'">
+          <img src="${finalImageUrl}" alt="${apartment.title}" class="property-image" onerror="this.src='/uploads/placeholder.jpg'">
           <div class="property-tags">
             ${apartment.featured ? '<span class="property-tag tag-featured">FEATURED</span>' : ''}
             <span class="property-tag tag-${apartment.status?.toLowerCase().replace(' ', '-')}">${apartment.status}</span>

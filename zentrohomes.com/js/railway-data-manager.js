@@ -32,26 +32,116 @@ class RailwayDataManager {
     }
   }
 
-  // Process image array from Railway API with proper fallbacks
-  processImageArray(imageData) {
+  // Unified image URL processing method for Railway uploads
+  getImageUrl(imageData) {
     if (!imageData) return null;
     
-    if (Array.isArray(imageData)) {
-      return imageData.filter(img => img !== null && img !== undefined);
+    // Debug logging for troubleshooting
+    if (Array.isArray(imageData) && imageData.length > 0) {
+      console.log('🔍 getImageUrl: Processing array, first item:', imageData[0]);
     }
     
+    // Handle Railway client URL helper if available
+    if (window.railwayClient && window.railwayClient.getImageUrl) {
+      return window.railwayClient.getImageUrl(imageData);
+    }
+    
+    // Handle array of images - get first image
+    if (Array.isArray(imageData) && imageData.length > 0) {
+      return this.getImageUrl(imageData[0]);
+    }
+    
+    // Handle string URLs
     if (typeof imageData === 'string') {
-      if (imageData.trim() === '' || imageData === 'null') return null;
-      try {
-        const parsed = JSON.parse(imageData);
-        return Array.isArray(parsed) ? parsed.filter(img => img !== null && img !== undefined) : null;
-      } catch {
-        // Treat as comma-separated string
-        return imageData.split(',').map(item => item.trim()).filter(item => item.length > 0 && item !== 'null');
+      // Railway Volume Storage URLs - convert to full URL
+      if (imageData.startsWith('/uploads/')) {
+        return window.location.origin + imageData;
+      }
+      // Already a full URL or relative path
+      return imageData;
+    }
+    
+    // Handle object with url property
+    if (imageData && typeof imageData === 'object' && imageData.url) {
+      const url = imageData.url;
+      if (typeof url === 'string') {
+        if (url.startsWith('/uploads/')) {
+          return window.location.origin + url;
+        }
+        return url;
       }
     }
     
+    // Handle Railway API format with file path
+    if (imageData && typeof imageData === 'object' && imageData.path) {
+      const path = imageData.path;
+      if (typeof path === 'string') {
+        if (path.startsWith('/uploads/')) {
+          return window.location.origin + path;
+        }
+        return path;
+      }
+    }
+    
+    // Handle Railway API format with direct file property
+    if (imageData && typeof imageData === 'object' && imageData.file) {
+      const file = imageData.file;
+      if (typeof file === 'string') {
+        if (file.startsWith('/uploads/')) {
+          return window.location.origin + file;
+        }
+        return file;
+      }
+    }
+    
+    // Handle Railway API image object with filename
+    if (imageData && typeof imageData === 'object' && imageData.filename) {
+      const filename = imageData.filename;
+      if (typeof filename === 'string') {
+        if (filename.startsWith('/uploads/')) {
+          return window.location.origin + filename;
+        } else {
+          return window.location.origin + '/uploads/' + filename;
+        }
+      }
+    }
+    
+    console.log('⚠️ getImageUrl: Could not process image data:', imageData);
     return null;
+  }
+
+  // Process image array from Railway API with proper fallbacks
+  processImageArray(imageData) {
+    if (!imageData) return [];
+    
+    if (Array.isArray(imageData)) {
+      return imageData
+        .filter(img => img !== null && img !== undefined && img !== '')
+        .map(img => this.getImageUrl(img))
+        .filter(url => url !== null);
+    }
+    
+    if (typeof imageData === 'string') {
+      if (imageData.trim() === '' || imageData === 'null') return [];
+      try {
+        const parsed = JSON.parse(imageData);
+        if (Array.isArray(parsed)) {
+          return parsed
+            .filter(img => img !== null && img !== undefined && img !== '')
+            .map(img => this.getImageUrl(img))
+            .filter(url => url !== null);
+        }
+      } catch {
+        // Treat as comma-separated string
+        return imageData.split(',')
+          .map(item => item.trim())
+          .filter(item => item.length > 0 && item !== 'null')
+          .map(img => this.getImageUrl(img))
+          .filter(url => url !== null);
+      }
+    }
+    
+    return [];
   }
   
   async init() {
@@ -168,7 +258,7 @@ class RailwayDataManager {
       },
       
       media: {
-        images: this.processImageArray(property.gallery_images) || ['wp-content/uploads/2025/02/unsplash.jpg'],
+        images: this.processImageArray(property.images || property.gallery_images),
         videos: Array.isArray(property.videos) ? property.videos : 
                 (typeof property.videos === 'string' ? this.safeJSONParse(property.videos, []) : []),
         virtualTour: property.virtual_tour_url,
@@ -187,8 +277,8 @@ class RailwayDataManager {
       
       // Legacy compatibility fields
       description: property.description,
-      main_image: property.main_image || 'wp-content/uploads/2025/02/unsplash.jpg',
-      images: this.processImageArray(property.gallery_images) || ['wp-content/uploads/2025/02/unsplash.jpg'],
+      main_image: this.getImageUrl(property.main_image) || this.getImageUrl(property.images) || this.getImageUrl(property.gallery_images) || 'wp-content/uploads/2025/02/placeholder.jpg',
+      images: this.processImageArray(property.images || property.gallery_images).length > 0 ? this.processImageArray(property.images || property.gallery_images) : ['/uploads/placeholder.jpg'],
       
       // Status fields
       available: property.available,
@@ -235,7 +325,8 @@ class RailwayDataManager {
       // Content
       description: apartment.description || apartment.details?.description || '',
       short_description: apartment.details?.shortDescription || apartment.shortDescription || '',
-      images: apartment.images || apartment.media?.images || [],
+      main_image: apartment.main_image || (apartment.images && Array.isArray(apartment.images) ? apartment.images[0] : null) || (apartment.media?.images?.[0]) || null,
+      gallery_images: apartment.images || apartment.media?.images || apartment.gallery_images || [],
       videos: apartment.media?.videos || [],
       virtual_tour_url: apartment.media?.virtualTour || apartment.virtualTour || null,
       youtube_url: apartment.media?.youtubeUrl || apartment.youtubeUrl || null,

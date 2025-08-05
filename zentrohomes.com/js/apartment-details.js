@@ -154,12 +154,15 @@ class ApartmentDetailsManager {
   renderImageGallery() {
     const apartment = this.apartment;
     
-    // Build image array from Railway API data structure
+    // Build image array from Railway API data structure with improved logic
     const allImages = [];
     
     // Add main image if available
     if (apartment.main_image) {
-      allImages.push(this.getImageUrl(apartment.main_image));
+      const mainImageUrl = this.getImageUrl(apartment.main_image);
+      if (mainImageUrl) {
+        allImages.push(mainImageUrl);
+      }
     }
     
     // Add gallery images from various possible sources
@@ -172,7 +175,7 @@ class ApartmentDetailsManager {
       });
     }
     
-    // Add from direct images array if available
+    // Add from direct images array if available (for legacy compatibility)
     if (apartment.images && Array.isArray(apartment.images) && apartment.images.length > 0) {
       apartment.images.forEach(image => {
         const imageUrl = this.getImageUrl(image);
@@ -182,9 +185,19 @@ class ApartmentDetailsManager {
       });
     }
     
+    // Add from gallery_images array if available (Railway API format)
+    if (apartment.gallery_images && Array.isArray(apartment.gallery_images) && apartment.gallery_images.length > 0) {
+      apartment.gallery_images.forEach(image => {
+        const imageUrl = this.getImageUrl(image);
+        if (imageUrl && !allImages.includes(imageUrl)) {
+          allImages.push(imageUrl);
+        }
+      });
+    }
+    
     // Fallback image if no images found
     if (allImages.length === 0) {
-      allImages.push('wp-content/uploads/2025/02/unsplash.jpg');
+      allImages.push('/uploads/placeholder.jpg');
     }
     
     console.log('🖼️ Apartment Details - Image gallery:', {
@@ -192,6 +205,7 @@ class ApartmentDetailsManager {
       main_image: apartment.main_image,
       media_images: apartment.media?.images,
       direct_images: apartment.images,
+      gallery_images: apartment.gallery_images,
       final_images: allImages
     });
     
@@ -208,18 +222,17 @@ class ApartmentDetailsManager {
         ${allImages.map((image, index) => `
           <img src="${image}" alt="${apartment.title} - Image ${index + 1}" 
                class="thumbnail ${index === 0 ? 'active' : ''}" 
-               data-index="${index}"
-               onclick="apartmentDetails.changeMainImage(${index})">
+               data-index="${index}">
         `).join('')}
       </div>
       
       <!-- Gallery Modal -->
       <div class="gallery-modal" id="gallery-modal">
         <div class="modal-content">
-          <button class="modal-close" onclick="apartmentDetails.closeModal()">&times;</button>
-          <button class="modal-nav modal-prev" onclick="apartmentDetails.prevImage()">&#8249;</button>
+          <button class="modal-close" data-action="close">&times;</button>
+          <button class="modal-nav modal-prev" data-action="prev">&#8249;</button>
           <img src="" alt="" class="modal-image" id="modal-image">
-          <button class="modal-nav modal-next" onclick="apartmentDetails.nextImage()">&#8250;</button>
+          <button class="modal-nav modal-next" data-action="next">&#8250;</button>
         </div>
       </div>
       
@@ -316,7 +329,7 @@ class ApartmentDetailsManager {
       </div>
       
       <div class="contact-actions">
-        <a href="#" class="contact-btn primary" onclick="apartmentDetails.scheduleVisit()">Schedule Viewing</a>
+        <a href="#" class="contact-btn primary" data-action="schedule-visit">Schedule Viewing</a>
         <a href="contact-us/index.html" class="contact-btn secondary">Contact Agent</a>
         <a href="tel:+254706641871" class="contact-btn secondary">Call Now</a>
       </div>
@@ -593,9 +606,17 @@ class ApartmentDetailsManager {
       return;
     }
 
-    similarContainer.innerHTML = similarProperties.map(similar => `
-      <div class="similar-property-card" onclick="apartmentDetails.viewProperty(${similar.id})">
-        <img src="${similar.images?.main || similar.main_image || 'wp-content/uploads/2025/02/placeholder.jpg'}" alt="${similar.title}" class="similar-property-image">
+    similarContainer.innerHTML = similarProperties.map(similar => {
+      // Use unified image processing for similar properties too
+      const similarImageUrl = this.getImageUrl(similar.main_image) || 
+                             this.getImageUrl(similar.media?.images?.[0]) || 
+                             this.getImageUrl(similar.images?.[0]) || 
+                             this.getImageUrl(similar.images?.main) || 
+                             '/uploads/placeholder.jpg';
+      
+      return `
+      <div class="similar-property-card" data-property-id="${similar.id}">
+        <img src="${similarImageUrl}" alt="${similar.title}" class="similar-property-image">
         <div class="similar-property-content">
           <h4 class="similar-property-title">${similar.title}</h4>
           <div class="similar-property-location">
@@ -611,7 +632,7 @@ class ApartmentDetailsManager {
           </div>
         </div>
       </div>
-    `).join('');
+    }).join('');
   }
 
   changeMainImage(index) {
@@ -679,7 +700,7 @@ class ApartmentDetailsManager {
     if (ctaSection) {
       ctaSection.scrollIntoView({ behavior: 'smooth' });
     } else {
-      alert(`Interested in scheduling a visit to ${this.apartment.title}? Please contact us at +254706641871 or through our contact form.`);
+      alert('Interested in scheduling a visit to ' + this.apartment.title + '? Please contact us at +254706641871 or through our contact form.');
     }
   }
 
@@ -999,6 +1020,12 @@ class ApartmentDetailsManager {
   }
 
   getImageUrl(imageData) {
+    // Use the unified image URL processing from Railway Data Manager
+    if (window.sharedDataManager && window.sharedDataManager.getImageUrl) {
+      return window.sharedDataManager.getImageUrl(imageData);
+    }
+    
+    // Fallback implementation if Railway Data Manager not available
     if (!imageData) return null;
     
     // If Railway client is available, use its image URL helper
@@ -1006,18 +1033,18 @@ class ApartmentDetailsManager {
       return window.railwayClient.getImageUrl(imageData);
     }
     
-    // Handle Railway API image data structure
+    // Handle array of images - get first image
     if (Array.isArray(imageData) && imageData.length > 0) {
-      return this.getImageUrl(imageData[0]); // Get first image from array
+      return this.getImageUrl(imageData[0]);
     }
     
     // Handle string URLs
     if (typeof imageData === 'string') {
-      // Railway Volume Storage URLs
+      // Railway Volume Storage URLs - convert to full URL
       if (imageData.startsWith('/uploads/')) {
         return window.location.origin + imageData;
       }
-      // Already a full URL
+      // Already a full URL or relative path
       return imageData;
     }
     
