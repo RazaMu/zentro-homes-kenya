@@ -391,28 +391,7 @@ class ApartmentDetailsManager {
     const apartment = this.apartment;
     const videoSection = document.getElementById('property-video-section');
 
-    // Check all possible field names for YouTube URLs
-    console.log('🎬 DEBUG: Checking all possible YouTube URL fields for apartment:', apartment.id);
-    console.log('   - apartment.youtubeUrl:', apartment.youtubeUrl);
-    console.log('   - apartment.youtube_url:', apartment.youtube_url);
-    console.log('   - apartment.virtual_tour_url:', apartment.virtual_tour_url);
-    console.log('   - apartment.youtube:', apartment.youtube);
-    console.log('   - apartment.media?.youtubeUrl:', apartment.media?.youtubeUrl);
-    console.log('   - apartment.media?.virtualTour:', apartment.media?.virtualTour);
-    console.log('   - apartment.virtualTour:', apartment.virtualTour);
-    console.log('   - apartment.virtualTourUrl:', apartment.virtualTourUrl);
-
-    // Try all possible field names for YouTube URLs (including virtual_tour_url which is used by admin)
-    const youtubeUrl = apartment.youtubeUrl || 
-                      apartment.youtube_url || 
-                      apartment.virtual_tour_url || 
-                      apartment.youtube || 
-                      apartment.media?.youtubeUrl || 
-                      apartment.media?.virtualTour ||
-                      apartment.virtualTour ||
-                      apartment.virtualTourUrl;
-    
-    console.log('🎬 Final resolved YouTube URL:', youtubeUrl);
+    const youtubeUrl = apartment.youtubeUrl || apartment.media?.youtubeUrl || apartment.youtube_url;
     
     if (!youtubeUrl || youtubeUrl.trim() === '') {
       console.log('🎬 No YouTube URL found for apartment:', apartment.id);
@@ -421,7 +400,8 @@ class ApartmentDetailsManager {
       return;
     }
     
-    console.log('✅ YouTube URL found and will be displayed:', youtubeUrl);
+    console.log('🎬 YouTube URL found:', youtubeUrl);
+
     videoSection.classList.remove('hidden');
     videoSection.style.display = 'block';
 
