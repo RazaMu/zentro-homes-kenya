@@ -17,23 +17,19 @@ class ApartmentDetailsManager {
     return parseInt(urlParams.get('id'));
   }
 
-  // Wait for Railway data manager to be ready using event-based approach
   async waitForRailwayDataReady() {
     return new Promise((resolve) => {
-      // Check if already ready
       if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
         console.log('✅ Apartment Details: Railway data manager already ready');
         resolve(true);
         return;
       }
 
-      // Set up timeout
       const timeout = setTimeout(() => {
         console.log('⚠️ Apartment Details: Timeout waiting for Railway data manager');
         resolve(false);
-      }, 15000); // 15 second timeout
+      }, 30000); // Increased timeout to 30 seconds
 
-      // Listen for ready event
       const handleReady = (event) => {
         console.log('✅ Apartment Details: Railway data manager ready event received', event.detail);
         clearTimeout(timeout);
@@ -43,7 +39,6 @@ class ApartmentDetailsManager {
 
       window.addEventListener('railwayDataManagerReady', handleReady);
       
-      // Also check periodically in case we missed the event
       const pollInterval = setInterval(() => {
         if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
           console.log('✅ Apartment Details: Railway data manager ready via polling');
@@ -54,7 +49,6 @@ class ApartmentDetailsManager {
         }
       }, 500);
 
-      // Clear polling if we get the event
       window.addEventListener('railwayDataManagerReady', () => {
         clearInterval(pollInterval);
       });
@@ -65,21 +59,20 @@ class ApartmentDetailsManager {
     try {
       console.log('🔍 ApartmentDetails: Loading apartment ID:', this.apartmentId);
       
-      // Wait for Railway data manager to be ready using event-based approach
+      // Always wait for Railway data manager since it has the actual data
       const dataReady = await this.waitForRailwayDataReady();
       
-      if (!dataReady) {
-        console.error('❌ Railway data manager not ready, using fallback data');
-        this.apartment = apartmentsData.apartments.find(apt => apt.id === this.apartmentId);
-      } else {
-        // Get all apartments from Railway
+      if (dataReady && window.sharedDataManager) {
         const allApartments = await window.sharedDataManager.getAllApartments();
         console.log('🔢 Available apartment IDs from Railway:', allApartments.map(apt => ({ id: apt.id, title: apt.title })));
         console.log('🎯 Requested apartment ID:', this.apartmentId, typeof this.apartmentId);
         
-        // Get apartment from Railway
         this.apartment = await window.sharedDataManager.getApartmentById(this.apartmentId);
         console.log('🏠 Loaded apartment from Railway:', this.apartment);
+      } else {
+        console.error('❌ Railway data manager not ready, cannot load apartment data');
+        this.showNotFound();
+        return;
       }
 
       if (!this.apartment) {
@@ -109,13 +102,11 @@ class ApartmentDetailsManager {
     const propertyDetailsGrid = document.getElementById('property-details-grid');
     const similarProperties = document.getElementById('similar-properties');
 
-    // Clear all content containers
     if (propertyGallery) propertyGallery.innerHTML = '';
     if (propertyInfo) propertyInfo.innerHTML = '';
     if (propertyDetailsGrid) propertyDetailsGrid.innerHTML = '';
     if (similarProperties) similarProperties.innerHTML = '';
 
-    // Show not found message
     if (propertyHeader) {
       propertyHeader.innerHTML = `
         <div class="not-found" style="text-align: center; padding: 60px 20px;">
@@ -153,11 +144,8 @@ class ApartmentDetailsManager {
 
   async renderImageGallery() {
     const apartment = this.apartment;
-    
-    // Priority: Only use local storage images with Img_X naming
     const allImages = await this.discoverLocalImages(apartment.id);
     
-    // Fallback image if no local images found
     if (allImages.length === 0) {
       allImages.push('/uploads/placeholder.jpg');
       console.log(`⚠️ No local images found for property ${apartment.id}, using placeholder`);
@@ -186,7 +174,6 @@ class ApartmentDetailsManager {
         `).join('')}
       </div>
       
-      <!-- Gallery Modal -->
       <div class="gallery-modal" id="gallery-modal">
         <div class="modal-content">
           <button class="modal-close" data-action="close">&times;</button>
@@ -196,26 +183,21 @@ class ApartmentDetailsManager {
         </div>
       </div>
       
-      <!-- Swipe indicator for touch devices -->
       <div class="swipe-indicator">Swipe to navigate</div>
     `;
 
-    // Store images array for gallery navigation
     this.currentGalleryImages = allImages;
 
-    // Add click handlers for thumbnails
     document.querySelectorAll('.thumbnail').forEach((thumbnail, index) => {
       thumbnail.addEventListener('click', () => {
         this.changeMainImageByIndex(index);
       });
     });
 
-    // Make main image clickable to open modal
     document.getElementById('main-image').addEventListener('click', () => {
       this.openModal();
     });
 
-    // Add touch-specific attributes for better mobile experience
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
       const mainImage = document.getElementById('main-image');
       if (mainImage) {
@@ -224,7 +206,6 @@ class ApartmentDetailsManager {
         mainImage.setAttribute('tabindex', '0');
       }
 
-      // Add touch feedback to thumbnails
       const thumbnails = document.querySelectorAll('.thumbnail');
       thumbnails.forEach(thumb => {
         thumb.setAttribute('role', 'button');
@@ -234,10 +215,9 @@ class ApartmentDetailsManager {
     }
   }
 
-  // Discover available local images for a property
   async discoverLocalImages(propertyId) {
     const localImages = [];
-    const maxImages = 20; // Check for up to 20 images
+    const maxImages = 20;
     
     console.log(`🔍 Apartment Details - Discovering local images for property ${propertyId}`);
     
@@ -245,18 +225,14 @@ class ApartmentDetailsManager {
       const imageUrl = this.getImageUrl(null, propertyId, i - 1);
       
       try {
-        // Test if image exists by trying to load it
         const imageExists = await this.checkImageExists(imageUrl);
         if (imageExists) {
           localImages.push(imageUrl);
           console.log(`✅ Found local image: Img_${i}.jpg`);
         } else {
-          // If we find a gap in the sequence, stop looking
           if (i === 1) {
-            // If Img_1 doesn't exist, no local images are available
             break;
           }
-          // Allow for small gaps but stop after 3 consecutive missing images
           let gapCount = 0;
           for (let j = i; j <= i + 2 && j <= maxImages; j++) {
             const nextImageUrl = this.getImageUrl(null, propertyId, j - 1);
@@ -266,12 +242,12 @@ class ApartmentDetailsManager {
             } else {
               localImages.push(nextImageUrl);
               console.log(`✅ Found local image: Img_${j}.jpg`);
-              i = j; // Continue from this found image
+              i = j;
               break;
             }
           }
           if (gapCount >= 3) {
-            break; // Stop if we encounter 3 consecutive missing images
+            break;
           }
         }
       } catch (error) {
@@ -284,33 +260,27 @@ class ApartmentDetailsManager {
     return localImages;
   }
 
-  // Check if an image exists by attempting to load it
   checkImageExists(imageUrl) {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => resolve(true);
       img.onerror = () => resolve(false);
-      // Set a timeout to avoid hanging on slow networks
       setTimeout(() => resolve(false), 3000);
       img.src = imageUrl;
     });
   }
 
-  // Update main image by index
   changeMainImageByIndex(index) {
     if (!this.currentGalleryImages || index >= this.currentGalleryImages.length) return;
     
     const mainImage = document.getElementById('main-image');
     const currentImageSpan = document.getElementById('current-image');
 
-    // Update main image
     mainImage.src = this.currentGalleryImages[index];
     this.currentImageIndex = index;
 
-    // Update counter
     currentImageSpan.textContent = index + 1;
 
-    // Update thumbnail active state
     document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
       thumb.classList.toggle('active', i === index);
     });
@@ -320,7 +290,6 @@ class ApartmentDetailsManager {
     const apartment = this.apartment;
     const infoContainer = document.getElementById('property-info');
 
-    // Clean and validate description
     const cleanDescription = apartment.description && apartment.description.length > 20 && 
                             !apartment.description.match(/^[a-z]{20,}$/i) ? 
                             apartment.description : 
@@ -392,7 +361,6 @@ class ApartmentDetailsManager {
     const apartment = this.apartment;
     const videoSection = document.getElementById('property-video-section');
 
-    // Check if the property has a YouTube URL from various sources
     const youtubeUrl = apartment.youtubeUrl || apartment.media?.youtubeUrl || apartment.youtube_url;
     
     if (!youtubeUrl || youtubeUrl.trim() === '') {
@@ -404,11 +372,9 @@ class ApartmentDetailsManager {
     
     console.log('🎬 YouTube URL found:', youtubeUrl);
 
-    // Show the video section
     videoSection.classList.remove('hidden');
     videoSection.style.display = 'block';
 
-    // Extract YouTube video ID from the URL
     const youtubeId = this.extractYouTubeId(youtubeUrl);
     
     if (!youtubeId) {
@@ -418,7 +384,6 @@ class ApartmentDetailsManager {
       return;
     }
 
-    // Create the YouTube embed HTML
     const videoPlayerHTML = `
       <div class="youtube-video-container">
         <div class="video-header">
@@ -447,14 +412,10 @@ class ApartmentDetailsManager {
       </div>
     `;
 
-    // Set the HTML
     videoSection.innerHTML = videoPlayerHTML;
-
-    // Initialize responsive YouTube embed
     this.initResponsiveYouTube();
   }
 
-  // Extract YouTube video ID from various YouTube URL formats
   extractYouTubeId(url) {
     if (!url) return null;
     
@@ -465,7 +426,6 @@ class ApartmentDetailsManager {
       return match[7];
     }
     
-    // Handle YouTube Shorts URLs
     const shortsRegExp = /youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/;
     const shortsMatch = url.match(shortsRegExp);
     
@@ -476,16 +436,14 @@ class ApartmentDetailsManager {
     return null;
   }
 
-  // Initialize responsive YouTube embed functionality
   initResponsiveYouTube() {
     const iframe = document.getElementById('youtube-player');
     if (!iframe) return;
 
-    // Make YouTube embed responsive
     const wrapper = iframe.parentElement;
     if (wrapper) {
       wrapper.style.position = 'relative';
-      wrapper.style.paddingBottom = '56.25%'; // 16:9 aspect ratio
+      wrapper.style.paddingBottom = '56.25%';
       wrapper.style.height = '0';
       wrapper.style.overflow = 'hidden';
       
@@ -496,7 +454,6 @@ class ApartmentDetailsManager {
       iframe.style.height = '100%';
     }
 
-    // Optional: Add loading indicator
     const loadingIndicator = document.createElement('div');
     loadingIndicator.className = 'youtube-loading';
     loadingIndicator.innerHTML = `
@@ -511,12 +468,10 @@ class ApartmentDetailsManager {
     
     wrapper.appendChild(loadingIndicator);
     
-    // Remove loading indicator when iframe loads
     iframe.addEventListener('load', () => {
       loadingIndicator.remove();
     });
 
-    // Add error handling
     iframe.addEventListener('error', () => {
       wrapper.innerHTML = `
         <div class="youtube-error">
@@ -533,7 +488,6 @@ class ApartmentDetailsManager {
       `;
     });
   }
-
 
   renderPropertyDetails() {
     const apartment = this.apartment;
@@ -577,12 +531,10 @@ class ApartmentDetailsManager {
     let similarProperties = [];
 
     try {
-      // Try to get properties from database first
       if (window.sharedDataManager) {
         const allApartments = await window.sharedDataManager.getAllApartments();
         console.log('🔍 Looking for similar properties from database...');
         
-        // Filter for available properties in the same area, excluding current apartment
         similarProperties = allApartments
           .filter(apt => 
             apt.id !== apartment.id && 
@@ -592,7 +544,6 @@ class ApartmentDetailsManager {
           )
           .slice(0, 3);
 
-        // If not enough properties in same area, get available properties from same city
         if (similarProperties.length < 3) {
           const cityProperties = allApartments
             .filter(apt => 
@@ -607,7 +558,6 @@ class ApartmentDetailsManager {
           similarProperties.push(...cityProperties);
         }
 
-        // If still not enough, get any available properties
         if (similarProperties.length < 3) {
           const otherProperties = allApartments
             .filter(apt => 
@@ -621,29 +571,9 @@ class ApartmentDetailsManager {
         }
 
         console.log(`✅ Found ${similarProperties.length} similar available properties from database`);
-      } else {
-        console.log('⚠️ Database not available, using fallback data');
-        // Fallback to static data
-        similarProperties = apartmentsData.apartments
-          .filter(apt => apt.id !== apartment.id && apt.available !== false && apt.location.area === apartment.location.area)
-          .slice(0, 3);
-
-        if (similarProperties.length === 0) {
-          const otherProperties = apartmentsData.apartments.filter(apt => apt.id !== apartment.id && apt.available !== false);
-          similarProperties.push(...otherProperties.slice(0, 3));
-        }
       }
     } catch (error) {
       console.error('❌ Error fetching similar properties:', error);
-      // Fallback to static data
-      similarProperties = apartmentsData.apartments
-        .filter(apt => apt.id !== apartment.id && apt.available !== false && apt.location.area === apartment.location.area)
-        .slice(0, 3);
-
-      if (similarProperties.length === 0) {
-        const otherProperties = apartmentsData.apartments.filter(apt => apt.id !== apartment.id && apt.available !== false);
-        similarProperties.push(...otherProperties.slice(0, 3));
-      }
     }
 
     const similarContainer = document.getElementById('similar-properties-grid');
@@ -659,7 +589,6 @@ class ApartmentDetailsManager {
     }
 
     similarContainer.innerHTML = similarProperties.map(similar => {
-      // Only use local storage thumbnail (Img_1.jpg) for similar properties
       const similarImageUrl = this.getImageUrl(null, similar.id, 0) || '/uploads/placeholder.jpg';
       
       console.log(`🖼️ Similar Property ${similar.id} - Using local thumbnail: ${similarImageUrl}`);
@@ -682,11 +611,11 @@ class ApartmentDetailsManager {
           </div>
         </div>
       </div>
+    `;
     }).join('');
   }
 
   changeMainImage(index) {
-    // Use the new gallery system
     this.changeMainImageByIndex(index);
   }
 
@@ -731,12 +660,11 @@ class ApartmentDetailsManager {
   }
 
   scheduleVisit() {
-    // Scroll to contact section or show booking form
     const ctaSection = document.querySelector('.cta_section');
     if (ctaSection) {
       ctaSection.scrollIntoView({ behavior: 'smooth' });
     } else {
-      alert('Interested in scheduling a visit to ' + this.apartment.title + '? Please contact us at +254706641871 or through our contact form.');
+      alert("Interested in scheduling a visit to " + this.apartment.title + "? Please contact us at +254706641871 or through our contact form.");
     }
   }
 
@@ -745,7 +673,6 @@ class ApartmentDetailsManager {
   }
 
   bindEvents() {
-    // Keyboard navigation for modal
     document.addEventListener('keydown', (e) => {
       const modal = document.getElementById('gallery-modal');
       if (modal && modal.classList.contains('active')) {
@@ -763,19 +690,16 @@ class ApartmentDetailsManager {
       }
     });
 
-    // Close modal when clicking outside
     document.getElementById('gallery-modal')?.addEventListener('click', (e) => {
       if (e.target.classList.contains('gallery-modal')) {
         this.closeModal();
       }
     });
 
-    // Add touch swipe gestures for gallery
     this.addTouchGestures();
   }
 
   addTouchGestures() {
-    // Add swipe gestures for main image
     const mainImage = document.getElementById('main-image');
     if (mainImage) {
       let touchStartX = 0;
@@ -794,7 +718,6 @@ class ApartmentDetailsManager {
         const currentX = e.changedTouches[0].screenX;
         const swipeDistance = currentX - touchStartX;
 
-        // Add visual feedback during swipe if significant horizontal movement
         if (Math.abs(swipeDistance) > 30) {
           const direction = swipeDistance > 0 ? 'right' : 'left';
           mainImage.parentElement.setAttribute('data-swipe-direction', direction);
@@ -807,14 +730,12 @@ class ApartmentDetailsManager {
         const endTime = new Date().getTime();
         const touchDuration = endTime - startTime;
 
-        // Remove visual feedback
         mainImage.parentElement.removeAttribute('data-swipe-direction');
 
         this.handleSwipe(touchStartX, touchEndX, touchStartY, touchEndY, touchDuration);
       }, { passive: true });
     }
 
-    // Add swipe gestures for modal
     const modalImage = document.getElementById('modal-image');
     if (modalImage) {
       let touchStartX = 0;
@@ -833,7 +754,6 @@ class ApartmentDetailsManager {
         const currentX = e.changedTouches[0].screenX;
         const swipeDistance = currentX - touchStartX;
 
-        // Add visual feedback during swipe if significant horizontal movement
         if (Math.abs(swipeDistance) > 30) {
           const direction = swipeDistance > 0 ? 'right' : 'left';
           modalImage.parentElement.setAttribute('data-swipe-direction', direction);
@@ -846,78 +766,11 @@ class ApartmentDetailsManager {
         const endTime = new Date().getTime();
         const touchDuration = endTime - startTime;
 
-        // Remove visual feedback
         modalImage.parentElement.removeAttribute('data-swipe-direction');
 
         this.handleSwipe(touchStartX, touchEndX, touchStartY, touchEndY, touchDuration);
       }, { passive: true });
     }
-
-    // Add swipe gestures for similar properties
-    const similarPropertiesGrid = document.getElementById('similar-properties-grid');
-    if (similarPropertiesGrid) {
-      let touchStartX = 0;
-      let touchEndX = 0;
-      let touchStartY = 0;
-      let touchEndY = 0;
-      let startTime = 0;
-      let scrollStartPosition = 0;
-      let isSwiping = false;
-
-      // Add snap scrolling for better touch experience
-      similarPropertiesGrid.style.scrollSnapType = 'x mandatory';
-
-      // Add snap align to carousel items
-      const items = similarPropertiesGrid.querySelectorAll('.similar-property-card');
-      items.forEach(item => {
-        item.style.scrollSnapAlign = 'center';
-      });
-
-      similarPropertiesGrid.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-        touchStartY = e.changedTouches[0].screenY;
-        startTime = new Date().getTime();
-        scrollStartPosition = similarPropertiesGrid.scrollLeft;
-        isSwiping = true;
-      }, { passive: true });
-
-      similarPropertiesGrid.addEventListener('touchmove', (e) => {
-        if (!isSwiping) return;
-
-        const currentX = e.changedTouches[0].screenX;
-        const currentY = e.changedTouches[0].screenY;
-        const deltaX = touchStartX - currentX;
-        const deltaY = Math.abs(touchStartY - currentY);
-
-        // If primarily vertical scrolling, don't interfere
-        if (deltaY > Math.abs(deltaX) * 1.5) {
-          isSwiping = false;
-          return;
-        }
-
-        // Add resistance at the edges
-        if ((scrollStartPosition <= 0 && deltaX < 0) ||
-          (scrollStartPosition >= similarPropertiesGrid.scrollWidth - similarPropertiesGrid.clientWidth && deltaX > 0)) {
-          // Apply resistance at the edges
-          similarPropertiesGrid.scrollLeft = scrollStartPosition + (deltaX * 0.3);
-        } else {
-          similarPropertiesGrid.scrollLeft = scrollStartPosition + deltaX;
-        }
-      }, { passive: true });
-
-      similarPropertiesGrid.addEventListener('touchend', (e) => {
-        if (!isSwiping) return;
-
-        touchEndX = e.changedTouches[0].screenX;
-        touchEndY = e.changedTouches[0].screenY;
-        const endTime = new Date().getTime();
-        const timeElapsed = endTime - startTime;
-
-        this.handleCarouselSwipe(similarPropertiesGrid, touchStartX, touchEndX, touchStartY, touchEndY, timeElapsed, scrollStartPosition);
-        isSwiping = false;
-      }, { passive: true });
-    }
-
   }
 
   handleSwipe(touchStartX, touchEndX, touchStartY, touchEndY, touchDuration) {
@@ -925,145 +778,26 @@ class ApartmentDetailsManager {
     const swipeDistance = touchEndX - touchStartX;
     const verticalDistance = Math.abs(touchEndY - touchStartY);
 
-    // Only process if it's a significant horizontal swipe and not primarily vertical
     if (Math.abs(swipeDistance) < swipeThreshold || verticalDistance > Math.abs(swipeDistance) * 1.5) return;
 
-    // Add haptic feedback if available
     if (window.navigator && window.navigator.vibrate) {
       window.navigator.vibrate(50);
     }
 
     if (swipeDistance < 0) {
-      // Swipe left - next image
       this.nextImage();
-      this.showSwipeIndicator('next');
     } else {
-      // Swipe right - previous image
       this.prevImage();
-      this.showSwipeIndicator('prev');
-    }
-  }
-
-  handleCarouselSwipe(carousel, touchStartX, touchEndX, touchStartY, touchEndY, timeElapsed, scrollStartPosition) {
-    const swipeThreshold = 50;
-    const swipeDistance = touchEndX - touchStartX;
-    const verticalDistance = Math.abs(touchEndY - touchStartY);
-
-    // Only process if it's a significant horizontal swipe and not primarily vertical
-    if (Math.abs(swipeDistance) < swipeThreshold || verticalDistance > Math.abs(swipeDistance) * 1.5) {
-      // Snap to the nearest item
-      this.snapToNearestItem(carousel);
-      return;
-    }
-
-    // Calculate momentum scrolling
-    if (timeElapsed < 300) {
-      // Fast swipe - add momentum
-      const momentum = swipeDistance * 3;
-      const targetScroll = scrollStartPosition - momentum;
-
-      // Smooth scroll to the target position
-      carousel.scrollTo({
-        left: targetScroll,
-        behavior: 'smooth'
-      });
-
-      // After momentum scrolling, snap to nearest item
-      setTimeout(() => {
-        this.snapToNearestItem(carousel);
-      }, 300);
-    } else {
-      // Slow swipe - just snap to nearest item
-      this.snapToNearestItem(carousel);
-    }
-
-    // Add haptic feedback if available
-    if (window.navigator && window.navigator.vibrate) {
-      window.navigator.vibrate(30);
-    }
-  }
-
-  snapToNearestItem(carousel) {
-    const items = carousel.querySelectorAll('.similar-property-card');
-    if (!items.length) return;
-
-    let minDistance = Infinity;
-    let targetItem = null;
-    const carouselLeft = carousel.scrollLeft;
-    const carouselCenter = carouselLeft + (carousel.offsetWidth / 2);
-
-    items.forEach(item => {
-      const itemLeft = item.offsetLeft;
-      const itemCenter = itemLeft + (item.offsetWidth / 2);
-      const distance = Math.abs(carouselCenter - itemCenter);
-
-      if (distance < minDistance) {
-        minDistance = distance;
-        targetItem = item;
-      }
-    });
-
-    if (targetItem) {
-      const targetLeft = targetItem.offsetLeft - ((carousel.offsetWidth - targetItem.offsetWidth) / 2);
-      carousel.scrollTo({
-        left: targetLeft,
-        behavior: 'smooth'
-      });
-    }
-  }
-
-
-  showSwipeIndicator(direction) {
-    // Remove any existing indicators
-    const existingIndicator = document.querySelector('.swipe-indicator');
-    if (existingIndicator) {
-      existingIndicator.remove();
-    }
-
-    // Create new indicator
-    const indicator = document.createElement('div');
-    indicator.className = 'swipe-indicator';
-
-    if (direction === 'next') {
-      indicator.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 18l6-6-6-6"/>
-        </svg>
-        <span>Next</span>
-      `;
-    } else if (direction === 'prev') {
-      indicator.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M15 18l-6-6 6-6"/>
-        </svg>
-        <span>Previous</span>
-      `;
-    }
-
-    // Add to gallery container
-    const galleryContainer = document.querySelector('.property-gallery');
-    if (galleryContainer) {
-      galleryContainer.appendChild(indicator);
-
-      // Remove after animation
-      setTimeout(() => {
-        indicator.classList.add('fade-out');
-        setTimeout(() => {
-          indicator.remove();
-        }, 500);
-      }, 1000);
     }
   }
 
   getImageUrl(imageData, propertyId = null, imageIndex = null) {
-    // Only handle local storage paths with Img_X naming
     if (propertyId && imageIndex !== null) {
       const localImagePath = `/uploads/${propertyId}/Img_${imageIndex + 1}.jpg`;
       console.log(`🔍 Apartment Details getImageUrl: Using local storage path for property ${propertyId}, image ${imageIndex + 1}: ${localImagePath}`);
       return window.location.origin + localImagePath;
     }
     
-    // Handle existing local Img_X paths
     if (imageData && typeof imageData === 'string' && imageData.includes('/uploads/') && imageData.includes('Img_')) {
       console.log(`🔍 Apartment Details getImageUrl: Found local Img_X path: ${imageData}`);
       if (!imageData.startsWith('http')) {
@@ -1072,7 +806,6 @@ class ApartmentDetailsManager {
       return imageData;
     }
     
-    // Return null for any other input - no Railway support
     return null;
   }
 
@@ -1085,6 +818,45 @@ class ApartmentDetailsManager {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function () {
   if (window.location.pathname.includes('apartment-details')) {
-    window.apartmentDetails = new ApartmentDetailsManager();
+    // Add a small delay to ensure all scripts are loaded
+    setTimeout(() => {
+      window.apartmentDetails = new ApartmentDetailsManager();
+    }, 100);
+  }
+});
+
+// Event delegation for similar property cards
+document.addEventListener('click', function(e) {
+  const propertyCard = e.target.closest('.similar-property-card');
+  if (propertyCard) {
+    const propertyId = propertyCard.dataset.propertyId;
+    if (propertyId && window.apartmentDetails) {
+      window.apartmentDetails.viewProperty(propertyId);
+    }
+  }
+  
+  if (e.target.matches('[data-action="schedule-visit"]')) {
+    e.preventDefault();
+    if (window.apartmentDetails) {
+      window.apartmentDetails.scheduleVisit();
+    }
+  }
+  
+  if (e.target.matches('[data-action="close"]')) {
+    if (window.apartmentDetails) {
+      window.apartmentDetails.closeModal();
+    }
+  }
+  
+  if (e.target.matches('[data-action="prev"]')) {
+    if (window.apartmentDetails) {
+      window.apartmentDetails.prevImage();
+    }
+  }
+  
+  if (e.target.matches('[data-action="next"]')) {
+    if (window.apartmentDetails) {
+      window.apartmentDetails.nextImage();
+    }
   }
 });
