@@ -1730,12 +1730,12 @@ class ZentroAdminRailway {
             <p class="text-gray-600 text-base leading-relaxed mb-8">${message}</p>
             
             <!-- Action Buttons -->
-            <div class="flex gap-4 justify-center">
-              <button id="cancel-danger" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200">
+            <div style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
+              <button id="cancel-danger" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; cursor: pointer;">
                 Cancel
               </button>
-              <button id="confirm-danger" class="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600">
-                Yes, Delete
+              <button id="confirm-danger" style="padding: 12px 24px; background: #dc2626; color: white; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">
+                DELETE
               </button>
             </div>
           </div>
