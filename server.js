@@ -161,14 +161,36 @@ app.use((error, req, res, next) => {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully');
-  await pool.end();
+  if (pool) {
+    try {
+      await pool.end();
+    } catch (error) {
+      console.warn('Error closing database pool:', error.message);
+    }
+  }
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully');
-  await pool.end();
+  if (pool) {
+    try {
+      await pool.end();
+    } catch (error) {
+      console.warn('Error closing database pool:', error.message);
+    }
+  }
   process.exit(0);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 app.listen(PORT, '0.0.0.0', () => {
