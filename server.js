@@ -72,7 +72,12 @@ if (process.env.NODE_ENV === 'production') {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
+  res.status(200).send('OK');
+});
+
+// Alternative health check
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ 
     status: 'healthy',
     timestamp: new Date().toISOString()
   });
