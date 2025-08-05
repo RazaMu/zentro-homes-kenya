@@ -420,6 +420,13 @@ class AllPropertiesManager {
             }
         }, true);
         
+        // Add event listener for clear all filters button (replace inline onclick)
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('[data-action="clear-all-filters"]')) {
+                clearAllFilters();
+            }
+        });
+        
         // Load more button
         const loadMoreBtn = document.getElementById('load-more-btn');
         if (loadMoreBtn) {

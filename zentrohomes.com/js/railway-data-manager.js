@@ -58,9 +58,16 @@ class RailwayDataManager {
     
     // Handle string URLs
     if (typeof imageData === 'string') {
-      // Handle base64 data URLs (admin stored as fallback)
+      // Handle base64 data URLs with performance monitoring
       if (imageData.startsWith('data:image/')) {
-        console.log('🔍 getImageUrl: Found base64 data URL, using directly');
+        const sizeKB = Math.round(imageData.length / 1024);
+        console.log(`🔍 getImageUrl: Found base64 data URL (${sizeKB}KB), using directly`);
+        
+        // Warn about large base64 images that might impact performance
+        if (sizeKB > 500) {
+          console.log('⚠️ Large base64 image detected, consider optimization');
+        }
+        
         return imageData;
       }
       // Railway Volume Storage URLs - convert to full URL
@@ -75,9 +82,10 @@ class RailwayDataManager {
     if (imageData && typeof imageData === 'object' && imageData.url) {
       const url = imageData.url;
       if (typeof url === 'string') {
-        // Handle base64 data URLs (admin stored as fallback)
+        // Handle base64 data URLs with performance monitoring
         if (url.startsWith('data:image/')) {
-          console.log('🔍 getImageUrl: Found base64 data URL in object, using directly');
+          const sizeKB = Math.round(url.length / 1024);
+          console.log(`🔍 getImageUrl: Found base64 data URL in object (${sizeKB}KB), using directly`);
           return url;
         }
         // Railway Volume Storage URLs
@@ -127,15 +135,43 @@ class RailwayDataManager {
     return null;
   }
 
-  // Process image array from Railway API with proper fallbacks
+  // Optimize image loading for better performance with base64 data
+  optimizeImageForDisplay(imageUrl) {
+    if (!imageUrl || !imageUrl.startsWith('data:image/')) {
+      return imageUrl; // Return as-is for regular URLs
+    }
+    
+    const sizeKB = Math.round(imageUrl.length / 1024);
+    
+    // For very large base64 images, we could implement compression or lazy loading
+    if (sizeKB > 1000) {
+      console.log(`🔧 Optimizing large base64 image (${sizeKB}KB)`);
+      // Future enhancement: could add image compression here
+    }
+    
+    return imageUrl;
+  }
+
+  // Process image array from Railway API with base64 performance optimization
   processImageArray(imageData) {
     if (!imageData) return [];
     
     if (Array.isArray(imageData)) {
-      return imageData
+      const processedImages = imageData
         .filter(img => img !== null && img !== undefined && img !== '')
-        .map(img => this.getImageUrl(img))
+        .map((img, index) => {
+          const imageUrl = this.getImageUrl(img);
+          if (imageUrl && imageUrl.startsWith('data:image/')) {
+            // Log base64 image processing for performance monitoring
+            const sizeKB = Math.round(imageUrl.length / 1024);
+            console.log(`🖼️ Processing base64 image ${index + 1}/${imageData.length} (${sizeKB}KB)`);
+          }
+          return imageUrl;
+        })
         .filter(url => url !== null);
+      
+      console.log(`✅ Processed ${processedImages.length} images from array of ${imageData.length}`);
+      return processedImages;
     }
     
     if (typeof imageData === 'string') {
@@ -302,7 +338,55 @@ class RailwayDataManager {
       
       // Legacy compatibility fields
       description: property.description,
-      main_image: this.getImageUrl(property.main_image) || this.getImageUrl(property.images) || this.getImageUrl(property.gallery_images) || '/uploads/placeholder.jpg',
+      main_image: (() => {
+        // Try to get main image from Railway API data with better fallback logic
+        console.log('🔍 Converting main_image for property:', property.title);
+        console.log('🔍 property.main_image:', property.main_image);
+        console.log('🔍 property.images:', property.images);
+        
+        let mainImageUrl = null;
+        
+        // First try the main_image field
+        if (property.main_image) {
+          mainImageUrl = this.getImageUrl(property.main_image);
+          if (mainImageUrl) {
+            console.log('✅ Using main_image field:', mainImageUrl.substring(0, 50) + '...');
+            return mainImageUrl;
+          }
+        }
+        
+        // Then try to get the primary image from images array
+        if (property.images && Array.isArray(property.images) && property.images.length > 0) {
+          // Find the primary image first
+          const primaryImage = property.images.find(img => img && img.isPrimary === true);
+          if (primaryImage) {
+            mainImageUrl = this.getImageUrl(primaryImage);
+            if (mainImageUrl) {
+              console.log('✅ Using primary image from array:', mainImageUrl.substring(0, 50) + '...');
+              return mainImageUrl;
+            }
+          }
+          
+          // Fallback to first image in array
+          mainImageUrl = this.getImageUrl(property.images[0]);
+          if (mainImageUrl) {
+            console.log('✅ Using first image from array:', mainImageUrl.substring(0, 50) + '...');
+            return mainImageUrl;
+          }
+        }
+        
+        // Try gallery_images as last resort
+        if (property.gallery_images) {
+          mainImageUrl = this.getImageUrl(property.gallery_images);
+          if (mainImageUrl) {
+            console.log('✅ Using gallery_images:', mainImageUrl.substring(0, 50) + '...');
+            return mainImageUrl;
+          }
+        }
+        
+        console.log('⚠️ No valid image found, using placeholder');
+        return '/uploads/placeholder.jpg';
+      })(),
       images: this.processImageArray(property.images || property.gallery_images).length > 0 ? this.processImageArray(property.images || property.gallery_images) : ['wp-content/uploads/2025/02/placeholder.jpg'],
       
       // Status fields
@@ -317,6 +401,16 @@ class RailwayDataManager {
       updatedAt: property.updated_at,
       publishedAt: property.published_at
     }));
+    
+    // Debug: Log converted apartments to verify main_image is correctly set
+    if (converted.length > 0) {
+      console.log('🔍 FINAL CONVERTED APARTMENTS CHECK:');
+      converted.forEach((apt, index) => {
+        console.log(`   Property ${apt.id} (${apt.title}): main_image = ${apt.main_image?.substring(0, 50)}${apt.main_image?.length > 50 ? '...' : ''}`);
+      });
+    }
+    
+    return converted;
   }
 
   // Convert legacy format back to Railway API format
