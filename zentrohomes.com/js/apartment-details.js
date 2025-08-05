@@ -188,29 +188,59 @@ class ApartmentDetailsManager {
 
     this.currentGalleryImages = allImages;
 
-    document.querySelectorAll('.thumbnail').forEach((thumbnail, index) => {
-      thumbnail.addEventListener('click', () => {
-        this.changeMainImageByIndex(index);
+    // Check if device is mobile
+    const isMobile = window.innerWidth <= 767 || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+
+    // Only add click events on desktop
+    if (!isMobile) {
+      document.querySelectorAll('.thumbnail').forEach((thumbnail, index) => {
+        thumbnail.addEventListener('click', () => {
+          this.changeMainImageByIndex(index);
+        });
       });
-    });
 
-    document.getElementById('main-image').addEventListener('click', () => {
-      this.openModal();
-    });
+      document.getElementById('main-image').addEventListener('click', () => {
+        this.openModal();
+      });
+    }
 
+    // Handle mobile touch accessibility and prevent click events on mobile
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
       const mainImage = document.getElementById('main-image');
       if (mainImage) {
-        mainImage.setAttribute('role', 'button');
-        mainImage.setAttribute('aria-label', 'View image gallery');
-        mainImage.setAttribute('tabindex', '0');
+        // On mobile, only enable swipe functionality
+        if (isMobile) {
+          // Prevent click events on mobile but allow touch for swipe
+          mainImage.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }, { passive: false });
+          
+          mainImage.setAttribute('aria-label', 'Swipe to navigate gallery');
+        } else {
+          // Desktop: enable click functionality
+          mainImage.setAttribute('role', 'button');
+          mainImage.setAttribute('aria-label', 'View image gallery');
+          mainImage.setAttribute('tabindex', '0');
+        }
       }
 
       const thumbnails = document.querySelectorAll('.thumbnail');
-      thumbnails.forEach(thumb => {
-        thumb.setAttribute('role', 'button');
-        thumb.setAttribute('aria-label', `View image ${parseInt(thumb.dataset.index) + 1}`);
-        thumb.setAttribute('tabindex', '0');
+      thumbnails.forEach((thumb, index) => {
+        if (isMobile) {
+          // Prevent click events on mobile thumbnails
+          thumb.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }, { passive: false });
+        } else {
+          // Only add accessibility for desktop
+          thumb.setAttribute('role', 'button');
+          thumb.setAttribute('aria-label', `View image ${parseInt(thumb.dataset.index) + 1}`);
+          thumb.setAttribute('tabindex', '0');
+        }
       });
     }
   }

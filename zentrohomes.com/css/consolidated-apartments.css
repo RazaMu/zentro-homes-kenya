@@ -482,13 +482,80 @@
   transform: translateY(-50%) rotate(180deg);
 }
 
-/* Also show dropdown when it has .show class (for click interactions) */
+/* Active search field state */
+.search-field.active {
+  background-color: rgba(33, 150, 243, 0.05);
+}
+
+/* Make sure .show class works on all devices */
 .search-dropdown.show {
-  max-height: 300px;
-  opacity: 1;
-  pointer-events: all;
-  transform: translateY(0);
-  overflow-y: auto;
+  max-height: 300px !important;
+  opacity: 1 !important;
+  pointer-events: all !important;
+  transform: translateY(0) !important;
+  overflow: visible !important;
+  overflow-y: auto !important;
+  z-index: 1500 !important;
+  display: block !important;
+  visibility: visible !important;
+  transition: none !important;
+}
+
+/* Mobile-specific dropdown improvements */
+@media screen and (max-width: 767px) {
+  /* Disable hover effects on mobile only */
+  .search-field:hover .search-dropdown:not(.show) {
+    max-height: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(-10px) !important;
+    overflow: hidden !important;
+  }
+  
+  /* Ensure .show class works on mobile */
+  .search-dropdown.show {
+    max-height: 250px !important;
+    opacity: 1 !important;
+    pointer-events: all !important;
+    transform: translateY(0) !important;
+    overflow-y: auto !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    z-index: 1500 !important;
+    display: block !important;
+  }
+  
+  /* Better mobile touch targets */
+  .dropdown-item {
+    padding: 16px 20px !important;
+    font-size: 16px !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+  }
+  
+  /* Active search field on mobile */
+  .search-field.active {
+    background-color: rgba(33, 150, 243, 0.08) !important;
+    border-radius: 8px !important;
+    transition: background-color 0.2s ease !important;
+  }
+  
+  /* Mobile dropdown item interactions */
+  .dropdown-item:active {
+    background-color: rgba(33, 150, 243, 0.15) !important;
+    transform: scale(0.98) !important;
+  }
+  
+  /* Mobile dropdown item selected state */  
+  .dropdown-item.selected {
+    background-color: rgba(33, 150, 243, 0.1) !important;
+    color: #2196F3 !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Add visual feedback for field arrow on mobile */
+  .search-field.active .field-arrow {
+    transform: translateY(-50%) rotate(180deg) !important;
+    color: #2196F3 !important;
+  }
 }
 
 .dropdown-item {

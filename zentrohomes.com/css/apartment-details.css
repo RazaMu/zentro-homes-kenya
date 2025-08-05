@@ -1240,3 +1240,54 @@ ditional fixes for property header layout */
     line-height: 18px !important;
   }
 }
+
+/* Mobile-specific gallery interactions - disable clicking, enable only swiping */
+@media screen and (max-width: 767px) {
+  /* Disable click interactions on mobile - only swipe */
+  .main-image {
+    cursor: default !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    /* Enable touch events for swipe functionality */
+    touch-action: pan-x !important;
+    pointer-events: auto !important; /* Allow touch events but disable clicks */
+  }
+  
+  /* Disable click events but keep touch events */
+  .main-image:active {
+    transform: none !important;
+  }
+  
+  .thumbnail {
+    cursor: default !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+  }
+  
+  /* Show swipe indicator more prominently on mobile */
+  .swipe-indicator {
+    display: block !important;
+    position: absolute !important;
+    bottom: 10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    color: white !important;
+    padding: 8px 16px !important;
+    border-radius: 20px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    z-index: 10 !important;
+    animation: fadeInOut 3s infinite !important;
+  }
+  
+  @keyframes fadeInOut {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+}

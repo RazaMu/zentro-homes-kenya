@@ -354,21 +354,28 @@
   
   .property-subtitle {
     grid-template-columns: 1fr !important;
-    gap: 12px !important;
+    gap: 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  .property-location {
+    order: 1 !important;
+    margin-bottom: 8px !important;
   }
   
   .property-price {
-    font-size: 22px;
-    line-height: 28px;
-    grid-column: 1 !important;
-    grid-row: 2 !important;
+    font-size: 22px !important;
+    line-height: 28px !important;
+    order: 2 !important;
+    display: block !important;
+    margin-bottom: 8px !important;
+    font-weight: 700 !important;
+    color: #2c2c2c !important;
   }
   
   .property-status {
-    grid-column: 1 !important;
-    grid-row: 3 !important;
-    justify-self: start !important;
-    margin-left: 0 !important;
+    display: none !important;
   }
   
   .main-image-container {

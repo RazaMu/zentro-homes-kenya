@@ -34,40 +34,111 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Populate dropdowns with data from apartmentsData
     function populateDropdowns() {
+        console.log('🔧 Populating dropdowns...');
+        console.log('🔍 Available data:', {
+            apartmentsData: !!apartmentsData,
+            filters: !!apartmentsData?.filters,
+            sharedDataManager: !!window.sharedDataManager
+        });
+        
         // Populate locations dropdown
-        if (locationDropdown && apartmentsData && apartmentsData.filters && apartmentsData.filters.locations) {
+        const locations = apartmentsData?.filters?.locations || [];
+        if (locationDropdown && locations.length > 0) {
             let locationsHtml = '<div class="dropdown-item" data-value="">Any Location</div>';
-            apartmentsData.filters.locations.forEach(location => {
+            locations.forEach(location => {
                 locationsHtml += `<div class="dropdown-item" data-value="${location}">${location}</div>`;
             });
             locationDropdown.innerHTML = locationsHtml;
+            console.log('✅ Location dropdown populated with', locations.length, 'items');
+            addDropdownItemEvents(locationDropdown, 'location');
+        } else {
+            console.warn('⚠️ Location dropdown not populated - using fallback');
+            if (locationDropdown) {
+                locationDropdown.innerHTML = `
+                    <div class="dropdown-item" data-value="">Any Location</div>
+                    <div class="dropdown-item" data-value="Kilimani">Kilimani</div>
+                    <div class="dropdown-item" data-value="Westlands">Westlands</div>
+                    <div class="dropdown-item" data-value="Lavington">Lavington</div>
+                    <div class="dropdown-item" data-value="Parklands">Parklands</div>
+                `;
+                addDropdownItemEvents(locationDropdown, 'location');
+            }
         }
 
         // Populate property types dropdown
-        if (typeDropdown && apartmentsData && apartmentsData.filters && apartmentsData.filters.types) {
+        const types = apartmentsData?.filters?.types || [];
+        if (typeDropdown && types.length > 0) {
             let typesHtml = '<div class="dropdown-item" data-value="">Any Type</div>';
-            apartmentsData.filters.types.forEach(type => {
+            types.forEach(type => {
                 typesHtml += `<div class="dropdown-item" data-value="${type}">${type}</div>`;
             });
             typeDropdown.innerHTML = typesHtml;
+            console.log('✅ Type dropdown populated with', types.length, 'items');
+            addDropdownItemEvents(typeDropdown, 'type');
+        } else {
+            console.warn('⚠️ Type dropdown not populated - using fallback');
+            if (typeDropdown) {
+                typeDropdown.innerHTML = `
+                    <div class="dropdown-item" data-value="">Any Type</div>
+                    <div class="dropdown-item" data-value="Villa">Villa</div>
+                    <div class="dropdown-item" data-value="Apartment">Apartment</div>
+                    <div class="dropdown-item" data-value="Penthouse">Penthouse</div>
+                    <div class="dropdown-item" data-value="Condo">Condo</div>
+                `;
+                addDropdownItemEvents(typeDropdown, 'type');
+            }
         }
 
         // Populate price ranges dropdown
-        if (priceDropdown && apartmentsData && apartmentsData.filters && apartmentsData.filters.priceRanges) {
+        const priceRanges = apartmentsData?.filters?.priceRanges || [];
+        if (priceDropdown && priceRanges.length > 0) {
             let pricesHtml = '<div class="dropdown-item" data-value="">Any Price</div>';
-            apartmentsData.filters.priceRanges.forEach(range => {
+            priceRanges.forEach(range => {
                 pricesHtml += `<div class="dropdown-item" data-value="${range.min}-${range.max}">${range.label}</div>`;
             });
             priceDropdown.innerHTML = pricesHtml;
+            console.log('✅ Price dropdown populated with', priceRanges.length, 'items');
+            addDropdownItemEvents(priceDropdown, 'price');
+        } else {
+            console.warn('⚠️ Price dropdown not populated - using fallback');
+            if (priceDropdown) {
+                priceDropdown.innerHTML = `
+                    <div class="dropdown-item" data-value="">Any Price</div>
+                    <div class="dropdown-item" data-value="0-50000000">Under KES 50M</div>
+                    <div class="dropdown-item" data-value="50000000-100000000">KES 50M - 100M</div>
+                    <div class="dropdown-item" data-value="100000000-200000000">KES 100M - 200M</div>
+                    <div class="dropdown-item" data-value="200000000-9999999999">Above KES 200M</div>
+                `;
+                addDropdownItemEvents(priceDropdown, 'price');
+            }
         }
 
         // Populate bedrooms dropdown
-        if (bedroomsDropdown && apartmentsData && apartmentsData.filters && apartmentsData.filters.bedrooms) {
+        const bedrooms = apartmentsData?.filters?.bedrooms || [];
+        if (bedroomsDropdown && bedrooms.length > 0) {
             let bedroomsHtml = '<div class="dropdown-item" data-value="">Any</div>';
-            apartmentsData.filters.bedrooms.forEach(count => {
+            bedrooms.forEach(count => {
                 bedroomsHtml += `<div class="dropdown-item" data-value="${count}">${count}${count === 8 ? '+' : ''} Beds</div>`;
             });
             bedroomsDropdown.innerHTML = bedroomsHtml;
+            console.log('✅ Bedrooms dropdown populated with', bedrooms.length, 'items');
+            addDropdownItemEvents(bedroomsDropdown, 'bedrooms');
+        } else {
+            console.warn('⚠️ Bedrooms dropdown not populated - using fallback');
+            if (bedroomsDropdown) {
+                bedroomsDropdown.innerHTML = `
+                    <div class="dropdown-item" data-value="">Any</div>
+                    <div class="dropdown-item" data-value="1">1 Beds</div>
+                    <div class="dropdown-item" data-value="2">2 Beds</div>
+                    <div class="dropdown-item" data-value="3">3 Beds</div>
+                    <div class="dropdown-item" data-value="4">4 Beds</div>
+                    <div class="dropdown-item" data-value="5">5 Beds</div>
+                    <div class="dropdown-item" data-value="6">6 Beds</div>
+                    <div class="dropdown-item" data-value="7">7 Beds</div>
+                    <div class="dropdown-item" data-value="8">8+ Beds</div>
+                `;
+                addDropdownItemEvents(bedroomsDropdown, 'bedrooms');
+            }
         }
     }
 
@@ -116,10 +187,22 @@ document.addEventListener('DOMContentLoaded', function () {
         const displayText = e.target.textContent;
         const displayElement = document.getElementById(`${fieldType}-display`);
 
-        if (!displayElement) return;
+        console.log('🎯 Dropdown item clicked:', {
+            fieldType,
+            value,
+            displayText,
+            displayElementId: `${fieldType}-display`,
+            displayElementFound: !!displayElement
+        });
+
+        if (!displayElement) {
+            console.error('❌ Display element not found:', `${fieldType}-display`);
+            return;
+        }
 
         // Update display text
         displayElement.textContent = displayText;
+        console.log('✅ Display text updated:', displayText);
 
         // Update filter values
         switch (fieldType) {
@@ -160,6 +243,69 @@ document.addEventListener('DOMContentLoaded', function () {
                 fieldElement.classList.remove('field-updated');
             }, 500);
         }
+
+        // Auto-close dropdown after selection (especially important for mobile)
+        closeAllDropdowns();
+    }
+
+    // Function to close all dropdowns
+    function closeAllDropdowns() {
+        const allDropdowns = document.querySelectorAll('.search-dropdown');
+        allDropdowns.forEach(dropdown => {
+            dropdown.classList.remove('show');
+        });
+        
+        // Remove active state from search fields
+        const allSearchFields = document.querySelectorAll('.search-field');
+        allSearchFields.forEach(field => {
+            field.classList.remove('active');
+        });
+    }
+
+    // Function to toggle dropdown for mobile/click interactions
+    function toggleDropdown(searchField, dropdown) {
+        const isCurrentlyOpen = dropdown.classList.contains('show');
+        
+        console.log('🔍 Toggle dropdown:', {
+            dropdown: dropdown.id || 'unknown',
+            isCurrentlyOpen,
+            classList: Array.from(dropdown.classList)
+        });
+        
+        // Close all other dropdowns first
+        closeAllDropdowns();
+        
+        // If the clicked dropdown wasn't open, open it
+        if (!isCurrentlyOpen) {
+            dropdown.classList.add('show');
+            searchField.classList.add('active');
+            
+            console.log('✅ Dropdown opened:', {
+                dropdown: dropdown.id || 'unknown',
+                hasShowClass: dropdown.classList.contains('show'),
+                computedStyle: window.getComputedStyle(dropdown).display
+            });
+        }
+    }
+
+    // Mobile detection helper
+    function isMobileDevice() {
+        return window.innerWidth <= 767 || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+    }
+
+    // Helper function to add click events to dropdown items
+    function addDropdownItemEvents(dropdown, fieldType) {
+        const items = dropdown.querySelectorAll('.dropdown-item');
+        console.log(`🔗 Adding ${items.length} event listeners to ${fieldType} dropdown`);
+        
+        items.forEach(item => {
+            item.addEventListener('click', (e) => {
+                console.log(`🎯 DIRECT: ${fieldType} item clicked:`, e.target.textContent);
+                e.preventDefault();
+                e.stopPropagation();
+                handleDropdownItemClick(e, fieldType, dropdown);
+            });
+        });
     }
 
     // Add event listeners
@@ -172,44 +318,77 @@ document.addEventListener('DOMContentLoaded', function () {
             tab.addEventListener('click', handleTabClick);
         });
 
-        // Add click events to dropdown items in location dropdown
-        if (locationDropdown) {
-            locationDropdown.querySelectorAll('.dropdown-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    handleDropdownItemClick(e, 'location', locationDropdown);
-                });
+        // Add click handlers to search fields for mobile dropdown toggle
+        const searchFields = document.querySelectorAll('.search-field');
+        console.log('🔍 Found search fields:', searchFields.length);
+        
+        searchFields.forEach(field => {
+            const dropdown = field.querySelector('.search-dropdown');
+            console.log('🔍 Search field setup:', {
+                field: field.className,
+                hasDropdown: !!dropdown,
+                dropdownId: dropdown?.id || 'none'
             });
-        }
+            
+            field.addEventListener('click', (e) => {
+                console.log('🖱️ Search field clicked:', field.className);
+                e.stopPropagation();
+                if (dropdown) {
+                    toggleDropdown(field, dropdown);
+                } else {
+                    console.warn('⚠️ No dropdown found for field:', field.className);
+                }
+            });
+        });
 
-        // Add click events to dropdown items in type dropdown
-        if (typeDropdown) {
-            typeDropdown.querySelectorAll('.dropdown-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    handleDropdownItemClick(e, 'type', typeDropdown);
-                });
-            });
-        }
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-field')) {
+                closeAllDropdowns();
+            }
+        });
 
-        // Add click events to dropdown items in price dropdown
-        if (priceDropdown) {
-            priceDropdown.querySelectorAll('.dropdown-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    handleDropdownItemClick(e, 'price', priceDropdown);
-                });
-            });
-        }
-
-        // Add click events to dropdown items in bedrooms dropdown
-        if (bedroomsDropdown) {
-            bedroomsDropdown.querySelectorAll('.dropdown-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    handleDropdownItemClick(e, 'bedrooms', bedroomsDropdown);
-                });
-            });
-        }
+        // Note: Dropdown item clicks are now handled by direct event listeners
+        // added in populateDropdowns() function via addDropdownItemEvents()
     }
 
     // Initialize
     populateDropdowns();
+    
+    // Debug: Check if dropdowns and display elements were created properly
+    setTimeout(() => {
+        console.log('🔍 Debugging dropdown and display elements:');
+        
+        // Check dropdowns
+        const allDropdowns = document.querySelectorAll('.search-dropdown');
+        console.log('All dropdowns found:', allDropdowns.length);
+        
+        // Check display elements
+        const displayElements = [
+            { id: 'location-display', name: 'Location' },
+            { id: 'type-display', name: 'Type' },
+            { id: 'price-display', name: 'Price' },
+            { id: 'bedrooms-display', name: 'Bedrooms' }
+        ];
+        
+        displayElements.forEach(({ id, name }) => {
+            const element = document.getElementById(id);
+            console.log(`${name} display element (${id}):`, {
+                found: !!element,
+                currentText: element?.textContent,
+                tagName: element?.tagName
+            });
+        });
+        
+        // Check dropdown items
+        allDropdowns.forEach(dropdown => {
+            const items = dropdown.querySelectorAll('.dropdown-item');
+            console.log(`${dropdown.id} has ${items.length} dropdown items`);
+            if (items.length > 0) {
+                console.log('First item:', items[0].textContent, 'data-value:', items[0].getAttribute('data-value'));
+            }
+        });
+    }, 100);
+    
     bindEvents();
 });

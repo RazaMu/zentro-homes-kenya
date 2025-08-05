@@ -1,7 +1,10 @@
 /* YouTube Video Player Component Styles */
 
 .property-video-section {
-  margin-bottom: 64px;
+  margin: 32px 0 64px 0;
+  background: #f8f9fa;
+  padding: 40px 20px;
+  border-radius: 16px;
 }
 
 .property-video-section.hidden {
@@ -18,7 +21,8 @@
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   padding: 32px;
-  margin-bottom: 32px;
+  margin: 0 auto;
+  max-width: 1000px;
 }
 
 .video-header {
@@ -189,10 +193,16 @@
 
 /* Responsive adjustments */
 @media screen and (max-width: 767px) {
+  /* Mobile Video Section */
+  .property-video-section {
+    margin: 24px 0 48px 0;
+    padding: 20px 15px;
+  }
+  
   /* YouTube Video Mobile Styles */
   .youtube-video-container {
     padding: 20px;
-    margin-bottom: 24px;
+    margin: 0;
   }
 
   .video-title {
