@@ -11,11 +11,11 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-zentro-gold text-zentro-dark px-6 py-2 rounded-lg font-semibold hover:bg-opacity-90 transition-colors;
+    @apply bg-yellow-600 text-gray-900 px-6 py-2 rounded-lg font-semibold hover:bg-opacity-90 transition-colors;
   }
   
   .btn-secondary {
-    @apply bg-zentro-green text-white px-6 py-2 rounded-lg font-semibold hover:bg-opacity-90 transition-colors;
+    @apply bg-teal-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-opacity-90 transition-colors;
   }
   
   .card {
