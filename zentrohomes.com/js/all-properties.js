@@ -208,7 +208,7 @@ class AllPropertiesManager {
         return `
             <div class="property-card" data-id="${apartment.id}" data-navigate-to="apartment-details" style="cursor: pointer;">
                 <div class="property-image-wrapper">
-                    <img src="${finalImageUrl}" alt="${apartment.title}" class="property-image" onerror="this.src='wp-content/uploads/2025/02/unsplash.jpg'">
+                    <img src="${finalImageUrl}" alt="${apartment.title}" class="property-image" data-fallback="wp-content/uploads/2025/02/unsplash.jpg">
                     <div class="property-tags">
                         <span class="property-tag tag-${apartment.status?.toLowerCase().replace(' ', '-')}">${apartment.status}</span>
                     </div>
@@ -410,6 +410,16 @@ class AllPropertiesManager {
         // Add click handlers for property cards navigation
         this.addPropertyCardListeners();
         
+        // Add error handling for property images (replace inline onerror)
+        document.addEventListener('error', (e) => {
+            if (e.target.matches('.property-image[data-fallback]')) {
+                const fallbackSrc = e.target.getAttribute('data-fallback');
+                if (fallbackSrc && e.target.src !== fallbackSrc) {
+                    e.target.src = fallbackSrc;
+                }
+            }
+        }, true);
+        
         // Load more button
         const loadMoreBtn = document.getElementById('load-more-btn');
         if (loadMoreBtn) {
@@ -507,42 +517,65 @@ class AllPropertiesManager {
     }
 
     getImageUrl(imageData) {
+        // Use the unified image URL processing from Railway Data Manager
+        if (window.sharedDataManager && window.sharedDataManager.getImageUrl) {
+            return window.sharedDataManager.getImageUrl(imageData);
+        }
+        
+        // Fallback implementation if Railway Data Manager not available
         if (!imageData) return null;
         
-        // If Railway client is available, use its image URL helper
+        // Handle Railway client URL helper if available
         if (window.railwayClient && window.railwayClient.getImageUrl) {
             return window.railwayClient.getImageUrl(imageData);
         }
         
-        // Handle Railway API image data structure
+        // Handle array of images - get first image
         if (Array.isArray(imageData) && imageData.length > 0) {
-            return this.getImageUrl(imageData[0]); // Get first image from array
+            return this.getImageUrl(imageData[0]);
         }
         
         // Handle string URLs
         if (typeof imageData === 'string') {
-            // Railway Volume Storage URLs
+            // Handle base64 data URLs (admin stored as fallback)
+            if (imageData.startsWith('data:image/')) {
+                console.log('🔍 All Properties getImageUrl: Found base64 data URL, using directly');
+                return imageData;
+            }
+            // Railway Volume Storage URLs - convert to full URL
             if (imageData.startsWith('/uploads/')) {
                 return window.location.origin + imageData;
             }
-            // Already a full URL
+            // Already a full URL or relative path
             return imageData;
         }
         
         // Handle object with url property
-        if (imageData && imageData.url) {
-            if (imageData.url.startsWith('/uploads/')) {
-                return window.location.origin + imageData.url;
+        if (imageData && typeof imageData === 'object' && imageData.url) {
+            const url = imageData.url;
+            if (typeof url === 'string') {
+                // Handle base64 data URLs (admin stored as fallback)
+                if (url.startsWith('data:image/')) {
+                    console.log('🔍 All Properties getImageUrl: Found base64 data URL in object, using directly');
+                    return url;
+                }
+                // Railway Volume Storage URLs
+                if (url.startsWith('/uploads/')) {
+                    return window.location.origin + url;
+                }
+                return url;
             }
-            return imageData.url;
         }
         
         // Handle Railway API format with file path
-        if (imageData && imageData.path) {
-            if (imageData.path.startsWith('/uploads/')) {
-                return window.location.origin + imageData.path;
+        if (imageData && typeof imageData === 'object' && imageData.path) {
+            const path = imageData.path;
+            if (typeof path === 'string') {
+                if (path.startsWith('/uploads/')) {
+                    return window.location.origin + path;
+                }
+                return path;
             }
-            return imageData.path;
         }
         
         return null;
@@ -559,7 +592,7 @@ class AllPropertiesManager {
                 currency: "KES",
                 location: { area: "Kilimani", city: "Nairobi", country: "Kenya" },
                 features: { bedrooms: 4, bathrooms: 3, parking: 2, size: 350, sizeUnit: "m²" },
-                images: { main: "/uploads/placeholder.jpg" },
+                images: { main: "wp-content/uploads/2025/02/placeholder.jpg" },
                 description: "Beautiful luxury villa with modern amenities.",
                 featured: true,
                 available: true,
@@ -575,7 +608,7 @@ class AllPropertiesManager {
                 currency: "KES",
                 location: { area: "Westlands", city: "Nairobi", country: "Kenya" },
                 features: { bedrooms: 3, bathrooms: 2, parking: 1, size: 180, sizeUnit: "m²" },
-                images: { main: "/uploads/placeholder.jpg" },
+                images: { main: "wp-content/uploads/2025/02/placeholder.jpg" },
                 description: "Contemporary apartment in prime location.",
                 featured: false,
                 available: true,
@@ -591,7 +624,7 @@ class AllPropertiesManager {
                 currency: "KES",
                 location: { area: "Lavington", city: "Nairobi", country: "Kenya" },
                 features: { bedrooms: 5, bathrooms: 4, parking: 3, size: 450, sizeUnit: "m²" },
-                images: { main: "/uploads/placeholder.jpg" },
+                images: { main: "wp-content/uploads/2025/02/placeholder.jpg" },
                 description: "Exclusive penthouse with panoramic city views.",
                 featured: true,
                 available: true,
@@ -607,7 +640,7 @@ class AllPropertiesManager {
                 currency: "KES",
                 location: { area: "Parklands", city: "Nairobi", country: "Kenya" },
                 features: { bedrooms: 2, bathrooms: 2, parking: 1, size: 120, sizeUnit: "m²" },
-                images: { main: "/uploads/placeholder.jpg" },
+                images: { main: "wp-content/uploads/2025/02/placeholder.jpg" },
                 description: "Modern condo available for rent.",
                 featured: false,
                 available: true,
@@ -623,7 +656,7 @@ class AllPropertiesManager {
                 currency: "KES",
                 location: { area: "Runda", city: "Nairobi", country: "Kenya" },
                 features: { bedrooms: 4, bathrooms: 3, parking: 2, size: 280, sizeUnit: "m²" },
-                images: { main: "/uploads/placeholder.jpg" },
+                images: { main: "wp-content/uploads/2025/02/placeholder.jpg" },
                 description: "Spacious townhouse in gated community.",
                 featured: false,
                 available: true,

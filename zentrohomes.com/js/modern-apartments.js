@@ -347,7 +347,7 @@ class ModernApartmentManager {
           <h3>No properties found</h3>
           <p>We couldn't find any properties matching your current filters.</p>
           <p>Try adjusting your search criteria or clearing all filters to see more options.</p>
-          <button class="no-results-btn" onclick="modernApartmentManager.clearFilters()">Clear All Filters</button>
+          <button class="no-results-btn" data-action="clear-filters">Clear All Filters</button>
         </div>
       `;
             return;
@@ -395,7 +395,7 @@ class ModernApartmentManager {
             return `
       <div class="property-card" data-id="${apartment.id}" data-navigate-to="apartment-details" style="cursor: pointer;">
         <div class="property-image-wrapper">
-          <img src="${finalImageUrl}" alt="${apartment.title}" class="property-image" onerror="this.src='/uploads/placeholder.jpg'">
+          <img src="${finalImageUrl}" alt="${apartment.title}" class="property-image" data-fallback="/uploads/placeholder.jpg">
           <div class="property-tags">
             ${apartment.featured ? '<span class="property-tag tag-featured">FEATURED</span>' : ''}
             <span class="property-tag tag-${apartment.status?.toLowerCase().replace(' ', '-')}">${apartment.status}</span>
@@ -447,6 +447,23 @@ class ModernApartmentManager {
     bindEvents() {
         // Add property card navigation listeners
         this.addPropertyCardListeners();
+        
+        // Add event listener for clear filters button (replace inline onclick)
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('[data-action="clear-filters"]')) {
+                this.clearFilters();
+            }
+        });
+        
+        // Add error handling for property images (replace inline onerror)
+        document.addEventListener('error', (e) => {
+            if (e.target.matches('.property-image[data-fallback]')) {
+                const fallbackSrc = e.target.getAttribute('data-fallback');
+                if (fallbackSrc && e.target.src !== fallbackSrc) {
+                    e.target.src = fallbackSrc;
+                }
+            }
+        }, true);
         
         // Unified search bar selects
         document.getElementById('filter-type')?.addEventListener('change', (e) => {

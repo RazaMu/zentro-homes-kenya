@@ -34,7 +34,12 @@ class RailwayDataManager {
 
   // Unified image URL processing method for Railway uploads
   getImageUrl(imageData) {
-    if (!imageData) return null;
+    if (!imageData) {
+      console.log('🔍 getImageUrl: Input is null/undefined');
+      return null;
+    }
+    
+    console.log('🔍 getImageUrl: Processing input type=', typeof imageData, 'value=', imageData);
     
     // Debug logging for troubleshooting
     if (Array.isArray(imageData) && imageData.length > 0) {
@@ -53,6 +58,11 @@ class RailwayDataManager {
     
     // Handle string URLs
     if (typeof imageData === 'string') {
+      // Handle base64 data URLs (admin stored as fallback)
+      if (imageData.startsWith('data:image/')) {
+        console.log('🔍 getImageUrl: Found base64 data URL, using directly');
+        return imageData;
+      }
       // Railway Volume Storage URLs - convert to full URL
       if (imageData.startsWith('/uploads/')) {
         return window.location.origin + imageData;
@@ -65,6 +75,12 @@ class RailwayDataManager {
     if (imageData && typeof imageData === 'object' && imageData.url) {
       const url = imageData.url;
       if (typeof url === 'string') {
+        // Handle base64 data URLs (admin stored as fallback)
+        if (url.startsWith('data:image/')) {
+          console.log('🔍 getImageUrl: Found base64 data URL in object, using directly');
+          return url;
+        }
+        // Railway Volume Storage URLs
         if (url.startsWith('/uploads/')) {
           return window.location.origin + url;
         }
@@ -107,6 +123,7 @@ class RailwayDataManager {
     }
     
     console.log('⚠️ getImageUrl: Could not process image data:', imageData);
+    console.log('⚠️ getImageUrl: imageData type:', typeof imageData, 'keys:', Object.keys(imageData || {}));
     return null;
   }
 
@@ -201,6 +218,14 @@ class RailwayDataManager {
           });
         }
         
+        // Additional debugging for image structure
+        if (response.properties.length > 0 && response.properties[0].images && response.properties[0].images.length > 0) {
+          console.log('🔍 DETAILED: First 3 image items structure:', response.properties[0].images.slice(0, 3));
+          console.log('🔍 DETAILED: First image object keys:', Object.keys(response.properties[0].images[0] || {}));
+          console.log('🔍 DETAILED: First image .url property:', response.properties[0].images[0]?.url);
+          console.log('🔍 DETAILED: Processing first image with getImageUrl:', this.getImageUrl(response.properties[0].images[0]));
+        }
+        
         this.apartments = this.convertToLegacyFormat(response.properties);
         this.lastSync = new Date();
         console.log(`✅ RailwayDataManager: Synced ${this.apartments.length} properties from Railway API`);
@@ -277,8 +302,8 @@ class RailwayDataManager {
       
       // Legacy compatibility fields
       description: property.description,
-      main_image: this.getImageUrl(property.main_image) || this.getImageUrl(property.images) || this.getImageUrl(property.gallery_images) || 'wp-content/uploads/2025/02/placeholder.jpg',
-      images: this.processImageArray(property.images || property.gallery_images).length > 0 ? this.processImageArray(property.images || property.gallery_images) : ['/uploads/placeholder.jpg'],
+      main_image: this.getImageUrl(property.main_image) || this.getImageUrl(property.images) || this.getImageUrl(property.gallery_images) || '/uploads/placeholder.jpg',
+      images: this.processImageArray(property.images || property.gallery_images).length > 0 ? this.processImageArray(property.images || property.gallery_images) : ['wp-content/uploads/2025/02/placeholder.jpg'],
       
       // Status fields
       available: property.available,
