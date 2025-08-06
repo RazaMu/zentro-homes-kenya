@@ -219,7 +219,7 @@
 .property-subtitle {
   display: grid !important;
   grid-template-columns: 1fr auto !important;
-  grid-template-rows: auto auto !important;
+  grid-template-rows: auto auto auto !important;
   grid-gap: 8px 16px !important;
   align-items: start !important;
   margin-bottom: 16px !important;
@@ -261,18 +261,18 @@
 .property-price {
   color: var(--primary-color);
   font-size: 26px;
-  line-height: 32px;
+  line-height: 1.2;
   font-weight: 700;
   font-family: "Helvetica Neue", sans-serif;
   grid-column: 2 !important;
   grid-row: 3 !important;
   justify-self: end !important;
-  align-self: start !important;
+  align-self: end !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   max-width: 280px !important;
-  margin-top: 4px !important;
+  margin: 0 !important;
   padding: 8px 16px !important;
   background: rgba(191, 161, 107, 0.1) !important;
   border-radius: 6px !important;
@@ -334,10 +334,10 @@
     grid-column: 1 !important;
     grid-row: 3 !important;
     justify-self: start !important;
-    margin-bottom: 12px !important;
+    align-self: end !important;
+    margin: 0 !important;
     font-size: 22px;
-    line-height: 28px;
-    margin-top: 4px !important;
+    line-height: 1.2;
   }
 
   .property-status {
@@ -1134,13 +1134,6 @@
   max-width: 100%;
 }
 
-/* Fix for the property price to ensure it doesn't overlap with status */
-.property-price {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
 
 /* Ad
 ditional fixes for property header layout */
@@ -1168,13 +1161,6 @@ ditional fixes for property header layout */
   max-width: 100% !important;
 }
 
-/* Fix for the property price to ensure it doesn't overlap with status */
-.property-price {
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  max-width: 100% !important;
-}
 
 /* Fix for the property gallery */
 .property-gallery {
