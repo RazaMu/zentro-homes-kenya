@@ -17,7 +17,8 @@
       "Bash(npm start)",
       "Bash(mkdir:*)",
       "Bash(grep:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }
