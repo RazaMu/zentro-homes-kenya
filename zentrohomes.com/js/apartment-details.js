@@ -174,6 +174,21 @@ class ApartmentDetailsManager {
         `).join('')}
       </div>
       
+      ${window.innerWidth > 991 ? `
+      <div class="gallery-animation-container">
+        <video 
+          src="wp-content/uploads/2025/02/zentro_animation.mp4" 
+          class="gallery-animation-video"
+          autoplay 
+          muted 
+          loop 
+          playsinline
+          poster="wp-content/uploads/2025/02/zentro_animation_poster.jpg">
+          <p>Your browser doesn't support video playback.</p>
+        </video>
+      </div>
+      ` : ''}
+      
       <div class="gallery-modal" id="gallery-modal">
         <div class="modal-content">
           <button class="modal-close" data-action="close">&times;</button>
@@ -570,7 +585,6 @@ class ApartmentDetailsManager {
         <ul class="detail-list">
           <li><span class="detail-label">Price</span><span class="detail-value">${ApartmentUtils.formatPrice(apartment.price, apartment.currency)}</span></li>
           <li><span class="detail-label">Currency</span><span class="detail-value">${apartment.currency}</span></li>
-          <li><span class="detail-label">Price per ${apartment.features.sizeUnit}</span><span class="detail-value">${ApartmentUtils.formatPrice(Math.round(apartment.price / apartment.features.size), apartment.currency)}</span></li>
         </ul>
       </div>
     `;

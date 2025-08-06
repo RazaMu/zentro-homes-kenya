@@ -476,6 +476,52 @@
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 
+/* Gallery Animation Container */
+.gallery-animation-container {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  background: var(--background-light);
+  border-top: 1px solid rgba(191, 161, 107, 0.2);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-animation-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.gallery-animation-video:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+/* Add a subtle overlay for better text readability if needed */
+.gallery-animation-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(191, 161, 107, 0.1) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Hide animation on tablets and smaller screens */
+@media screen and (max-width: 991px) {
+  .gallery-animation-container {
+    display: none !important;
+  }
+}
+
 .main-image-container {
   position: relative;
   height: 450px;
