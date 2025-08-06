@@ -18,7 +18,10 @@
       "Bash(mkdir:*)",
       "Bash(grep:*)",
       "Bash(mv:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(for:*)",
+      "Bash(do sed -i 's/source-investments/zentro-homes/g' \"$file\")",
+      "Bash(done)"
     ],
     "deny": []
   }
