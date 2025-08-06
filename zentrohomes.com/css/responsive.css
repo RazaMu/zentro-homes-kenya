@@ -369,9 +369,9 @@
     line-height: 28px !important;
     order: 2 !important;
     display: block !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 0px !important;
     font-weight: 700 !important;
-    color: white !important;
+    color: black !important;
   }
   
   .property-status {

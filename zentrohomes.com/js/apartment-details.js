@@ -364,23 +364,6 @@ class ApartmentDetailsManager {
             </svg>
             <span>${apartment.features.bathrooms} Bathrooms</span>
           </div>
-          <div class="feature-item">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H6.5C5.84 5 5.28 5.42 5.08 6.01L3 12V20C3 20.55 3.45 21 4 21H5C5.55 21 6 20.55 6 20V19H18V20C18 20.55 18.45 21 19 21H20C20.55 21 21 20.55 21 20V12L18.92 6.01Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="7.5" cy="15.5" r="1.5" stroke="currentColor" stroke-width="2"/>
-              <circle cx="16.5" cy="15.5" r="1.5" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            <span>${apartment.features.parking} Parking</span>
-          </div>
-          <div class="feature-item">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M21 16V8C21 6.9 20.1 6 19 6H5C3.9 6 3 6.9 3 8V16C3 17.1 3.9 18 5 18H19C20.1 18 21 17.1 21 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M7 6V4C7 3.45 7.45 3 8 3H16C16.55 3 17 3.45 17 4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M7 10H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M7 14H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>${apartment.features.size}${apartment.features.sizeUnit}</span>
-          </div>
         </div>
       </div>
       

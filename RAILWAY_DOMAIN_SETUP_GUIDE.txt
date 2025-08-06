@@ -1,0 +1,181 @@
+# Railway Domain Connection Guide for Namecheap
+## Connecting zentrohomes.com to Railway Project
+
+This guide walks you through connecting your Namecheap-purchased domain (zentrohomes.com) to your Railway project.
+
+## Prerequisites
+- Active Railway project with deployed application
+- Domain purchased from Namecheap (zentrohomes.com)
+- Access to Namecheap domain management panel
+- Access to Railway project dashboard
+
+## Step 1: Prepare Your Railway Project
+
+1.1. **Ensure Your Project is Deployed**
+   - Log into Railway dashboard (railway.app)
+   - Navigate to your project
+   - Confirm your application is successfully deployed and running
+   - Note your Railway project URL (typically: https://[project-name]-production.up.railway.app)
+
+1.2. **Upgrade to Pro Plan (If Needed)**
+   - Custom domains require Railway Pro plan ($5/month)
+   - Go to Settings > Plan in your Railway dashboard
+   - Upgrade if currently on Hobby plan
+
+## Step 2: Add Custom Domain in Railway
+
+2.1. **Access Domain Settings**
+   - In Railway dashboard, go to your project
+   - Click on your service/deployment
+   - Navigate to "Settings" tab
+   - Find "Custom Domain" or "Domains" section
+
+2.2. **Add Your Domain**
+   - Click "Add Domain" or similar button
+   - Enter your domain: zentrohomes.com
+   - Also add the www subdomain: www.zentrohomes.com
+   - Railway will provide you with DNS records to configure
+
+2.3. **Note the DNS Records**
+   Railway will provide records similar to:
+   - Type: CNAME
+   - Name: @ (or zentrohomes.com)
+   - Value: [your-project].up.railway.app
+   
+   - Type: CNAME  
+   - Name: www
+   - Value: [your-project].up.railway.app
+
+## Step 3: Configure DNS in Namecheap
+
+3.1. **Access Namecheap DNS Management**
+   - Log into your Namecheap account
+   - Go to "Domain List" in your dashboard
+   - Click "Manage" next to zentrohomes.com
+   - Navigate to "Advanced DNS" tab
+
+3.2. **Clear Existing Records (If Any)**
+   - Look for existing A records or CNAME records for @ and www
+   - Delete any conflicting records
+   - Keep MX records (email) if you need them
+
+3.3. **Add Railway DNS Records**
+   Add these records (replace [your-project] with actual Railway domain):
+
+   Record 1:
+   - Type: CNAME Record
+   - Host: @
+   - Value: [your-project].up.railway.app
+   - TTL: Automatic (or 300)
+
+   Record 2:
+   - Type: CNAME Record
+   - Host: www
+   - Value: [your-project].up.railway.app
+   - TTL: Automatic (or 300)
+
+3.4. **Alternative A Record Method (If CNAME @ Doesn't Work)**
+   Some DNS providers don't allow CNAME for root domain. If needed:
+   - Get Railway's IP address from support or use a service like nslookup
+   - Use A Record instead:
+     - Type: A Record
+     - Host: @
+     - Value: [Railway's IP address]
+     - TTL: Automatic
+
+## Step 4: SSL Certificate Setup
+
+4.1. **Railway Automatic SSL**
+   - Railway automatically provisions SSL certificates for custom domains
+   - This happens after DNS propagation (may take up to 24 hours)
+   - Check "Domains" section in Railway to see certificate status
+
+4.2. **Force HTTPS (Optional)**
+   - In Railway settings, look for "Force HTTPS" option
+   - Enable it to redirect all HTTP traffic to HTTPS
+
+## Step 5: Verification and Testing
+
+5.1. **DNS Propagation Check**
+   - DNS changes can take 5 minutes to 48 hours to propagate
+   - Use online tools to check DNS propagation:
+     - whatsmydns.net
+     - dnschecker.org
+   - Search for your domain and verify CNAME records point to Railway
+
+5.2. **Test Your Domain**
+   - Try accessing: http://zentrohomes.com
+   - Try accessing: https://zentrohomes.com
+   - Try accessing: http://www.zentrohomes.com
+   - Try accessing: https://www.zentrohomes.com
+
+5.3. **Verify SSL Certificate**
+   - Once propagated, check that HTTPS works
+   - Look for padlock icon in browser
+   - Certificate should be issued by Let's Encrypt (Railway's provider)
+
+## Step 6: Update Application Configuration
+
+6.1. **Update Absolute URLs**
+   - Check your HTML/CSS/JS files for any hardcoded URLs
+   - Update from Railway domain to zentrohomes.com
+   - Ensure all internal links use relative paths or new domain
+
+6.2. **Update Meta Tags**
+   - Update Open Graph tags in HTML
+   - Update canonical URLs
+   - Update any sitemap references
+
+## Troubleshooting Common Issues
+
+### DNS Issues
+- **Problem**: Domain doesn't resolve
+- **Solution**: Wait longer for DNS propagation, verify DNS records are correct
+
+### SSL Certificate Issues  
+- **Problem**: SSL certificate not working
+- **Solution**: Wait for auto-provisioning, contact Railway support if stuck
+
+### Redirect Loops
+- **Problem**: Too many redirects error
+- **Solution**: Check Railway settings for redirect configurations
+
+### Subdomain Issues
+- **Problem**: www subdomain not working
+- **Solution**: Ensure both @ and www CNAME records are added
+
+## Important Notes
+
+1. **Backup Current Setup**: Before making changes, note current DNS settings
+2. **Email Impact**: Changing DNS may affect email if you have MX records
+3. **Propagation Time**: Allow up to 24 hours for full DNS propagation
+4. **Railway Limits**: Free plans have limitations on custom domains
+5. **HTTPS Only**: Modern browsers prefer HTTPS, ensure certificate works
+
+## Post-Setup Checklist
+
+□ Domain resolves to Railway application
+□ Both zentrohomes.com and www.zentrohomes.com work  
+□ HTTPS certificate is active and valid
+□ All website features work on new domain
+□ Internal links and assets load correctly
+□ Search engines can access the site (check robots.txt)
+□ Analytics/tracking codes updated with new domain
+
+## Contact Information
+
+If you encounter issues:
+- Railway Support: help.railway.app
+- Namecheap Support: Through your Namecheap account
+- DNS Propagation Tools: Use online checkers for verification
+
+## Security Considerations
+
+- Always use HTTPS in production
+- Keep Railway project private/secure
+- Monitor domain for unauthorized changes
+- Consider setting up monitoring for uptime
+
+---
+Last Updated: 2025-08-06
+Guide Version: 1.0
