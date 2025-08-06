@@ -20,7 +20,7 @@
       "Bash(mv:*)",
       "Bash(find:*)",
       "Bash(for:*)",
-      "Bash(do sed -i 's/source-investments/zentro-homes/g' \"$file\")",
+      "Bash(do sed -i 's/zentro-homes/zentro-homes/g' \"$file\")",
       "Bash(done)"
     ],
     "deny": []
