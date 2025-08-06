@@ -515,6 +515,29 @@
   z-index: 1;
 }
 
+/* Hide swipe indicator on desktop - only show on mobile */
+.swipe-indicator {
+  display: none !important;
+}
+
+@media screen and (max-width: 767px) {
+  .swipe-indicator {
+    display: block !important;
+    position: absolute !important;
+    bottom: 10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    color: white !important;
+    padding: 8px 16px !important;
+    border-radius: 20px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    z-index: 10 !important;
+    animation: fadeInOut 3s infinite !important;
+  }
+}
+
 /* Hide animation on tablets and smaller screens */
 @media screen and (max-width: 991px) {
   .gallery-animation-container {
@@ -1315,22 +1338,6 @@ ditional fixes for property header layout */
     -ms-user-select: none !important;
   }
   
-  /* Show swipe indicator more prominently on mobile */
-  .swipe-indicator {
-    display: block !important;
-    position: absolute !important;
-    bottom: 10px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    background: rgba(0, 0, 0, 0.7) !important;
-    color: white !important;
-    padding: 8px 16px !important;
-    border-radius: 20px !important;
-    font-size: 12px !important;
-    font-weight: 500 !important;
-    z-index: 10 !important;
-    animation: fadeInOut 3s infinite !important;
-  }
   
   @keyframes fadeInOut {
     0%, 100% { opacity: 0.7; }
