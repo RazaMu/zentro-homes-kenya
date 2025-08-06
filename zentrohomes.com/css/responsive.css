@@ -364,7 +364,7 @@
     margin-bottom: 8px !important;
   }
   
-  .property-price {
+  .property-details-section .property-price {
     font-size: 22px !important;
     line-height: 28px !important;
     order: 2 !important;
