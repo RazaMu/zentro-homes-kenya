@@ -31,7 +31,7 @@ class RailwayClient {
     // Track page view on initialization
     this.trackPageView();
     
-    console.log('🚀 Railway Client initialized');
+    // console.log('🚀 Railway Client initialized');
   }
 
   // ================================================================================
@@ -128,7 +128,7 @@ class RailwayClient {
         body: JSON.stringify(data)
       });
     } catch (error) {
-      console.warn('Analytics tracking failed:', error);
+      // console.warn('Analytics tracking failed:', error);
     }
   }
 
@@ -179,7 +179,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error fetching properties:', error);
+      // console.error('Error fetching properties:', error);
       throw error;
     }
   }
@@ -199,7 +199,7 @@ class RailwayClient {
       
       return data;
     } catch (error) {
-      console.error('Error fetching property:', error);
+      // console.error('Error fetching property:', error);
       throw error;
     }
   }
@@ -221,7 +221,7 @@ class RailwayClient {
       
       return data;
     } catch (error) {
-      console.error('Error searching properties:', error);
+      // console.error('Error searching properties:', error);
       throw error;
     }
   }
@@ -234,7 +234,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error fetching featured properties:', error);
+      // console.error('Error fetching featured properties:', error);
       throw error;
     }
   }
@@ -250,7 +250,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error fetching properties by type:', error);
+      // console.error('Error fetching properties by type:', error);
       throw error;
     }
   }
@@ -263,7 +263,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error fetching property stats:', error);
+      // console.error('Error fetching property stats:', error);
       throw error;
     }
   }
@@ -287,7 +287,7 @@ class RailwayClient {
       
       return result;
     } catch (error) {
-      console.error('Error submitting inquiry:', error);
+      // console.error('Error submitting inquiry:', error);
       throw error;
     }
   }
@@ -314,7 +314,7 @@ class RailwayClient {
       
       return data;
     } catch (error) {
-      console.error('Error during admin login:', error);
+      // console.error('Error during admin login:', error);
       throw error;
     }
   }
@@ -328,7 +328,7 @@ class RailwayClient {
         });
       }
     } catch (error) {
-      console.warn('Error during admin logout:', error);
+      // console.warn('Error during admin logout:', error);
     } finally {
       this.adminToken = null;
       localStorage.removeItem('admin_token');
@@ -348,7 +348,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error verifying admin token:', error);
+      // console.error('Error verifying admin token:', error);
       this.adminToken = null;
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
@@ -364,7 +364,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
+      // console.error('Error fetching dashboard stats:', error);
       throw error;
     }
   }
@@ -385,7 +385,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error fetching admin properties:', error);
+      // console.error('Error fetching admin properties:', error);
       throw error;
     }
   }
@@ -403,7 +403,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error creating property:', error);
+      // console.error('Error creating property:', error);
       throw error;
     }
   }
@@ -421,7 +421,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error updating property:', error);
+      // console.error('Error updating property:', error);
       throw error;
     }
   }
@@ -435,7 +435,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error deleting property:', error);
+      // console.error('Error deleting property:', error);
       throw error;
     }
   }
@@ -456,7 +456,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error fetching contact inquiries:', error);
+      // console.error('Error fetching contact inquiries:', error);
       throw error;
     }
   }
@@ -471,7 +471,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error updating contact inquiry:', error);
+      // console.error('Error updating contact inquiry:', error);
       throw error;
     }
   }
@@ -488,7 +488,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error fetching analytics overview:', error);
+      // console.error('Error fetching analytics overview:', error);
       throw error;
     }
   }
@@ -501,7 +501,7 @@ class RailwayClient {
       
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Error fetching property analytics:', error);
+      // console.error('Error fetching property analytics:', error);
       throw error;
     }
   }
@@ -668,7 +668,7 @@ class RailwayClient {
       const response = await fetch(`${this.baseUrl.replace('/api', '')}/health`);
       return await this.handleResponse(response);
     } catch (error) {
-      console.error('Health check failed:', error);
+      // console.error('Health check failed:', error);
       throw error;
     }
   }
@@ -698,4 +698,4 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = RailwayClient;
 }
 
-console.log('✅ Railway Client SDK loaded successfully');
+// console.log('✅ Railway Client SDK loaded successfully');

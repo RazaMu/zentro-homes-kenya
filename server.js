@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 
 // Health check endpoint - MUST be first
 app.get('/health', (req, res) => {
-  console.log('Health check requested');
+  // console.log('Health check requested');
   res.status(200).send('OK');
 });
 
@@ -31,9 +31,9 @@ try {
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
   });
-  console.log('📊 Database pool created');
+  // console.log('📊 Database pool created');
 } catch (error) {
-  console.warn('⚠️ Database connection failed:', error.message);
+  // console.warn('⚠️ Database connection failed:', error.message);
 }
 
 // Security middleware
@@ -114,7 +114,7 @@ try {
   app.use('/api/admin', require('./routes/admin'));
   app.use('/api/analytics', require('./routes/analytics'));
 } catch (error) {
-  console.warn('⚠️ API routes failed to load:', error.message);
+  // console.warn('⚠️ API routes failed to load:', error.message);
 }
 
 // Serve static files
@@ -144,7 +144,7 @@ app.get('*', (req, res) => {
 
 // Global error handler
 app.use((error, req, res, next) => {
-  console.error('Global error handler:', error);
+  // console.error('Global error handler:', error);
   
   if (error.type === 'entity.too.large') {
     return res.status(413).json({ error: 'File too large' });
@@ -159,24 +159,24 @@ app.use((error, req, res, next) => {
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  // console.log('SIGTERM received, shutting down gracefully');
   if (pool) {
     try {
       await pool.end();
     } catch (error) {
-      console.warn('Error closing database pool:', error.message);
+      // console.warn('Error closing database pool:', error.message);
     }
   }
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down gracefully');
+  // console.log('SIGINT received, shutting down gracefully');
   if (pool) {
     try {
       await pool.end();
     } catch (error) {
-      console.warn('Error closing database pool:', error.message);
+      // console.warn('Error closing database pool:', error.message);
     }
   }
   process.exit(0);
@@ -184,23 +184,23 @@ process.on('SIGINT', async () => {
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+  // console.error('Uncaught Exception:', error);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Zentro Homes server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
-  console.log(`🏥 Health check available at http://0.0.0.0:${PORT}/health`);
+  // console.log(`🚀 Zentro Homes server running on port ${PORT}`);
+  // console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  // console.log(`🔗 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
+  // console.log(`🏥 Health check available at http://0.0.0.0:${PORT}/health`);
 });
 
 server.on('error', (error) => {
-  console.error('Server error:', error);
+  // console.error('Server error:', error);
 });
 
 module.exports = app;

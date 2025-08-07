@@ -14,15 +14,15 @@ class ModernApartmentManager {
     detectGridId() {
         // Priority order: featured-apartments-grid (index page) -> apartments-grid (legacy)
         if (document.getElementById('featured-apartments-grid')) {
-            console.log('🎯 ModernApartmentManager: Using featured-apartments-grid');
+            // console.log('🎯 ModernApartmentManager: Using featured-apartments-grid');
             return 'featured-apartments-grid';
         }
         if (document.getElementById('apartments-grid')) {
-            console.log('🎯 ModernApartmentManager: Using apartments-grid');
+            // console.log('🎯 ModernApartmentManager: Using apartments-grid');
             return 'apartments-grid';
         }
         
-        console.warn('⚠️ ModernApartmentManager: No compatible grid found, defaulting to apartments-grid');
+        // console.warn('⚠️ ModernApartmentManager: No compatible grid found, defaulting to apartments-grid');
         return 'apartments-grid';
     }
 
@@ -39,14 +39,14 @@ class ModernApartmentManager {
         return new Promise((resolve) => {
             // Check if already ready
             if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
-                console.log('✅ Modern Apartments: Railway data manager already ready');
+                // console.log('✅ Modern Apartments: Railway data manager already ready');
                 resolve(true);
                 return;
             }
 
             // Listen for ready event (no timeout, wait for actual completion)
             const handleReady = (event) => {
-                console.log('✅ Modern Apartments: Railway data manager ready event received', event.detail);
+                // console.log('✅ Modern Apartments: Railway data manager ready event received', event.detail);
                 window.removeEventListener('railwayDataManagerReady', handleReady);
                 resolve(true);
             };
@@ -56,7 +56,7 @@ class ModernApartmentManager {
             // Also poll every 200ms for faster detection
             const pollInterval = setInterval(() => {
                 if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
-                    console.log('✅ Modern Apartments: Railway data manager ready via polling');
+                    // console.log('✅ Modern Apartments: Railway data manager ready via polling');
                     clearInterval(pollInterval);
                     window.removeEventListener('railwayDataManagerReady', handleReady);
                     resolve(true);
@@ -72,7 +72,7 @@ class ModernApartmentManager {
 
     async loadApartments() {
         try {
-            console.log('🕐 Modern Apartments: Starting to load apartments...');
+            // console.log('🕐 Modern Apartments: Starting to load apartments...');
             
             // Always wait for Railway data manager to be ready (no timeout)
             await this.waitForRailwayDataReady();
@@ -82,21 +82,21 @@ class ModernApartmentManager {
             
             // If no apartments loaded from Railway, use fallback data as last resort
             if (!this.apartments || this.apartments.length === 0) {
-                console.log('⚠️ No apartments from Railway, using fallback data');
+                // console.log('⚠️ No apartments from Railway, using fallback data');
                 this.apartments = this.createFallbackData();
             }
             
             this.filteredApartments = [...this.apartments];
             this.isLoading = false;
             
-            console.log(`📦 Modern Apartments: ${this.apartments.length} apartments ready for display`);
+            // console.log(`📦 Modern Apartments: ${this.apartments.length} apartments ready for display`);
         } catch (error) {
-            console.error('❌ Error loading apartments:', error);
+            // console.error('❌ Error loading apartments:', error);
             // Only use static fallback on actual errors
             this.apartments = this.createFallbackData();
             this.filteredApartments = [...this.apartments];
             this.isLoading = false;
-            console.log('⚠️ Modern Apartments: Using fallback data due to error');
+            // console.log('⚠️ Modern Apartments: Using fallback data due to error');
         }
     }
 
@@ -241,13 +241,13 @@ class ModernApartmentManager {
         // Priority 1: Use local storage path for thumbnail if propertyId is provided
         if (propertyId) {
             const localImagePath = `/uploads/${propertyId}/Img_1.jpg`;
-            console.log(`🔍 getImageUrl: Using local storage path for property ${propertyId}: ${localImagePath}`);
+            // console.log(`🔍 getImageUrl: Using local storage path for property ${propertyId}: ${localImagePath}`);
             return window.location.origin + localImagePath;
         }
         
         // Priority 2: Check if imageData contains local storage paths with Img_X format
         if (imageData && typeof imageData === 'string' && imageData.includes('/uploads/') && imageData.includes('Img_')) {
-            console.log(`🔍 getImageUrl: Found local Img_X path: ${imageData}`);
+            // console.log(`🔍 getImageUrl: Found local Img_X path: ${imageData}`);
             if (!imageData.startsWith('http')) {
                 return window.location.origin + imageData;
             }
@@ -256,7 +256,7 @@ class ModernApartmentManager {
         
         // Priority 3: Handle object with url property that contains local Img_X paths
         if (imageData && imageData.url && imageData.url.includes('/uploads/') && imageData.url.includes('Img_')) {
-            console.log(`🔍 getImageUrl: Found local Img_X URL in object: ${imageData.url}`);
+            // console.log(`🔍 getImageUrl: Found local Img_X URL in object: ${imageData.url}`);
             if (!imageData.url.startsWith('http')) {
                 return window.location.origin + imageData.url;
             }
@@ -364,15 +364,15 @@ class ModernApartmentManager {
     renderApartments() {
         const apartmentsContainer = document.getElementById(this.targetGridId);
         if (!apartmentsContainer) {
-            console.error(`❌ ${this.targetGridId} container not found`);
+            // console.error(`❌ ${this.targetGridId} container not found`);
             return;
         }
 
-        console.log(`🎨 Rendering ${this.filteredApartments.length} apartments`);
+        // console.log(`🎨 Rendering ${this.filteredApartments.length} apartments`);
         
         // Debug: Log the first apartment data structure
         if (this.filteredApartments.length > 0) {
-            console.log('🔍 First apartment data structure:', this.filteredApartments[0]);
+            // console.log('🔍 First apartment data structure:', this.filteredApartments[0]);
         }
 
         // Change the class to property-grid for our new styling
@@ -397,7 +397,7 @@ class ModernApartmentManager {
         apartmentsContainer.innerHTML = this.filteredApartments.map(apartment => {
             // Priority 1: Use local storage thumbnail path (Img_1.jpg in property folder)
             let imageUrl = this.getImageUrl(null, apartment.id);
-            console.log(`🖼️ Featured Property ${apartment.id} (${apartment.title}) - Using local thumbnail: ${imageUrl}`);
+            // console.log(`🖼️ Featured Property ${apartment.id} (${apartment.title}) - Using local thumbnail: ${imageUrl}`);
             
             // Priority 2: If local thumbnail fails, try different image property structures from Railway API
             if (!imageUrl) {
@@ -421,14 +421,14 @@ class ModernApartmentManager {
                     imageUrl = this.getImageUrl(apartment.gallery_images[0]);
                 }
                 
-                console.log(`🔄 Featured Property ${apartment.id} - Fallback image URL: ${imageUrl}`);
+                // console.log(`🔄 Featured Property ${apartment.id} - Fallback image URL: ${imageUrl}`);
             }
             
             // Use Railway uploads placeholder if no image found
             const finalImageUrl = imageUrl || '/uploads/placeholder.jpg';
             
             // Debug: Log final image URL for verification
-            console.log(`✅ Featured Property ${apartment.id} - Final thumbnail URL: ${finalImageUrl}`);
+            // console.log(`✅ Featured Property ${apartment.id} - Final thumbnail URL: ${finalImageUrl}`);
             
             return `
       <div class="property-card" data-id="${apartment.id}" data-navigate-to="apartment-details" style="cursor: pointer;">
@@ -596,7 +596,7 @@ class ModernApartmentManager {
 
     setTargetGrid(gridId) {
         this.targetGridId = gridId;
-        console.log(`🎯 ModernApartmentManager target grid set to: ${gridId}`);
+        // console.log(`🎯 ModernApartmentManager target grid set to: ${gridId}`);
     }
 
     applySorting() {
@@ -753,7 +753,7 @@ class ModernApartmentManager {
             const propertyCard = event.target.closest('.property-card[data-navigate-to="apartment-details"]');
             if (propertyCard) {
                 const apartmentId = propertyCard.getAttribute('data-id');
-                console.log('🔗 Featured Apartments: Navigating to apartment details with ID:', apartmentId);
+                // console.log('🔗 Featured Apartments: Navigating to apartment details with ID:', apartmentId);
                 window.location.href = `apartment-details.html?id=${apartmentId}`;
             }
         };
@@ -762,7 +762,7 @@ class ModernApartmentManager {
     }
 
     viewApartment(id) {
-        console.log('🔗 Featured Apartments: Navigating to apartment details with ID:', id, typeof id);
+        // console.log('🔗 Featured Apartments: Navigating to apartment details with ID:', id, typeof id);
         window.location.href = `apartment-details.html?id=${id}`;
     }
 }
@@ -776,13 +776,13 @@ apartmentsData.apartments.forEach((apartment, index) => {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function () {
     // Debug current page info
-    console.log('🔍 ModernApartmentManager: Current page info:', {
-        pathname: window.location.pathname,
-        href: window.location.href,
-        hasAllApartmentsGrid: !!document.getElementById('all-apartments-grid'),
-        hasFeaturedApartmentsGrid: !!document.getElementById('featured-apartments-grid'),
-        hasRegularApartmentsGrid: !!document.getElementById('apartments-grid')
-    });
+    // console.log('🔍 ModernApartmentManager: Current page info:', {
+        // pathname: window.location.pathname,
+        // href: window.location.href,
+        // hasAllApartmentsGrid: !!document.getElementById('all-apartments-grid'),
+        // hasFeaturedApartmentsGrid: !!document.getElementById('featured-apartments-grid'),
+        // hasRegularApartmentsGrid: !!document.getElementById('apartments-grid')
+    // });
     
     // Don't initialize on all-properties page - it has its own AllPropertiesManager
     // Check multiple conditions to be sure
@@ -791,15 +791,15 @@ document.addEventListener('DOMContentLoaded', async function () {
                                document.getElementById('all-apartments-grid') !== null;
     
     if (isAllPropertiesPage) {
-        console.log('🚫 ModernApartmentManager: Skipping initialization on all-properties page');
+        // console.log('🚫 ModernApartmentManager: Skipping initialization on all-properties page');
         return;
     }
     
     // Only initialize for featured apartments (index page) or regular apartments grid
     if (document.getElementById('apartments-grid') || document.getElementById('featured-apartments-grid')) {
-        console.log('🚀 ModernApartmentManager: Initializing for featured apartments');
+        // console.log('🚀 ModernApartmentManager: Initializing for featured apartments');
         window.modernApartmentManager = new ModernApartmentManager();
     } else {
-        console.log('🚫 ModernApartmentManager: No compatible grid found, skipping initialization');
+        // console.log('🚫 ModernApartmentManager: No compatible grid found, skipping initialization');
     }
 });

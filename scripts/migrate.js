@@ -11,7 +11,7 @@ const pool = new Pool({
 
 async function runMigration() {
   try {
-    console.log('🚀 Starting Railway database migration...');
+    // console.log('🚀 Starting Railway database migration...');
     
     // Read the schema file
     const schemaPath = path.join(__dirname, '..', 'railway_database_schema_fixed.sql');
@@ -21,17 +21,17 @@ async function runMigration() {
     }
     
     const schema = fs.readFileSync(schemaPath, 'utf8');
-    console.log('📄 Schema file loaded successfully');
+    // console.log('📄 Schema file loaded successfully');
     
     // Connect to database
     const client = await pool.connect();
-    console.log('🔌 Connected to Railway PostgreSQL database');
+    // console.log('🔌 Connected to Railway PostgreSQL database');
     
     try {
       // Run the migration
-      console.log('⚡ Executing database schema...');
+      // console.log('⚡ Executing database schema...');
       await client.query(schema);
-      console.log('✅ Database schema created successfully');
+      // console.log('✅ Database schema created successfully');
       
       // Verify tables were created
       const tables = await client.query(`
@@ -41,9 +41,9 @@ async function runMigration() {
         ORDER BY table_name
       `);
       
-      console.log('\n📊 Created tables:');
+      // console.log('\n📊 Created tables:');
       tables.rows.forEach(row => {
-        console.log(`  - ${row.table_name}`);
+        // console.log(`  - ${row.table_name}`);
       });
       
       // Check if sample data was inserted
@@ -51,19 +51,19 @@ async function runMigration() {
       const contactsCount = await client.query('SELECT COUNT(*) FROM contact_inquiries');
       const adminCount = await client.query('SELECT COUNT(*) FROM admin_users');
       
-      console.log('\n📈 Data summary:');
-      console.log(`  - Properties: ${propertiesCount.rows[0].count}`);
-      console.log(`  - Contact inquiries: ${contactsCount.rows[0].count}`);
-      console.log(`  - Admin users: ${adminCount.rows[0].count}`);
+      // console.log('\n📈 Data summary:');
+      // console.log(`  - Properties: ${propertiesCount.rows[0].count}`);
+      // console.log(`  - Contact inquiries: ${contactsCount.rows[0].count}`);
+      // console.log(`  - Admin users: ${adminCount.rows[0].count}`);
       
     } finally {
       client.release();
     }
     
-    console.log('\n🎉 Migration completed successfully!');
+    // console.log('\n🎉 Migration completed successfully!');
     
   } catch (error) {
-    console.error('❌ Migration failed:', error);
+    // console.error('❌ Migration failed:', error);
     process.exit(1);
   } finally {
     await pool.end();

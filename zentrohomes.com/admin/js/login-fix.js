@@ -4,7 +4,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Override the admin login method if it exists
   if (window.zentroAdmin) {
-    console.log('🔧 Applying login fix for username authentication...');
+    // console.log('🔧 Applying login fix for username authentication...');
     
     // Store original method
     const originalHandleLogin = window.zentroAdmin.handleLogin;
@@ -67,6 +67,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     };
     
-    console.log('✅ Login fix applied successfully');
+    // console.log('✅ Login fix applied successfully');
   }
 });

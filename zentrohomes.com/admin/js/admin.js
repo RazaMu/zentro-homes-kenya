@@ -46,7 +46,7 @@ class ZentroAdminRailway {
     let attempts = 0;
     const maxAttempts = 50; // 5 seconds max wait
     
-    console.log('🔍 Admin: Waiting for Railway manager...');
+    // console.log('🔍 Admin: Waiting for Railway manager...');
     
     while (!window.railwayManager && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -58,7 +58,7 @@ class ZentroAdminRailway {
       this.properties = [...apartmentsData.apartments];
       this.filteredProperties = [...this.properties];
     } else {
-      console.log('✅ Admin: Connected to Railway database successfully');
+      // console.log('✅ Admin: Connected to Railway database successfully');
     }
   }
 
@@ -81,13 +81,13 @@ class ZentroAdminRailway {
           if (result.valid) {
             this.isLoggedIn = true;
             this.currentUser = result.admin;
-            console.log('✅ Admin authenticated:', this.currentUser.name);
+            // console.log('✅ Admin authenticated:', this.currentUser.name);
             return true;
           }
         }
       }
     } catch (error) {
-      console.log('🔑 Admin not authenticated');
+      // console.log('🔑 Admin not authenticated');
       localStorage.removeItem('admin_token'); // Clear invalid token
     }
     
@@ -174,10 +174,10 @@ class ZentroAdminRailway {
     document.addEventListener('click', (e) => {
       // Debug all clicks to see what's being clicked
       if (e.target.hasAttribute('data-action')) {
-        console.log('🖱️ DEBUG: Button clicked with data-action:', e.target.getAttribute('data-action'));
-        console.log('🖱️ DEBUG: Button element:', e.target);
-        console.log('🖱️ DEBUG: Button classes:', e.target.className);
-        console.log('🖱️ DEBUG: Property ID:', e.target.getAttribute('data-property-id'));
+        // console.log('🖱️ DEBUG: Button clicked with data-action:', e.target.getAttribute('data-action'));
+        // console.log('🖱️ DEBUG: Button element:', e.target);
+        // console.log('🖱️ DEBUG: Button classes:', e.target.className);
+        // console.log('🖱️ DEBUG: Property ID:', e.target.getAttribute('data-property-id'));
       }
       
       if (e.target.classList.contains('remove-image-btn')) {
@@ -190,13 +190,13 @@ class ZentroAdminRailway {
         const action = e.target.getAttribute('data-action');
         const propertyId = parseInt(e.target.getAttribute('data-property-id'));
         
-        console.log(`🎯 DEBUG: Action button clicked - Action: ${action}, Property ID: ${propertyId}`);
+        // console.log(`🎯 DEBUG: Action button clicked - Action: ${action}, Property ID: ${propertyId}`);
         
         if (action === 'edit') {
-          console.log('✏️ DEBUG: Calling editProperty for ID:', propertyId);
+          // console.log('✏️ DEBUG: Calling editProperty for ID:', propertyId);
           this.editProperty(propertyId);
         } else if (action === 'delete') {
-          console.log('🗑️ DEBUG: Calling deleteProperty for ID:', propertyId);
+          // console.log('🗑️ DEBUG: Calling deleteProperty for ID:', propertyId);
           this.deleteProperty(propertyId);
         }
       }
@@ -254,7 +254,7 @@ class ZentroAdminRailway {
         throw new Error(result.error || 'Login failed');
       }
     } catch (error) {
-      console.error('Login failed:', error);
+      // console.error('Login failed:', error);
       this.showNotification(error.message || 'Login failed. Please check your credentials.', 'error');
     } finally {
       this.setLoading(false);
@@ -298,7 +298,7 @@ class ZentroAdminRailway {
       
       this.showNotification('Logged out successfully', 'info');
     } catch (error) {
-      console.error('Logout error:', error);
+      // console.error('Logout error:', error);
       this.showNotification('Logout completed', 'info');
     }
   }
@@ -319,7 +319,7 @@ class ZentroAdminRailway {
       this.renderContactInquiries();
       
     } catch (error) {
-      console.error('Dashboard loading failed:', error);
+      // console.error('Dashboard loading failed:', error);
       this.showNotification('Failed to load dashboard data', 'error');
     } finally {
       this.setLoading(false);
@@ -331,7 +331,7 @@ class ZentroAdminRailway {
     try {
       const token = localStorage.getItem('admin_token');
       if (token) {
-        console.log('📧 Loading contact inquiries...');
+        // console.log('📧 Loading contact inquiries...');
         const response = await fetch('/api/admin/contacts', {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -342,11 +342,11 @@ class ZentroAdminRailway {
         if (response.ok) {
           const data = await response.json();
           this.contactInquiries = data.inquiries || [];
-          console.log(`✅ Loaded ${this.contactInquiries.length} inquiries`);
+          // console.log(`✅ Loaded ${this.contactInquiries.length} inquiries`);
         }
       }
     } catch (error) {
-      console.error('❌ Failed to load contact inquiries:', error);
+      // console.error('❌ Failed to load contact inquiries:', error);
       this.contactInquiries = [];
     }
   }
@@ -360,7 +360,7 @@ class ZentroAdminRailway {
   async loadPropertiesFromDatabase() {
     const token = localStorage.getItem('admin_token');
     if (!token) {
-      console.warn('No authentication token, using local data');
+      // console.warn('No authentication token, using local data');
       this.properties = [...apartmentsData.apartments];
       this.filteredProperties = [...this.properties];
       return;
@@ -380,12 +380,12 @@ class ZentroAdminRailway {
         const data = await response.json();
         this.properties = data.properties || [];
         this.filteredProperties = [...this.properties];
-        console.log(`✅ Loaded ${this.properties.length} properties from database`);
+        // console.log(`✅ Loaded ${this.properties.length} properties from database`);
       } else {
         throw new Error('Failed to load properties');
       }
     } catch (error) {
-      console.error('Error loading properties:', error);
+      // console.error('Error loading properties:', error);
       this.showNotification('Failed to load properties from database', 'error');
       // Fallback to local data
       this.properties = [...apartmentsData.apartments];
@@ -532,18 +532,18 @@ class ZentroAdminRailway {
   }
 
   openPropertyModal(property = null) {
-    console.log('🎬 DEBUG: Opening property modal for:', property ? `editing "${property.title}"` : 'new property');
+    // console.log('🎬 DEBUG: Opening property modal for:', property ? `editing "${property.title}"` : 'new property');
     
     const modal = document.getElementById('property-modal');
     const modalTitle = document.getElementById('modal-title');
     const form = document.getElementById('property-form');
 
     if (!modal || !modalTitle || !form) {
-      console.error('❌ DEBUG: Modal elements not found:', {
-        modal: !!modal,
-        modalTitle: !!modalTitle,
-        form: !!form
-      });
+      // console.error('❌ DEBUG: Modal elements not found:', {
+      //   modal: !!modal,
+      //   modalTitle: !!modalTitle,
+      //   form: !!form
+      // });
       this.showNotification('Error: Modal elements not found', 'error');
       return;
     }
@@ -556,7 +556,7 @@ class ZentroAdminRailway {
     modal.classList.add('flex');
     document.body.style.overflow = 'hidden';
     
-    console.log('🎬 DEBUG: Modal is now visible');
+    // console.log('🎬 DEBUG: Modal is now visible');
 
     if (property) {
       modalTitle.textContent = 'Edit Property';
@@ -564,22 +564,22 @@ class ZentroAdminRailway {
       
       // Wait for modal to be fully rendered before populating
       setTimeout(() => {
-        console.log('🎯 DEBUG: Starting form population after modal render...');
+        // console.log('🎯 DEBUG: Starting form population after modal render...');
         this.populatePropertyForm(property);
       }, 50);
     } else {
       modalTitle.textContent = 'Add Property';
       this.currentEditingId = null;
       form.reset();
-      console.log('📝 DEBUG: Form reset for new property');
+      // console.log('📝 DEBUG: Form reset for new property');
     }
     
     // Bind media upload events after modal is shown
     setTimeout(() => {
-      console.log('🎬 DEBUG: Binding media events for Railway modal...');
+      // console.log('🎬 DEBUG: Binding media events for Railway modal...');
       this.bindMultipleImageEvents();
       this.bindYouTubeEvents();
-      console.log('✅ DEBUG: Media events bound for Railway modal');
+      // console.log('✅ DEBUG: Media events bound for Railway modal');
     }, 200);
   }
 
@@ -599,17 +599,17 @@ class ZentroAdminRailway {
   }
 
   populatePropertyForm(property) {
-    console.log('🎯 DEBUG: Starting form population for property:', property.title);
-    console.log('🎯 DEBUG: Full property data:', property);
+    // console.log('🎯 DEBUG: Starting form population for property:', property.title);
+    // console.log('🎯 DEBUG: Full property data:', property);
     
     // Test if modal is open and form exists
     const modal = document.getElementById('property-modal');
     const form = document.getElementById('property-form');
-    console.log('🎯 DEBUG: Modal visible:', !modal?.classList.contains('hidden'));
-    console.log('🎯 DEBUG: Form exists:', !!form);
+    // console.log('🎯 DEBUG: Modal visible:', !modal?.classList.contains('hidden'));
+    // console.log('🎯 DEBUG: Form exists:', !!form);
     
     // Populate basic form fields
-    console.log('📝 DEBUG: Populating basic fields...');
+    // console.log('📝 DEBUG: Populating basic fields...');
     this.setFormValue('property-title', property.title);
     this.setFormValue('property-type', property.type);
     this.setFormValue('property-status', property.status);
@@ -617,26 +617,26 @@ class ZentroAdminRailway {
     this.setFormValue('property-currency', property.currency || 'KES');
     
     // Location fields (flat structure from database)
-    console.log('📍 DEBUG: Populating location fields...');
+    // console.log('📍 DEBUG: Populating location fields...');
     this.setFormValue('property-area', property.location_area);
     this.setFormValue('property-city', property.location_city);
     this.setFormValue('property-country', property.location_country || 'Kenya');
     
     // Handle coordinates - check both formats
-    console.log('🗺️ DEBUG: Processing coordinates...');
+    // console.log('🗺️ DEBUG: Processing coordinates...');
     if (property.coordinates_lat && property.coordinates_lng) {
-      console.log('   - Using separate lat/lng fields:', property.coordinates_lat, property.coordinates_lng);
+      // console.log('   - Using separate lat/lng fields:', property.coordinates_lat, property.coordinates_lng);
       this.setFormValue('property-coordinates-lat', property.coordinates_lat);
       this.setFormValue('property-coordinates-lng', property.coordinates_lng);
     } else if (property.coordinates) {
-      console.log('   - Parsing coordinates string:', property.coordinates);
+      // console.log('   - Parsing coordinates string:', property.coordinates);
       const coords = property.coordinates.split(',');
       this.setFormValue('property-coordinates-lat', coords[0]?.trim());
       this.setFormValue('property-coordinates-lng', coords[1]?.trim());
     }
     
     // Features (flat structure from database)
-    console.log('🏠 DEBUG: Populating feature fields...');
+    // console.log('🏠 DEBUG: Populating feature fields...');
     this.setFormValue('property-bedrooms', property.bedrooms);
     this.setFormValue('property-bathrooms', property.bathrooms);
     this.setFormValue('property-parking', property.parking || 0);
@@ -644,17 +644,17 @@ class ZentroAdminRailway {
     this.setFormValue('property-size-unit', property.size_unit || 'm²');
     
     // Additional details
-    console.log('📋 DEBUG: Populating additional details...');
+    // console.log('📋 DEBUG: Populating additional details...');
     this.setFormValue('property-year-built', property.year_built);
     this.setFormValue('property-furnished', property.furnished === true ? 'true' : 'false');
     
     // Content
-    console.log('📄 DEBUG: Populating content fields...');
+    // console.log('📄 DEBUG: Populating content fields...');
     this.setFormValue('property-description', property.description);
     this.setFormValue('property-short-description', property.short_description);
     
     // Handle amenities - check different formats
-    console.log('🎯 DEBUG: Processing amenities...');
+    // console.log('🎯 DEBUG: Processing amenities...');
     let amenitiesValue = '';
     if (property.amenities) {
       if (typeof property.amenities === 'string') {
@@ -662,30 +662,30 @@ class ZentroAdminRailway {
       } else if (Array.isArray(property.amenities)) {
         amenitiesValue = property.amenities.join(', ');
       } else {
-        console.log('   - Amenities in unexpected format:', typeof property.amenities, property.amenities);
+        // console.log('   - Amenities in unexpected format:', typeof property.amenities, property.amenities);
         amenitiesValue = JSON.stringify(property.amenities);
       }
     }
-    console.log('   - Final amenities value:', amenitiesValue);
+    // console.log('   - Final amenities value:', amenitiesValue);
     this.setFormValue('property-amenities', amenitiesValue);
     
     // Status fields
-    console.log('🎛️ DEBUG: Populating status fields...');
+    // console.log('🎛️ DEBUG: Populating status fields...');
     this.setFormValue('property-available', property.available !== false ? 'true' : 'false');
     this.setFormValue('property-featured', property.featured === true ? 'true' : 'false');
     this.setFormValue('property-published', property.published !== false ? 'true' : 'false');
     
     // Media URLs - check multiple possible field names
-    console.log('🎬 DEBUG: Populating media URLs...');
-    console.log('   - Raw youtube_url:', property.youtube_url);
-    console.log('   - Raw virtual_tour_url:', property.virtual_tour_url);
+    // console.log('🎬 DEBUG: Populating media URLs...');
+    // console.log('   - Raw youtube_url:', property.youtube_url);
+    // console.log('   - Raw virtual_tour_url:', property.virtual_tour_url);
     
     // Handle YouTube URL - check different possible field names
     let youtubeUrl = property.youtube_url || property.youtubeUrl || property.youtube || '';
     let virtualTourUrl = property.virtual_tour_url || property.virtualTourUrl || property.virtual_tour || '';
     
-    console.log('   - Final YouTube URL:', youtubeUrl);
-    console.log('   - Final Virtual Tour URL:', virtualTourUrl);
+    // console.log('   - Final YouTube URL:', youtubeUrl);
+    // console.log('   - Final Virtual Tour URL:', virtualTourUrl);
     
     this.setFormValue('property-youtube-url', youtubeUrl);
     this.setFormValue('property-virtual-tour-url', virtualTourUrl);
@@ -694,20 +694,20 @@ class ZentroAdminRailway {
     this.clearAllMedia();
 
     // Show existing images in preview (for reference, but don't add to selectedMedia)
-    console.log('🖼️ DEBUG: Showing existing images...');
+    // console.log('🖼️ DEBUG: Showing existing images...');
     this.showExistingImages(property);
     
     // Populate YouTube URL if exists
     if (youtubeUrl) {
       this.selectedMedia.youtubeUrl = youtubeUrl;
-      console.log('   - Set YouTube URL in selectedMedia:', youtubeUrl);
+      // console.log('   - Set YouTube URL in selectedMedia:', youtubeUrl);
     }
     
-    console.log('✅ DEBUG: Property form population completed for:', property.title);
+    // console.log('✅ DEBUG: Property form population completed for:', property.title);
     
     // Verify form population after a short delay
     setTimeout(() => {
-      console.log('🔍 DEBUG: Verifying form population...');
+      // console.log('🔍 DEBUG: Verifying form population...');
       this.verifyFormPopulation();
     }, 100);
   }
@@ -718,12 +718,12 @@ class ZentroAdminRailway {
     if (element) {
       if (value !== null && value !== undefined) {
         element.value = value;
-        console.log(`   ✅ Set ${id} = "${value}"`);
+        // console.log(`   ✅ Set ${id} = "${value}"`);
       } else {
-        console.log(`   ⚠️ Skipped ${id} (value is null/undefined)`);
+        // console.log(`   ⚠️ Skipped ${id} (value is null/undefined)`);
       }
     } else {
-      console.error(`   ❌ Element not found: ${id}`);
+      // console.error(`   ❌ Element not found: ${id}`);
     }
   }
 
@@ -735,13 +735,13 @@ class ZentroAdminRailway {
       'property-size', 'property-description'
     ];
     
-    console.log('🔍 DEBUG: Form verification results:');
+    // console.log('🔍 DEBUG: Form verification results:');
     fieldsToCheck.forEach(fieldId => {
       const element = document.getElementById(fieldId);
       if (element) {
-        console.log(`   ${fieldId}: "${element.value}" (${element.value ? '✅' : '❌'})`);
+        // console.log(`   ${fieldId}: "${element.value}" (${element.value ? '✅' : '❌'})`);
       } else {
-        console.log(`   ${fieldId}: Element not found (❌)`);
+        // console.log(`   ${fieldId}: Element not found (❌)`);
       }
     });
   }
@@ -757,25 +757,25 @@ class ZentroAdminRailway {
     // Handle JSONB images array from database
     let propertyImages = [];
     
-    console.log('🖼️ DEBUG: Processing images for edit modal, raw images:', property.images);
+    // console.log('🖼️ DEBUG: Processing images for edit modal, raw images:', property.images);
     
     // Parse images from JSONB array structure
     if (property.images && Array.isArray(property.images)) {
       propertyImages = property.images;
-      console.log('🖼️ DEBUG: Using array format, count:', propertyImages.length);
+      // console.log('🖼️ DEBUG: Using array format, count:', propertyImages.length);
     } else if (property.images && typeof property.images === 'string') {
       try {
         propertyImages = JSON.parse(property.images);
-        console.log('🖼️ DEBUG: Parsed JSON string, count:', propertyImages.length);
+        // console.log('🖼️ DEBUG: Parsed JSON string, count:', propertyImages.length);
       } catch (e) {
-        console.warn('Failed to parse images JSON:', e);
+        // console.warn('Failed to parse images JSON:', e);
         propertyImages = [];
       }
     }
     
     // Show existing images from JSONB array
     if (propertyImages && propertyImages.length > 0) {
-      console.log('🖼️ DEBUG: Generating HTML for', propertyImages.length, 'images');
+      // console.log('🖼️ DEBUG: Generating HTML for', propertyImages.length, 'images');
       
       propertyImages.forEach((imageObj, index) => {
         const imageUrl = imageObj.url || imageObj;
@@ -783,7 +783,7 @@ class ZentroAdminRailway {
         
         // Check for slow base64 images
         if (imageUrl && imageUrl.startsWith('data:')) {
-          console.warn(`🐌 MODAL SLOW: Edit modal showing base64 image ${index + 1} (${Math.round(imageUrl.length / 1024)}KB)`);
+          // console.warn(`🐌 MODAL SLOW: Edit modal showing base64 image ${index + 1} (${Math.round(imageUrl.length / 1024)}KB)`);
         }
         
         existingImagesHtml += `
@@ -791,8 +791,8 @@ class ZentroAdminRailway {
             <img src="${imageUrl}" alt="Current ${isPrimary ? 'main' : 'gallery'} image" 
                  class="w-full h-24 object-cover rounded-lg loading-shimmer transition-opacity duration-300"
                  loading="lazy"
-                 onload="this.classList.remove('loading-shimmer'); console.log('✅ Modal image ${index + 1} loaded');"
-                 onerror="console.warn('❌ Modal image ${index + 1} failed:', this.src); this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjBGMkY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg0NFY0NEgyMFYyMFoiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CjxjaXJjbGUgY3g9IjI2IiBjeT0iMjgiIHI9IjMiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDM2TDI4IDI4TDM2IDM2TDQ0IDI4VjQ0SDIwVjM2WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'">
+                 onload="this.classList.remove('loading-shimmer'); /* console.log('✅ Modal image ${index + 1} loaded'); */"
+                 onerror="/* console.warn('❌ Modal image ${index + 1} failed:', this.src); */ this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjBGMkY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg0NFY0NEgyMFYyMFoiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CjxjaXJjbGUgY3g9IjI2IiBjeT0iMjgiIHI9IjMiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDM2TDI4IDI4TDM2IDM2TDQ0IDI4VjQ0SDIwVjM2WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'">
             <div class="absolute top-2 left-2 ${isPrimary ? 'bg-blue-500' : 'bg-gray-600'} text-white text-xs px-2 py-1 rounded-full">
               ${isPrimary ? 'Current Main' : `Gallery ${index + 1}`}
             </div>
@@ -803,7 +803,7 @@ class ZentroAdminRailway {
         `;
       });
     } else if (property.main_image) {
-      console.log('🖼️ DEBUG: Using fallback main_image:', property.main_image.substring(0, 50) + '...');
+      // console.log('🖼️ DEBUG: Using fallback main_image:', property.main_image.substring(0, 50) + '...');
       
       // Fallback: show main_image if no JSONB images array
       existingImagesHtml += `
@@ -811,8 +811,8 @@ class ZentroAdminRailway {
           <img src="${property.main_image}" alt="Current main image" 
                class="w-full h-24 object-cover rounded-lg loading-shimmer transition-opacity duration-300"
                loading="lazy"
-               onload="this.classList.remove('loading-shimmer'); console.log('✅ Modal main image loaded');"
-               onerror="console.warn('❌ Modal main image failed:', this.src); this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjBGMkY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg0NFY0NEgyMFYyMFoiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CjxjaXJjbGUgY3g9IjI2IiBjeT0iMjgiIHI9IjMiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDM2TDI4IDI4TDM2IDM2TDQ0IDI4VjQ0SDIwVjM2WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K'">
+               onload="this.classList.remove('loading-shimmer'); /* console.log('✅ Modal main image loaded'); */"
+               onerror="/* console.warn('❌ Modal main image failed:', this.src); */ this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjBGMkY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg0NFY0NEgyMFYyMFoiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CjxjaXJjbGUgY3g9IjI2IiBjeT0iMjgiIHI9IjMiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTIwIDM2TDI4IDI4TDM2IDM2TDQ0IDI4VjQ0SDIwVjM2WiIgZmlsbD0iIjlDQTNBRiIvPgo8L3N2Zz4K'">
           <div class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Current Main</div>
           <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
             <span class="text-white text-xs">Upload new images to replace</span>
@@ -825,7 +825,7 @@ class ZentroAdminRailway {
 
     if (existingImagesHtml) {
       imagesPreview.innerHTML = existingImagesHtml;
-      console.log(`✅ DEBUG: Modal displayed ${propertyImages.length || 1} existing images in ${processingTime.toFixed(2)}ms`);
+      // console.log(`✅ DEBUG: Modal displayed ${propertyImages.length || 1} existing images in ${processingTime.toFixed(2)}ms`);
     } else {
       imagesPreview.innerHTML = `
         <div class="text-center py-8 text-gray-500">
@@ -836,7 +836,7 @@ class ZentroAdminRailway {
           <p class="text-xs">Upload new images below</p>
         </div>
       `;
-      console.log(`📭 DEBUG: Modal showing no images placeholder in ${processingTime.toFixed(2)}ms`);
+      // console.log(`📭 DEBUG: Modal showing no images placeholder in ${processingTime.toFixed(2)}ms`);
     }
   }
 
@@ -1000,27 +1000,27 @@ class ZentroAdminRailway {
       const isEditing = this.currentEditingId && this.currentEditingId !== 'new';
       let imagesToSave = [];
       
-      console.log('💾 DEBUG: Save property - isEditing:', isEditing);
-      console.log('💾 DEBUG: New images selected:', this.selectedMedia.images.length);
+      // console.log('💾 DEBUG: Save property - isEditing:', isEditing);
+      // console.log('💾 DEBUG: New images selected:', this.selectedMedia.images.length);
       
       // Handle images intelligently based on edit vs new
       if (isEditing) {
         // For editing: preserve existing images if no new ones uploaded
         if (this.selectedMedia.images && this.selectedMedia.images.length > 0) {
-          console.log('📸 DEBUG: Processing new images for edited property...');
+          // console.log('📸 DEBUG: Processing new images for edited property...');
           // Clean up old images first
           await this.cleanupPropertyImages(this.currentEditingId);
           const mediaData = await this.processMediaUploads(this.currentEditingId);
           imagesToSave = mediaData.images || [];
         } else {
-          console.log('📸 DEBUG: No new images - preserving existing images...');
+          // console.log('📸 DEBUG: No new images - preserving existing images...');
           // Get existing images from current property data
           const existingProperty = await this.getCurrentPropertyData();
           imagesToSave = existingProperty?.images || [];
-          console.log('📸 DEBUG: Preserved images count:', imagesToSave.length);
+          // console.log('📸 DEBUG: Preserved images count:', imagesToSave.length);
         }
       } else {
-        console.log('📸 DEBUG: New property - processing uploaded images...');
+        // console.log('📸 DEBUG: New property - processing uploaded images...');
         // For new properties, we'll need to handle the property ID after creation
         const tempPropertyId = Date.now(); // Temporary ID for new properties
         const mediaData = await this.processMediaUploads(tempPropertyId);
@@ -1057,7 +1057,7 @@ class ZentroAdminRailway {
         virtual_tour_url: formData.virtualTourUrl || formData.youtubeUrl || null
       };
 
-      console.log('💾 DEBUG: Final payload images count:', propertyPayload.images.length);
+      // console.log('💾 DEBUG: Final payload images count:', propertyPayload.images.length);
 
       const endpoint = isEditing 
         ? `/api/admin/properties/${this.currentEditingId}`
@@ -1090,7 +1090,7 @@ class ZentroAdminRailway {
       this.updateDashboard();
       
     } catch (error) {
-      console.error('Error saving property to Railway:', error);
+      // console.error('Error saving property to Railway:', error);
       this.showNotification('Error saving property: ' + error.message, 'error');
     } finally {
       this.setLoading(false);
@@ -1114,11 +1114,11 @@ class ZentroAdminRailway {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('📡 DEBUG: Fetched existing property for image preservation:', data.property?.title);
+        // console.log('📡 DEBUG: Fetched existing property for image preservation:', data.property?.title);
         return data.property;
       }
     } catch (error) {
-      console.error('Error fetching current property data:', error);
+      // console.error('Error fetching current property data:', error);
     }
     
     return null;
@@ -1130,18 +1130,18 @@ class ZentroAdminRailway {
     const imagesInput = document.getElementById('images-input');
     const imagesPreview = document.getElementById('images-preview');
 
-    console.log('Binding Railway image events...', {
-      imagesDropZone: !!imagesDropZone,
-      imagesInput: !!imagesInput,
-      imagesPreview: !!imagesPreview
-    });
+    // console.log('Binding Railway image events...', {
+    //   imagesDropZone: !!imagesDropZone,
+    //   imagesInput: !!imagesInput,
+    //   imagesPreview: !!imagesPreview
+    // });
 
     if (!imagesDropZone || !imagesInput || !imagesPreview) {
-      console.error('Image elements not found:', {
-        imagesDropZone: !!imagesDropZone,
-        imagesInput: !!imagesInput,
-        imagesPreview: !!imagesPreview
-      });
+      // console.error('Image elements not found:', {
+      //   imagesDropZone: !!imagesDropZone,
+      //   imagesInput: !!imagesInput,
+      //   imagesPreview: !!imagesPreview
+      // });
       return;
     }
 
@@ -1157,7 +1157,7 @@ class ZentroAdminRailway {
 
     // Click to browse files
     cleanImagesDropZone.addEventListener('click', (e) => {
-      console.log('Railway images drop zone clicked!');
+      // console.log('Railway images drop zone clicked!');
       e.preventDefault();
       cleanImagesInput.click();
     });
@@ -1201,7 +1201,7 @@ class ZentroAdminRailway {
     // Update preview
     this.renderMultipleImagesPreview();
     
-    console.log(`Selected ${files.length} images for Railway storage. Total: ${this.selectedMedia.images.length}`);
+    // console.log(`Selected ${files.length} images for Railway storage. Total: ${this.selectedMedia.images.length}`);
   }
 
   // Render preview for multiple images  
@@ -1245,7 +1245,7 @@ class ZentroAdminRailway {
     if (index >= 0 && index < this.selectedMedia.images.length) {
       const removedFile = this.selectedMedia.images.splice(index, 1)[0];
       this.renderMultipleImagesPreview();
-      console.log(`Removed image: ${removedFile.name}. Remaining: ${this.selectedMedia.images.length}`);
+      // console.log(`Removed image: ${removedFile.name}. Remaining: ${this.selectedMedia.images.length}`);
     }
   }
 
@@ -1253,19 +1253,19 @@ class ZentroAdminRailway {
   bindYouTubeEvents() {
     const youtubeInput = document.getElementById('property-youtube-url');
 
-    console.log('Binding Railway YouTube URL events...', {
-      youtubeInput: !!youtubeInput
-    });
+    // console.log('Binding Railway YouTube URL events...', {
+    //   youtubeInput: !!youtubeInput
+    // });
 
     if (!youtubeInput) {
-      console.error('YouTube URL input not found');
+      // console.error('YouTube URL input not found');
       return;
     }
 
     // Handle YouTube URL input changes
     youtubeInput.addEventListener('input', (e) => {
       this.selectedMedia.youtubeUrl = e.target.value;
-      console.log('YouTube URL updated for Railway:', this.selectedMedia.youtubeUrl);
+      // console.log('YouTube URL updated for Railway:', this.selectedMedia.youtubeUrl);
     });
 
     // Validate YouTube URL on blur
@@ -1277,7 +1277,7 @@ class ZentroAdminRailway {
       }
     });
 
-    console.log('✅ Railway YouTube URL events bound successfully');
+    // console.log('✅ Railway YouTube URL events bound successfully');
   }
 
   // Validate YouTube URL
@@ -1291,7 +1291,7 @@ class ZentroAdminRailway {
     const isEditing = this.currentEditingId && this.currentEditingId !== 'new';
     const hasNewImages = this.selectedMedia.images && this.selectedMedia.images.length > 0;
     
-    console.log('🔍 DEBUG: Media validation - isEditing:', isEditing, 'hasNewImages:', hasNewImages);
+    // console.log('🔍 DEBUG: Media validation - isEditing:', isEditing, 'hasNewImages:', hasNewImages);
     
     // For new properties, require at least one image
     if (!isEditing) {
@@ -1300,7 +1300,7 @@ class ZentroAdminRailway {
       }
     }
     // For existing properties, images are optional (keep existing if none uploaded)
-    console.log('✅ Railway media validation passed');
+    // console.log('✅ Railway media validation passed');
     return true;
   }
 
@@ -1318,7 +1318,7 @@ class ZentroAdminRailway {
 
     // Process multiple images - store locally with Img_X naming
     if (this.selectedMedia.images && this.selectedMedia.images.length > 0) {
-      console.log(`📸 Processing ${this.selectedMedia.images.length} images for local storage...`);
+      // console.log(`📸 Processing ${this.selectedMedia.images.length} images for local storage...`);
       
       for (let i = 0; i < this.selectedMedia.images.length; i++) {
         const imageFile = this.selectedMedia.images[i];
@@ -1337,16 +1337,16 @@ class ZentroAdminRailway {
 
         mediaData.images.push(imageData);
       }
-      console.log(`✅ Processed ${this.selectedMedia.images.length} images for local storage`);
+      // console.log(`✅ Processed ${this.selectedMedia.images.length} images for local storage`);
     } else {
-      console.log('📸 No new images to process for local storage');
+      // console.log('📸 No new images to process for local storage');
     }
 
     // YouTube URL is already stored in mediaData.youtubeUrl
     if (mediaData.youtubeUrl) {
-      console.log(`🎬 YouTube URL set: ${mediaData.youtubeUrl}`);
+      // console.log(`🎬 YouTube URL set: ${mediaData.youtubeUrl}`);
     } else {
-      console.log('🎬 No YouTube URL provided');
+      // console.log('🎬 No YouTube URL provided');
     }
 
     return mediaData;
@@ -1355,7 +1355,7 @@ class ZentroAdminRailway {
   // Save images locally with Img_X naming convention
   async saveToLocalStorage(file, fileType = 'image', propertyId, imageIndex) {
     try {
-      console.log(`📁 Saving ${file.name} locally for property ${propertyId}...`);
+      // console.log(`📁 Saving ${file.name} locally for property ${propertyId}...`);
       
       const token = localStorage.getItem('admin_token');
       if (!token) {
@@ -1388,19 +1388,19 @@ class ZentroAdminRailway {
       }
 
       const result = await response.json();
-      console.log(`✅ File ${file.name} saved locally as ${newFileName}:`, result.url);
+      // console.log(`✅ File ${file.name} saved locally as ${newFileName}:`, result.url);
       
       return result.url; // Returns the local file path
       
     } catch (error) {
-      console.error('Error saving file locally:', error);
+      // console.error('Error saving file locally:', error);
       
       // Fallback: Convert to base64 data URL for temporary display
-      console.log('⚠️ Falling back to base64 storage for', file.name);
+      // console.log('⚠️ Falling back to base64 storage for', file.name);
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
-          console.log(`📸 File ${file.name} converted to base64 for display`);
+          // console.log(`📸 File ${file.name} converted to base64 for display`);
           resolve(reader.result); // Returns data URL
         };
         reader.readAsDataURL(file);
@@ -1413,11 +1413,11 @@ class ZentroAdminRailway {
     try {
       const token = localStorage.getItem('admin_token');
       if (!token) {
-        console.warn('⚠️ No authentication token - skipping image cleanup');
+        // console.warn('⚠️ No authentication token - skipping image cleanup');
         return;
       }
 
-      console.log(`🗑️ Cleaning up images for property ${propertyId}...`);
+      // console.log(`🗑️ Cleaning up images for property ${propertyId}...`);
       
       const response = await fetch(`/api/admin/properties/${propertyId}/images`, {
         method: 'DELETE',
@@ -1429,13 +1429,13 @@ class ZentroAdminRailway {
 
       if (response.ok) {
         const result = await response.json();
-        console.log(`✅ Successfully cleaned up images for property ${propertyId}`);
+        // console.log(`✅ Successfully cleaned up images for property ${propertyId}`);
       } else {
         const errorData = await response.json();
-        console.warn(`⚠️ Failed to cleanup images: ${errorData.message}`);
+        // console.warn(`⚠️ Failed to cleanup images: ${errorData.message}`);
       }
     } catch (error) {
-      console.warn('⚠️ Error during image cleanup (continuing with upload):', error.message);
+      // console.warn('⚠️ Error during image cleanup (continuing with upload):', error.message);
     }
   }
 
@@ -1466,7 +1466,7 @@ class ZentroAdminRailway {
         throw new Error('Failed to filter properties');
       }
     } catch (error) {
-      console.error('Error filtering properties:', error);
+      // console.error('Error filtering properties:', error);
       this.showNotification('Error filtering properties', 'error');
     } finally {
       this.setLoading(false);
@@ -1511,7 +1511,7 @@ class ZentroAdminRailway {
         throw new Error('Failed to search properties');
       }
     } catch (error) {
-      console.error('Error searching properties:', error);
+      // console.error('Error searching properties:', error);
       this.showNotification('Error searching properties', 'error');
     } finally {
       this.setLoading(false);
@@ -1520,7 +1520,7 @@ class ZentroAdminRailway {
 
   renderProperties() {
     const renderStart = performance.now();
-    console.log('🔄 DEBUG: Starting renderProperties with', this.filteredProperties.length, 'properties');
+    // console.log('🔄 DEBUG: Starting renderProperties with', this.filteredProperties.length, 'properties');
     
     const container = document.getElementById('properties-list');
 
@@ -1558,7 +1558,7 @@ class ZentroAdminRailway {
     });
     
     const imageProcessingTime = performance.now() - imageProcessingStart;
-    console.log(`🖼️ DEBUG: Image processing for ${this.filteredProperties.length} properties took ${imageProcessingTime.toFixed(2)}ms`);
+    // console.log(`🖼️ DEBUG: Image processing for ${this.filteredProperties.length} properties took ${imageProcessingTime.toFixed(2)}ms`);
 
     const htmlGenerationStart = performance.now();
 
@@ -1615,22 +1615,22 @@ class ZentroAdminRailway {
     const totalRenderTime = performance.now() - renderStart;
     const htmlGenerationTime = performance.now() - htmlGenerationStart;
     
-    console.log(`⏱️ DEBUG: Render timing breakdown:`);
-    console.log(`   - Image processing: ${imageProcessingTime.toFixed(2)}ms`);
-    console.log(`   - HTML generation: ${htmlGenerationTime.toFixed(2)}ms`);
-    console.log(`   - Total render time: ${totalRenderTime.toFixed(2)}ms`);
+    // console.log(`⏱️ DEBUG: Render timing breakdown:`);
+    // console.log(`   - Image processing: ${imageProcessingTime.toFixed(2)}ms`);
+    // console.log(`   - HTML generation: ${htmlGenerationTime.toFixed(2)}ms`);
+    // console.log(`   - Total render time: ${totalRenderTime.toFixed(2)}ms`);
     
     if (totalRenderTime > 100) {
-      console.warn(`🐌 SLOW RENDER: Properties took ${totalRenderTime.toFixed(2)}ms to render (>100ms)`);
+      // console.warn(`🐌 SLOW RENDER: Properties took ${totalRenderTime.toFixed(2)}ms to render (>100ms)`);
     }
   }
 
   async editProperty(id) {
     try {
-      console.log(`🔧 DEBUG: Editing property with ID: ${id}`);
+      // console.log(`🔧 DEBUG: Editing property with ID: ${id}`);
       
       // ALWAYS fetch full property details for editing (list data is incomplete)
-      console.log('📡 DEBUG: Fetching complete property details from database...');
+      // console.log('📡 DEBUG: Fetching complete property details from database...');
       const token = localStorage.getItem('admin_token');
       if (!token) {
         this.showNotification('Authentication required. Please login again.', 'error');
@@ -1650,64 +1650,64 @@ class ZentroAdminRailway {
 
       const data = await response.json();
       const property = data.property;
-      console.log('📡 DEBUG: Fetched complete property from API:', property);
+      // console.log('📡 DEBUG: Fetched complete property from API:', property);
 
       if (property) {
-        console.log('✅ DEBUG: Complete property data structure:');
-        console.log('   - ID:', property.id);
-        console.log('   - Title:', property.title);
-        console.log('   - Description:', property.description ? 'Present' : 'Missing');
-        console.log('   - Short Description:', property.short_description ? 'Present' : 'Missing');
-        console.log('   - Images:', property.images ? (Array.isArray(property.images) ? `Array(${property.images.length})` : 'Present') : 'Missing');
-        console.log('   - Amenities:', property.amenities ? (Array.isArray(property.amenities) ? `Array(${property.amenities.length})` : 'Present') : 'Missing');
-        console.log('   - Virtual Tour URL:', property.virtual_tour_url ? 'Present' : 'Missing');
-        console.log('   - Year Built:', property.year_built ? property.year_built : 'Missing');
-        console.log('   - Furnished:', property.furnished);
-        console.log('   - Full property object:', property);
+        // console.log('✅ DEBUG: Complete property data structure:');
+        // console.log('   - ID:', property.id);
+        // console.log('   - Title:', property.title);
+        // console.log('   - Description:', property.description ? 'Present' : 'Missing');
+        // console.log('   - Short Description:', property.short_description ? 'Present' : 'Missing');
+        // console.log('   - Images:', property.images ? (Array.isArray(property.images) ? `Array(${property.images.length})` : 'Present') : 'Missing');
+        // console.log('   - Amenities:', property.amenities ? (Array.isArray(property.amenities) ? `Array(${property.amenities.length})` : 'Present') : 'Missing');
+        // console.log('   - Virtual Tour URL:', property.virtual_tour_url ? 'Present' : 'Missing');
+        // console.log('   - Year Built:', property.year_built ? property.year_built : 'Missing');
+        // console.log('   - Furnished:', property.furnished);
+        // console.log('   - Full property object:', property);
         
-        console.log('🎬 DEBUG: Opening edit modal with complete property data:', property.title);
+        // console.log('🎬 DEBUG: Opening edit modal with complete property data:', property.title);
         this.openPropertyModal(property);
       } else {
-        console.error('❌ DEBUG: Property not found');
+        // console.error('❌ DEBUG: Property not found');
         this.showNotification('Property not found', 'error');
       }
     } catch (error) {
-      console.error('❌ DEBUG: Error opening edit modal:', error);
+      // console.error('❌ DEBUG: Error opening edit modal:', error);
       this.showNotification('Failed to load property for editing: ' + error.message, 'error');
     }
   }
 
   async deleteProperty(id) {
-    console.log('🗑️ DEBUG: Delete property initiated for ID:', id);
+    // console.log('🗑️ DEBUG: Delete property initiated for ID:', id);
     
     // Show custom danger confirmation
-    console.log('🚨 DEBUG: Showing danger confirmation modal...');
+    // console.log('🚨 DEBUG: Showing danger confirmation modal...');
     const confirmed = await this.showDangerConfirmation(
       'Delete Property?', 
       'This action cannot be undone. The property will be permanently deleted from the database.'
     );
     
-    console.log('🤔 DEBUG: User confirmation result:', confirmed);
+    // console.log('🤔 DEBUG: User confirmation result:', confirmed);
     
     if (!confirmed) {
-      console.log('❌ DEBUG: User cancelled deletion');
+      // console.log('❌ DEBUG: User cancelled deletion');
       return;
     }
 
-    console.log('✅ DEBUG: User confirmed deletion - proceeding...');
+    // console.log('✅ DEBUG: User confirmed deletion - proceeding...');
 
     const token = localStorage.getItem('admin_token');
     if (!token) {
-      console.error('❌ DEBUG: No authentication token found');
+      // console.error('❌ DEBUG: No authentication token found');
       this.showNotification('Authentication required. Please login again.', 'error');
       return;
     }
 
-    console.log('🔑 DEBUG: Authentication token found, making API call...');
+    // console.log('🔑 DEBUG: Authentication token found, making API call...');
 
     try {
       this.setLoading(true);
-      console.log(`🗑️ DEBUG: Sending DELETE request to /api/admin/properties/${id}`);
+      // console.log(`🗑️ DEBUG: Sending DELETE request to /api/admin/properties/${id}`);
       
       const response = await fetch(`/api/admin/properties/${id}`, {
         method: 'DELETE',
@@ -1717,41 +1717,41 @@ class ZentroAdminRailway {
         }
       });
 
-      console.log('📡 DEBUG: API response status:', response.status);
-      console.log('📡 DEBUG: API response ok:', response.ok);
+      // console.log('📡 DEBUG: API response status:', response.status);
+      // console.log('📡 DEBUG: API response ok:', response.ok);
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('❌ DEBUG: API error response:', errorData);
+        // console.error('❌ DEBUG: API error response:', errorData);
         throw new Error(errorData.error || 'Failed to delete property');
       }
 
       const responseData = await response.json();
-      console.log('✅ DEBUG: Delete API success response:', responseData);
+      // console.log('✅ DEBUG: Delete API success response:', responseData);
 
-      console.log('🔄 DEBUG: Reloading properties list...');
+      // console.log('🔄 DEBUG: Reloading properties list...');
       await this.loadPropertiesFromDatabase();
       this.renderProperties();
       this.updateDashboard();
       
       this.showNotification('Property deleted successfully!', 'success');
-      console.log('🎉 DEBUG: Property deletion completed successfully');
+      // console.log('🎉 DEBUG: Property deletion completed successfully');
       
     } catch (error) {
-      console.error('💥 DEBUG: Error during deletion process:', error);
-      console.error('💥 DEBUG: Error stack:', error.stack);
+      // console.error('💥 DEBUG: Error during deletion process:', error);
+      // console.error('💥 DEBUG: Error stack:', error.stack);
       this.showNotification('Error deleting property: ' + error.message, 'error');
     } finally {
       this.setLoading(false);
-      console.log('🔄 DEBUG: Delete operation finished, loading state cleared');
+      // console.log('🔄 DEBUG: Delete operation finished, loading state cleared');
     }
   }
 
   // Custom danger confirmation modal with consistent styling and debugging
   showDangerConfirmation(title, message) {
-    console.log('🚨 DEBUG: Creating danger confirmation modal');
-    console.log('   - Title:', title);
-    console.log('   - Message:', message);
+    // console.log('🚨 DEBUG: Creating danger confirmation modal');
+    // console.log('   - Title:', title);
+    // console.log('   - Message:', message);
     
     return new Promise((resolve) => {
       // Create danger modal with consistent admin styling
@@ -1788,7 +1788,7 @@ class ZentroAdminRailway {
 
       // Add modal to body
       document.body.appendChild(modal);
-      console.log('✅ DEBUG: Modal added to DOM');
+      // console.log('✅ DEBUG: Modal added to DOM');
       
       // Prevent body scroll
       document.body.style.overflow = 'hidden';
@@ -1798,18 +1798,18 @@ class ZentroAdminRailway {
         const cancelBtn = modal.querySelector('#cancel-danger');
         const confirmBtn = modal.querySelector('#confirm-danger');
         
-        console.log('🔍 DEBUG: Button elements found:');
-        console.log('   - Cancel button:', !!cancelBtn);
-        console.log('   - Confirm button:', !!confirmBtn);
+        // console.log('🔍 DEBUG: Button elements found:');
+        // console.log('   - Cancel button:', !!cancelBtn);
+        // console.log('   - Confirm button:', !!confirmBtn);
         
         if (cancelBtn) {
-          console.log('   - Cancel button text:', cancelBtn.textContent.trim());
-          console.log('   - Cancel button visible:', cancelBtn.offsetWidth > 0 && cancelBtn.offsetHeight > 0);
+          // console.log('   - Cancel button text:', cancelBtn.textContent.trim());
+          // console.log('   - Cancel button visible:', cancelBtn.offsetWidth > 0 && cancelBtn.offsetHeight > 0);
           
           cancelBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('❌ DEBUG: Cancel button clicked');
+            // console.log('❌ DEBUG: Cancel button clicked');
             modal.classList.add('animate-fadeOut');
             setTimeout(() => {
               if (modal.parentNode) {
@@ -1820,17 +1820,17 @@ class ZentroAdminRailway {
             resolve(false);
           });
         } else {
-          console.error('❌ CRITICAL: Cancel button not found!');
+          // console.error('❌ CRITICAL: Cancel button not found!');
         }
 
         if (confirmBtn) {
-          console.log('   - Confirm button text:', confirmBtn.textContent.trim());
-          console.log('   - Confirm button visible:', confirmBtn.offsetWidth > 0 && confirmBtn.offsetHeight > 0);
+          // console.log('   - Confirm button text:', confirmBtn.textContent.trim());
+          // console.log('   - Confirm button visible:', confirmBtn.offsetWidth > 0 && confirmBtn.offsetHeight > 0);
           
           confirmBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('✅ DEBUG: Confirm/Delete button clicked - proceeding with deletion');
+            // console.log('✅ DEBUG: Confirm/Delete button clicked - proceeding with deletion');
             modal.classList.add('animate-fadeOut');
             setTimeout(() => {
               if (modal.parentNode) {
@@ -1841,14 +1841,14 @@ class ZentroAdminRailway {
             resolve(true);
           });
         } else {
-          console.error('❌ CRITICAL: Confirm button not found!');
+          // console.error('❌ CRITICAL: Confirm button not found!');
         }
       }, 50);
 
       // Close on background click
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
-          console.log('🖱️ DEBUG: Background clicked - canceling');
+          // console.log('🖱️ DEBUG: Background clicked - canceling');
           modal.classList.add('animate-fadeOut');
           setTimeout(() => {
             if (modal.parentNode) {
@@ -1863,7 +1863,7 @@ class ZentroAdminRailway {
       // Close on Escape key
       const handleEscape = (e) => {
         if (e.key === 'Escape') {
-          console.log('⌨️ DEBUG: Escape key pressed - canceling');
+          // console.log('⌨️ DEBUG: Escape key pressed - canceling');
           modal.classList.add('animate-fadeOut');
           setTimeout(() => {
             if (modal.parentNode) {
@@ -1912,7 +1912,7 @@ class ZentroAdminRailway {
         document.getElementById('avg-price').textContent = this.formatPrice(stats.properties?.average_price || 0, 'KES');
       }
     } catch (error) {
-      console.error('Error updating dashboard:', error);
+      // console.error('Error updating dashboard:', error);
     }
   }
 
@@ -1955,18 +1955,18 @@ class ZentroAdminRailway {
           imageSource = 'parsed_images';
         }
       } catch (e) {
-        console.warn('Failed to parse images JSON for property:', property.id);
+        // console.warn('Failed to parse images JSON for property:', property.id);
       }
     }
     
     const processingTime = performance.now() - startTime;
-    console.log(`⏱️ DEBUG: Image processing for property ${property.id} took ${processingTime.toFixed(2)}ms, source: ${imageSource}, url: ${imageUrl ? imageUrl.substring(0, 50) + '...' : 'none'}`);
+    // console.log(`⏱️ DEBUG: Image processing for property ${property.id} took ${processingTime.toFixed(2)}ms, source: ${imageSource}, url: ${imageUrl ? imageUrl.substring(0, 50) + '...' : 'none'}`);
     
     if (imageUrl) {
       // Check if it's a base64 image (which can be slow)
       const isBase64 = imageUrl.startsWith('data:');
       if (isBase64) {
-        console.warn(`🐌 SLOW: Property ${property.id} using base64 image (${Math.round(imageUrl.length / 1024)}KB)`);
+        // console.warn(`🐌 SLOW: Property ${property.id} using base64 image (${Math.round(imageUrl.length / 1024)}KB)`);
       }
       
       return `
@@ -1974,8 +1974,8 @@ class ZentroAdminRailway {
              alt="${property.title || 'Property'}" 
              class="w-full h-full object-cover transition-opacity duration-200 ${isBase64 ? 'loading-shimmer' : ''}" 
              loading="lazy"
-             onload="this.classList.remove('loading-shimmer'); console.log('✅ Image loaded for property ${property.id}');" 
-             onerror="console.warn('❌ Image failed for property ${property.id}:', this.src); this.parentElement.innerHTML='<svg class=\\'w-8 h-8 text-gray-400\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z\\'></path></svg>'">
+             onload="this.classList.remove('loading-shimmer'); /* console.log('✅ Image loaded for property ${property.id}'); */" 
+             onerror="/* console.warn('❌ Image failed for property ${property.id}:', this.src); */ this.parentElement.innerHTML='<svg class=\\'w-8 h-8 text-gray-400\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z\\'></path></svg>'">
       `;
     } else {
       return `<svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>`;

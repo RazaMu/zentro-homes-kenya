@@ -10,7 +10,7 @@ class SharedDataManager {
     // Load any saved data from localStorage
     this.loadFromStorage();
     
-    console.log('SharedDataManager initialized with', this.apartments.length, 'properties');
+    // console.log('SharedDataManager initialized with', this.apartments.length, 'properties');
   }
   
   // Get all apartments
@@ -112,9 +112,9 @@ class SharedDataManager {
   saveToStorage() {
     try {
       localStorage.setItem('zentro-apartments', JSON.stringify(this.apartments));
-      console.log('Data saved to localStorage');
+      // console.log('Data saved to localStorage');
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
+      // console.error('Error saving to localStorage:', error);
     }
   }
   
@@ -125,10 +125,10 @@ class SharedDataManager {
       
       if (savedData) {
         this.apartments = JSON.parse(savedData);
-        console.log('Data loaded from localStorage');
+        // console.log('Data loaded from localStorage');
       }
     } catch (error) {
-      console.error('Error loading from localStorage:', error);
+      // console.error('Error loading from localStorage:', error);
     }
   }
   
@@ -136,7 +136,7 @@ class SharedDataManager {
   resetToDefault() {
     this.apartments = [...apartmentsData.apartments];
     localStorage.removeItem('zentro-apartments');
-    console.log('Data reset to default');
+    // console.log('Data reset to default');
   }
 }
 

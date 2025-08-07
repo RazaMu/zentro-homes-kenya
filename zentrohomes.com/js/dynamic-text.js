@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const wordCount = words.length;
         
         if (!words.length) {
-            console.log('Dynamic text elements not found in section');
+            // console.log('Dynamic text elements not found in section');
             return;
         }
         
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const wordWrapper = section.querySelector('.word-wrapper');
             
             if (!words.length || !wordWrapper) {
-                console.log('Dynamic text elements not found in section');
+                // console.log('Dynamic text elements not found in section');
                 return;
             }
             

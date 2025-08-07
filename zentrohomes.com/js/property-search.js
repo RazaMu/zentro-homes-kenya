@@ -43,11 +43,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // If key elements don't exist for this context, skip initialization
         if (!searchButton || !gridElement) {
-            console.log(`⚠️ ${context.name} search elements not found, skipping initialization`);
+            // console.log(`⚠️ ${context.name} search elements not found, skipping initialization`);
             return;
         }
 
-        console.log(`🔧 Initializing search for ${context.name}...`);
+        // console.log(`🔧 Initializing search for ${context.name}...`);
 
         // Current filter values for this context
         let currentFilters = {
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Populate dropdowns with data
         function populateDropdowns() {
-            console.log(`🔧 Populating dropdowns for ${context.name}...`);
+            // console.log(`🔧 Populating dropdowns for ${context.name}...`);
             
             // Populate locations dropdown
             const locations = apartmentsData?.filters?.locations || [];
@@ -71,10 +71,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     locationsHtml += `<div class="dropdown-item" data-value="${location}">${location}</div>`;
                 });
                 locationDropdown.innerHTML = locationsHtml;
-                console.log(`✅ ${context.name} location dropdown populated with`, locations.length, 'items');
+                // console.log(`✅ ${context.name} location dropdown populated with`, locations.length, 'items');
                 addDropdownItemEvents(locationDropdown, 'location');
             } else {
-                console.warn(`⚠️ ${context.name} location dropdown not populated - using fallback`);
+                // console.warn(`⚠️ ${context.name} location dropdown not populated - using fallback`);
                 if (locationDropdown) {
                     locationDropdown.innerHTML = `
                         <div class="dropdown-item" data-value="">Any Location</div>
@@ -95,10 +95,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     typesHtml += `<div class="dropdown-item" data-value="${type}">${type}</div>`;
                 });
                 typeDropdown.innerHTML = typesHtml;
-                console.log(`✅ ${context.name} type dropdown populated with`, types.length, 'items');
+                // console.log(`✅ ${context.name} type dropdown populated with`, types.length, 'items');
                 addDropdownItemEvents(typeDropdown, 'type');
             } else {
-                console.warn(`⚠️ ${context.name} type dropdown not populated - using fallback`);
+                // console.warn(`⚠️ ${context.name} type dropdown not populated - using fallback`);
                 if (typeDropdown) {
                     typeDropdown.innerHTML = `
                         <div class="dropdown-item" data-value="">Any Type</div>
@@ -119,10 +119,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     pricesHtml += `<div class="dropdown-item" data-value="${range.min}-${range.max}">${range.label}</div>`;
                 });
                 priceDropdown.innerHTML = pricesHtml;
-                console.log(`✅ ${context.name} price dropdown populated with`, priceRanges.length, 'items');
+                // console.log(`✅ ${context.name} price dropdown populated with`, priceRanges.length, 'items');
                 addDropdownItemEvents(priceDropdown, 'price');
             } else {
-                console.warn(`⚠️ ${context.name} price dropdown not populated - using fallback`);
+                // console.warn(`⚠️ ${context.name} price dropdown not populated - using fallback`);
                 if (priceDropdown) {
                     priceDropdown.innerHTML = `
                         <div class="dropdown-item" data-value="">Any Price</div>
@@ -143,10 +143,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     bedroomsHtml += `<div class="dropdown-item" data-value="${count}">${count}${count === 8 ? '+' : ''} Beds</div>`;
                 });
                 bedroomsDropdown.innerHTML = bedroomsHtml;
-                console.log(`✅ ${context.name} bedrooms dropdown populated with`, bedrooms.length, 'items');
+                // console.log(`✅ ${context.name} bedrooms dropdown populated with`, bedrooms.length, 'items');
                 addDropdownItemEvents(bedroomsDropdown, 'bedrooms');
             } else {
-                console.warn(`⚠️ ${context.name} bedrooms dropdown not populated - using fallback`);
+                // console.warn(`⚠️ ${context.name} bedrooms dropdown not populated - using fallback`);
                 if (bedroomsDropdown) {
                     bedroomsDropdown.innerHTML = `
                         <div class="dropdown-item" data-value="">Any</div>
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Handle search functionality
         function handleSearch() {
-            console.log(`🔍 Performing search for ${context.name}:`, currentFilters);
+            // console.log(`🔍 Performing search for ${context.name}:`, currentFilters);
             
             // Create filters object from current values
             const filters = { ...currentFilters };
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.modernApartmentManager.applyFilters(filters);
                 animateSearchButton();
             } else {
-                console.warn(`modernApartmentManager not found. ${context.name} search functionality may not work properly.`);
+                // console.warn(`modernApartmentManager not found. ${context.name} search functionality may not work properly.`);
             }
         }
 
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Update status filter for this context
             currentFilters.status = e.target.getAttribute('data-status');
-            console.log(`📊 ${context.name} status filter updated:`, currentFilters.status);
+            // console.log(`📊 ${context.name} status filter updated:`, currentFilters.status);
         }
 
         // Handle dropdown item selection
@@ -215,22 +215,22 @@ document.addEventListener('DOMContentLoaded', function () {
             const displayText = e.target.textContent;
             const displayElement = document.getElementById(`${prefix}-${fieldType}-display`);
 
-            console.log(`🎯 ${context.name} dropdown item clicked:`, {
-                fieldType,
-                value,
-                displayText,
-                displayElementId: `${prefix}-${fieldType}-display`,
-                displayElementFound: !!displayElement
-            });
+            // console.log(`🎯 ${context.name} dropdown item clicked:`, {
+                // fieldType,
+                // value,
+                // displayText,
+                // displayElementId: `${prefix}-${fieldType}-display`,
+                // displayElementFound: !!displayElement
+            // });
 
             if (!displayElement) {
-                console.error(`❌ ${context.name} display element not found:`, `${prefix}-${fieldType}-display`);
+                // console.error(`❌ ${context.name} display element not found:`, `${prefix}-${fieldType}-display`);
                 return;
             }
 
             // Update display text
             displayElement.textContent = displayText;
-            console.log(`✅ ${context.name} display text updated:`, displayText);
+            // console.log(`✅ ${context.name} display text updated:`, displayText);
 
             // Update filter values
             switch (fieldType) {
@@ -297,11 +297,11 @@ document.addEventListener('DOMContentLoaded', function () {
         function toggleDropdown(searchField, dropdown) {
             const isCurrentlyOpen = dropdown.classList.contains('show');
             
-            console.log(`🔍 ${context.name} toggle dropdown:`, {
-                dropdown: dropdown.id || 'unknown',
-                isCurrentlyOpen,
-                classList: Array.from(dropdown.classList)
-            });
+            // console.log(`🔍 ${context.name} toggle dropdown:`, {
+                // dropdown: dropdown.id || 'unknown',
+                // isCurrentlyOpen,
+                // classList: Array.from(dropdown.classList)
+            // });
             
             // Close all other dropdowns first
             closeAllDropdowns();
@@ -311,21 +311,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 dropdown.classList.add('show');
                 searchField.classList.add('active');
                 
-                console.log(`✅ ${context.name} dropdown opened:`, {
-                    dropdown: dropdown.id || 'unknown',
-                    hasShowClass: dropdown.classList.contains('show')
-                });
+                // console.log(`✅ ${context.name} dropdown opened:`, {
+                    // dropdown: dropdown.id || 'unknown',
+                    // hasShowClass: dropdown.classList.contains('show')
+                // });
             }
         }
 
         // Helper function to add click events to dropdown items
         function addDropdownItemEvents(dropdown, fieldType) {
             const items = dropdown.querySelectorAll('.dropdown-item');
-            console.log(`🔗 Adding ${items.length} event listeners to ${context.name} ${fieldType} dropdown`);
+            // console.log(`🔗 Adding ${items.length} event listeners to ${context.name} ${fieldType} dropdown`);
             
             items.forEach(item => {
                 item.addEventListener('click', (e) => {
-                    console.log(`🎯 ${context.name} ${fieldType} item clicked:`, e.target.textContent);
+                    // console.log(`🎯 ${context.name} ${fieldType} item clicked:`, e.target.textContent);
                     e.preventDefault();
                     e.stopPropagation();
                     handleDropdownItemClick(e, fieldType, dropdown);
@@ -348,23 +348,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Add click handlers to search fields for dropdown toggle
                 const searchFields = contextContainer.querySelectorAll('.search-field');
-                console.log(`🔍 Found ${searchFields.length} search fields for ${context.name}`);
+                // console.log(`🔍 Found ${searchFields.length} search fields for ${context.name}`);
                 
                 searchFields.forEach(field => {
                     const dropdown = field.querySelector('.search-dropdown');
-                    console.log(`🔍 ${context.name} search field setup:`, {
-                        field: field.className,
-                        hasDropdown: !!dropdown,
-                        dropdownId: dropdown?.id || 'none'
-                    });
+                    // console.log(`🔍 ${context.name} search field setup:`, {
+                        // field: field.className,
+                        // hasDropdown: !!dropdown,
+                        // dropdownId: dropdown?.id || 'none'
+                    // });
                     
                     field.addEventListener('click', (e) => {
-                        console.log(`🖱️ ${context.name} search field clicked:`, field.className);
+                        // console.log(`🖱️ ${context.name} search field clicked:`, field.className);
                         e.stopPropagation();
                         if (dropdown) {
                             toggleDropdown(field, dropdown);
                         } else {
-                            console.warn(`⚠️ No dropdown found for ${context.name} field:`, field.className);
+                            // console.warn(`⚠️ No dropdown found for ${context.name} field:`, field.className);
                         }
                     });
                 });
@@ -383,6 +383,6 @@ document.addEventListener('DOMContentLoaded', function () {
         populateDropdowns();
         bindEvents();
         
-        console.log(`✅ ${context.name} search initialized successfully`);
+        // console.log(`✅ ${context.name} search initialized successfully`);
     }
 });

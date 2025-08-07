@@ -18,7 +18,7 @@ const uploadPath = process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname,
 // Ensure upload directory exists
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
-  console.log(`📁 Created upload directory: ${uploadPath}`);
+  // console.log(`📁 Created upload directory: ${uploadPath}`);
 }
 
 // Multer configuration for Railway volume storage
@@ -86,16 +86,16 @@ router.post('/login', async (req, res) => {
     }
 
     // Debug logging
-    console.log('Login attempt:', { 
-      received_username: username, 
-      received_password: password,
-      expected_username: ADMIN_CREDENTIALS.username,
-      expected_password: ADMIN_CREDENTIALS.password 
-    });
+    // console.log('Login attempt:', { 
+    //   received_username: username, 
+    //   received_password: password,
+    //   expected_username: ADMIN_CREDENTIALS.username,
+    //   expected_password: ADMIN_CREDENTIALS.password 
+    // });
 
     // Check against hardcoded credentials
     if (username.toLowerCase() !== ADMIN_CREDENTIALS.username.toLowerCase() || password !== ADMIN_CREDENTIALS.password) {
-      console.log('Login failed - credential mismatch');
+      // console.log('Login failed - credential mismatch');
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
@@ -128,7 +128,7 @@ router.post('/login', async (req, res) => {
       
       await pool.query(sessionQuery, [token, ipAddress, userAgent, expiresAt]);
     } catch (sessionError) {
-      console.log('Session storage failed (non-critical):', sessionError.message);
+      // console.log('Session storage failed (non-critical):', sessionError.message);
     }
 
     res.json({
@@ -142,7 +142,7 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error during admin login:', err);
+    // console.error('Error during admin login:', err);
     res.status(500).json({ error: 'Login failed' });
   }
 });
@@ -159,13 +159,13 @@ router.post('/logout', verifyAdminToken, async (req, res) => {
         [token]
       );
     } catch (sessionError) {
-      console.log('Session cleanup failed (non-critical):', sessionError.message);
+      // console.log('Session cleanup failed (non-critical):', sessionError.message);
     }
 
     res.json({ message: 'Logout successful' });
 
   } catch (err) {
-    console.error('Error during admin logout:', err);
+    // console.error('Error during admin logout:', err);
     res.status(500).json({ error: 'Logout failed' });
   }
 });
@@ -251,7 +251,7 @@ router.get('/dashboard/stats', verifyAdminToken, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error fetching dashboard stats:', err);
+    // console.error('Error fetching dashboard stats:', err);
     res.status(500).json({ error: 'Failed to fetch dashboard statistics' });
   }
 });
@@ -264,7 +264,7 @@ router.post('/upload', verifyAdminToken, upload.single('file'), async (req, res)
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    console.log(`📸 Uploaded single file to Railway volume: ${req.file.filename}`);
+    // console.log(`📸 Uploaded single file to Railway volume: ${req.file.filename}`);
 
     res.json({
       success: true,
@@ -277,7 +277,7 @@ router.post('/upload', verifyAdminToken, upload.single('file'), async (req, res)
     });
 
   } catch (error) {
-    console.error('Single file upload error:', error);
+    // console.error('Single file upload error:', error);
     res.status(500).json({ 
       error: 'File upload failed',
       message: error.message 
@@ -292,7 +292,7 @@ router.post('/upload/images', verifyAdminToken, upload.array('images', 10), asyn
       return res.status(400).json({ error: 'No files uploaded' });
     }
 
-    console.log(`📸 Uploaded ${req.files.length} images to Railway volume`);
+    // console.log(`📸 Uploaded ${req.files.length} images to Railway volume`);
 
     // Process uploaded files
     const uploadedImages = req.files.map((file, index) => ({
@@ -313,7 +313,7 @@ router.post('/upload/images', verifyAdminToken, upload.array('images', 10), asyn
     });
 
   } catch (error) {
-    console.error('Upload error:', error);
+    // console.error('Upload error:', error);
     res.status(500).json({ 
       error: 'File upload failed',
       message: error.message 
@@ -337,7 +337,7 @@ router.post('/upload-local', verifyAdminToken, (req, res) => {
       // Ensure property directory exists
       if (!fs.existsSync(propertyUploadPath)) {
         fs.mkdirSync(propertyUploadPath, { recursive: true });
-        console.log(`📁 Created property directory: ${propertyUploadPath}`);
+        // console.log(`📁 Created property directory: ${propertyUploadPath}`);
       }
       
       cb(null, propertyUploadPath);
@@ -369,7 +369,7 @@ router.post('/upload-local', verifyAdminToken, (req, res) => {
 
   localUpload(req, res, function (err) {
     if (err) {
-      console.error('Local upload error:', err);
+      // console.error('Local upload error:', err);
       return res.status(400).json({ 
         error: 'File upload failed',
         message: err.message 
@@ -383,7 +383,7 @@ router.post('/upload-local', verifyAdminToken, (req, res) => {
     const propertyId = req.body.propertyId;
     const relativePath = `/uploads/${propertyId}/${req.file.filename}`;
     
-    console.log(`📸 Uploaded file locally: ${req.file.filename} for property ${propertyId}`);
+    // console.log(`📸 Uploaded file locally: ${req.file.filename} for property ${propertyId}`);
 
     res.json({
       success: true,
@@ -415,13 +415,13 @@ router.delete('/properties/:id/images', verifyAdminToken, async (req, res) => {
         const filePath = path.join(propertyUploadPath, file);
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
-          console.log(`🗑️ Deleted image file: ${filePath}`);
+          // console.log(`🗑️ Deleted image file: ${filePath}`);
         }
       });
       
       // Remove the empty directory
       fs.rmdirSync(propertyUploadPath);
-      console.log(`🗑️ Deleted property directory: ${propertyUploadPath}`);
+      // console.log(`🗑️ Deleted property directory: ${propertyUploadPath}`);
     }
     
     res.json({
@@ -430,7 +430,7 @@ router.delete('/properties/:id/images', verifyAdminToken, async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error deleting property images:', error);
+    // console.error('Error deleting property images:', error);
     res.status(500).json({ 
       error: 'Failed to delete property images',
       message: error.message 
@@ -540,7 +540,7 @@ router.get('/properties', verifyAdminToken, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error fetching admin properties:', err);
+    // console.error('Error fetching admin properties:', err);
     res.status(500).json({ error: 'Failed to fetch properties' });
   }
 });
@@ -635,7 +635,7 @@ router.post('/properties', verifyAdminToken, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error creating property:', err);
+    // console.error('Error creating property:', err);
     res.status(500).json({ error: 'Failed to create property' });
   }
 });
@@ -671,7 +671,7 @@ router.get('/properties/:id', verifyAdminToken, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error fetching property:', err);
+    // console.error('Error fetching property:', err);
     res.status(500).json({ error: 'Failed to fetch property' });
   }
 });
@@ -738,7 +738,7 @@ router.put('/properties/:id', verifyAdminToken, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error updating property:', err);
+    // console.error('Error updating property:', err);
     res.status(500).json({ error: 'Failed to update property' });
   }
 });
@@ -747,9 +747,9 @@ router.put('/properties/:id', verifyAdminToken, async (req, res) => {
 router.delete('/properties/:id', verifyAdminToken, async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🗑️ BACKEND DEBUG: Delete request received for property ID:', id);
-    console.log('🗑️ BACKEND DEBUG: Request method:', req.method);
-    console.log('🗑️ BACKEND DEBUG: Request URL:', req.url);
+    // console.log('🗑️ BACKEND DEBUG: Delete request received for property ID:', id);
+    // console.log('🗑️ BACKEND DEBUG: Request method:', req.method);
+    // console.log('🗑️ BACKEND DEBUG: Request URL:', req.url);
 
     // Clean up associated images first
     const propertyUploadPath = path.join(uploadPath, id.toString());
@@ -764,16 +764,16 @@ router.delete('/properties/:id', verifyAdminToken, async (req, res) => {
           const filePath = path.join(propertyUploadPath, file);
           if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
-            console.log(`🗑️ Deleted image file: ${filePath}`);
+            // console.log(`🗑️ Deleted image file: ${filePath}`);
           }
         });
         
         // Remove the empty directory
         fs.rmdirSync(propertyUploadPath);
-        console.log(`🗑️ Deleted property directory: ${propertyUploadPath}`);
+        // console.log(`🗑️ Deleted property directory: ${propertyUploadPath}`);
       }
     } catch (imageCleanupError) {
-      console.warn('⚠️ Warning: Failed to clean up images (continuing with property deletion):', imageCleanupError.message);
+      // console.warn('⚠️ Warning: Failed to clean up images (continuing with property deletion):', imageCleanupError.message);
     }
 
     const result = await pool.query(
@@ -781,10 +781,10 @@ router.delete('/properties/:id', verifyAdminToken, async (req, res) => {
       [parseInt(id)]
     );
 
-    console.log('🗑️ BACKEND DEBUG: Database delete result:', result.rows);
+    // console.log('🗑️ BACKEND DEBUG: Database delete result:', result.rows);
 
     if (result.rows.length === 0) {
-      console.log('❌ BACKEND DEBUG: Property not found in database');
+      // console.log('❌ BACKEND DEBUG: Property not found in database');
       return res.status(404).json({ error: 'Property not found' });
     }
 
@@ -793,12 +793,12 @@ router.delete('/properties/:id', verifyAdminToken, async (req, res) => {
       property: result.rows[0]
     };
 
-    console.log('✅ BACKEND DEBUG: Sending success response:', response);
+    // console.log('✅ BACKEND DEBUG: Sending success response:', response);
     res.json(response);
 
   } catch (err) {
-    console.error('💥 BACKEND DEBUG: Error deleting property:', err);
-    console.error('💥 BACKEND DEBUG: Error stack:', err.stack);
+    // console.error('💥 BACKEND DEBUG: Error deleting property:', err);
+    // console.error('💥 BACKEND DEBUG: Error stack:', err.stack);
     res.status(500).json({ error: 'Failed to delete property' });
   }
 });
@@ -819,7 +819,7 @@ router.get('/sessions', verifyAdminToken, async (req, res) => {
     res.json(result.rows);
 
   } catch (err) {
-    console.error('Error fetching admin sessions:', err);
+    // console.error('Error fetching admin sessions:', err);
     res.status(500).json({ error: 'Failed to fetch sessions' });
   }
 });
@@ -834,7 +834,7 @@ router.get('/contacts', verifyAdminToken, async (req, res) => {
       message: 'Contact inquiries endpoint - to be implemented'
     });
   } catch (err) {
-    console.error('Error fetching contact inquiries:', err);
+    // console.error('Error fetching contact inquiries:', err);
     res.status(500).json({ error: 'Failed to fetch contact inquiries' });
   }
 });

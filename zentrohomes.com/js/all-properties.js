@@ -29,14 +29,14 @@ class AllPropertiesManager {
         return new Promise((resolve) => {
             // Check if already ready
             if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
-                console.log('✅ All Properties: Railway data manager already ready');
+                // console.log('✅ All Properties: Railway data manager already ready');
                 resolve(true);
                 return;
             }
 
             // Listen for ready event (no timeout, wait for actual completion)
             const handleReady = (event) => {
-                console.log('✅ All Properties: Railway data manager ready event received', event.detail);
+                // console.log('✅ All Properties: Railway data manager ready event received', event.detail);
                 window.removeEventListener('railwayDataManagerReady', handleReady);
                 resolve(true);
             };
@@ -46,7 +46,7 @@ class AllPropertiesManager {
             // Also poll every 200ms for faster detection
             const pollInterval = setInterval(() => {
                 if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
-                    console.log('✅ All Properties: Railway data manager ready via polling');
+                    // console.log('✅ All Properties: Railway data manager ready via polling');
                     clearInterval(pollInterval);
                     window.removeEventListener('railwayDataManagerReady', handleReady);
                     resolve(true);
@@ -62,7 +62,7 @@ class AllPropertiesManager {
 
     async loadApartments() {
         try {
-            console.log('🕐 All Properties: Starting to load apartments...');
+            // console.log('🕐 All Properties: Starting to load apartments...');
             
             // Always wait for Railway data manager to be ready (no timeout)
             await this.waitForRailwayDataReady();
@@ -72,7 +72,7 @@ class AllPropertiesManager {
             
             // If no apartments loaded from Railway, use fallback data as last resort
             if (!this.apartments || this.apartments.length === 0) {
-                console.log('⚠️ No apartments from Railway, using fallback data');
+                // console.log('⚠️ No apartments from Railway, using fallback data');
                 this.apartments = this.createFallbackData();
             }
             
@@ -83,9 +83,9 @@ class AllPropertiesManager {
             // Apply initial filter (For Sale by default)
             this.applyFilters();
             
-            console.log(`📦 All Properties: ${this.apartments.length} apartments ready for display`);
+            // console.log(`📦 All Properties: ${this.apartments.length} apartments ready for display`);
         } catch (error) {
-            console.error('❌ Error loading apartments:', error);
+            // console.error('❌ Error loading apartments:', error);
             // Fallback to static data
             this.apartments = [...apartmentsData.apartments];
             this.filteredApartments = [...this.apartments];
@@ -95,8 +95,8 @@ class AllPropertiesManager {
             // Apply initial filter (For Sale by default)
             this.applyFilters();
             
-            console.log('⚠️ All Properties: Using fallback static data due to error');
-            console.log(`📊 Fallback Property statuses:`, this.apartments.map(apt => `${apt.title}: ${apt.status}`));
+            // console.log('⚠️ All Properties: Using fallback static data due to error');
+            // console.log(`📊 Fallback Property statuses:`, this.apartments.map(apt => `${apt.title}: ${apt.status}`));
         }
     }
 
@@ -175,7 +175,7 @@ class AllPropertiesManager {
         
         // Priority 1: Use local storage thumbnail path (Img_1.jpg in property folder)
         let imageUrl = this.getImageUrl(null, apartment.id);
-        console.log(`🖼️ All Properties Property ${apartment.id} (${apartment.title}) - Using local thumbnail: ${imageUrl}`);
+        // console.log(`🖼️ All Properties Property ${apartment.id} (${apartment.title}) - Using local thumbnail: ${imageUrl}`);
         
         // Priority 2: If local thumbnail fails, try different image property structures from Railway API
         if (!imageUrl) {
@@ -194,11 +194,11 @@ class AllPropertiesManager {
                 imageUrl = 'wp-content/uploads/2025/02/unsplash.jpg';
             }
             
-            console.log(`🔄 All Properties Property ${apartment.id} - Fallback image URL: ${imageUrl}`);
+            // console.log(`🔄 All Properties Property ${apartment.id} - Fallback image URL: ${imageUrl}`);
         }
         
         // Debug: Log final image URL for verification
-        console.log(`✅ All Properties Property ${apartment.id} - Final thumbnail URL: ${imageUrl}`);
+        // console.log(`✅ All Properties Property ${apartment.id} - Final thumbnail URL: ${imageUrl}`);
         
         const finalImageUrl = imageUrl || 'wp-content/uploads/2025/02/unsplash.jpg';
         
@@ -283,7 +283,7 @@ class AllPropertiesManager {
         const tabs = document.querySelectorAll('.property-search-tab');
         tabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
-                console.log('🔄 Tab clicked:', e.target.dataset.status);
+                // console.log('🔄 Tab clicked:', e.target.dataset.status);
                 
                 // Remove active class from all tabs
                 tabs.forEach(t => t.classList.remove('active'));
@@ -293,7 +293,7 @@ class AllPropertiesManager {
                 // Update filter
                 const status = e.target.dataset.status;
                 this.currentFilters.status = status;
-                console.log('📝 Updated filters:', this.currentFilters);
+                // console.log('📝 Updated filters:', this.currentFilters);
                 this.applyFilters();
             });
         });
@@ -443,7 +443,7 @@ class AllPropertiesManager {
             const propertyCard = event.target.closest('.property-card[data-navigate-to="apartment-details"]');
             if (propertyCard) {
                 const apartmentId = propertyCard.getAttribute('data-id');
-                console.log('🔗 All Properties: Navigating to apartment details with ID:', apartmentId);
+                // console.log('🔗 All Properties: Navigating to apartment details with ID:', apartmentId);
                 window.location.href = `apartment-details.html?id=${apartmentId}`;
             }
         };
@@ -452,12 +452,12 @@ class AllPropertiesManager {
     }
 
     applyFilters() {
-        console.log('🔍 Applying filters:', this.currentFilters);
+        // console.log('🔍 Applying filters:', this.currentFilters);
         
         this.filteredApartments = this.apartments.filter(apartment => {
             // Status filter (For Sale/For Rent)
             if (this.currentFilters.status && apartment.status !== this.currentFilters.status) {
-                console.log(`❌ Status filter: ${apartment.title} is ${apartment.status}, looking for ${this.currentFilters.status}`);
+                // console.log(`❌ Status filter: ${apartment.title} is ${apartment.status}, looking for ${this.currentFilters.status}`);
                 return false;
             }
 
@@ -470,7 +470,7 @@ class AllPropertiesManager {
                     apartment.location.country.toLowerCase().includes(searchTerm);
                 
                 if (!locationMatch) {
-                    console.log(`❌ Location filter: ${apartment.title} location doesn't match ${searchTerm}`);
+                    // console.log(`❌ Location filter: ${apartment.title} location doesn't match ${searchTerm}`);
                     return false;
                 }
             }
@@ -481,7 +481,7 @@ class AllPropertiesManager {
                 if (range.includes('-')) {
                     const [min, max] = range.split('-').map(x => parseInt(x));
                     if (apartment.price < min || apartment.price > max) {
-                        console.log(`❌ Price filter: ${apartment.title} price ${apartment.price} not in range ${min}-${max}`);
+                        // console.log(`❌ Price filter: ${apartment.title} price ${apartment.price} not in range ${min}-${max}`);
                         return false;
                     }
                 }
@@ -489,7 +489,7 @@ class AllPropertiesManager {
 
             // Property type filter
             if (this.currentFilters.type && this.currentFilters.type !== '' && apartment.type !== this.currentFilters.type) {
-                console.log(`❌ Type filter: ${apartment.title} is ${apartment.type}, looking for ${this.currentFilters.type}`);
+                // console.log(`❌ Type filter: ${apartment.title} is ${apartment.type}, looking for ${this.currentFilters.type}`);
                 return false;
             }
 
@@ -497,7 +497,7 @@ class AllPropertiesManager {
             if (this.currentFilters.bedrooms && this.currentFilters.bedrooms !== '') {
                 const minBedrooms = parseInt(this.currentFilters.bedrooms);
                 if (apartment.features.bedrooms < minBedrooms) {
-                    console.log(`❌ Bedrooms filter: ${apartment.title} has ${apartment.features.bedrooms} beds, need ${minBedrooms}+`);
+                    // console.log(`❌ Bedrooms filter: ${apartment.title} has ${apartment.features.bedrooms} beds, need ${minBedrooms}+`);
                     return false;
                 }
             }
@@ -505,7 +505,7 @@ class AllPropertiesManager {
             return true;
         });
 
-        console.log(`✅ Filtered results: ${this.filteredApartments.length} of ${this.apartments.length} apartments`);
+        // console.log(`✅ Filtered results: ${this.filteredApartments.length} of ${this.apartments.length} apartments`);
 
         // Reset pagination
         this.currentPage = 1;
@@ -524,13 +524,13 @@ class AllPropertiesManager {
         // Priority 1: Use local storage path for thumbnail if propertyId is provided
         if (propertyId) {
             const localImagePath = `/uploads/${propertyId}/Img_1.jpg`;
-            console.log(`🔍 All Properties getImageUrl: Using local storage path for property ${propertyId}: ${localImagePath}`);
+            // console.log(`🔍 All Properties getImageUrl: Using local storage path for property ${propertyId}: ${localImagePath}`);
             return window.location.origin + localImagePath;
         }
         
         // Priority 2: Check if imageData contains local storage paths with Img_X format
         if (imageData && typeof imageData === 'string' && imageData.includes('/uploads/') && imageData.includes('Img_')) {
-            console.log(`🔍 All Properties getImageUrl: Found local Img_X path: ${imageData}`);
+            // console.log(`🔍 All Properties getImageUrl: Found local Img_X path: ${imageData}`);
             if (!imageData.startsWith('http')) {
                 return window.location.origin + imageData;
             }
@@ -539,7 +539,7 @@ class AllPropertiesManager {
         
         // Priority 3: Handle object with url property that contains local Img_X paths
         if (imageData && imageData.url && imageData.url.includes('/uploads/') && imageData.url.includes('Img_')) {
-            console.log(`🔍 All Properties getImageUrl: Found local Img_X URL in object: ${imageData.url}`);
+            // console.log(`🔍 All Properties getImageUrl: Found local Img_X URL in object: ${imageData.url}`);
             if (!imageData.url.startsWith('http')) {
                 return window.location.origin + imageData.url;
             }
@@ -568,7 +568,7 @@ class AllPropertiesManager {
         if (typeof imageData === 'string') {
             // Handle base64 data URLs (admin stored as fallback)
             if (imageData.startsWith('data:image/')) {
-                console.log('🔍 All Properties getImageUrl: Found base64 data URL, using directly');
+                // console.log('🔍 All Properties getImageUrl: Found base64 data URL, using directly');
                 return imageData;
             }
             // Railway Volume Storage URLs - convert to full URL
@@ -585,7 +585,7 @@ class AllPropertiesManager {
             if (typeof url === 'string') {
                 // Handle base64 data URLs (admin stored as fallback)
                 if (url.startsWith('data:image/')) {
-                    console.log('🔍 All Properties getImageUrl: Found base64 data URL in object, using directly');
+                    // console.log('🔍 All Properties getImageUrl: Found base64 data URL in object, using directly');
                     return url;
                 }
                 // Railway Volume Storage URLs
@@ -742,7 +742,7 @@ function toggleFavorite(apartmentId, event) {
     }
 
     // Here you could add logic to save favorites to localStorage or backend
-    console.log(`Toggled favorite for apartment ${apartmentId}`);
+    // console.log(`Toggled favorite for apartment ${apartmentId}`);
 }
 
 // Initialize when DOM is loaded

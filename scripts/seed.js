@@ -143,14 +143,14 @@ const sampleInquiries = [
 
 async function seedDatabase() {
   try {
-    console.log('🌱 Starting database seeding...');
+    // console.log('🌱 Starting database seeding...');
     
     const client = await pool.connect();
-    console.log('🔌 Connected to Railway PostgreSQL database');
+    // console.log('🔌 Connected to Railway PostgreSQL database');
     
     try {
       // Clear existing data (optional - comment out if you want to preserve data)
-      console.log('🧹 Clearing existing data...');
+      // console.log('🧹 Clearing existing data...');
       await client.query('DELETE FROM contact_inquiries');
       await client.query('DELETE FROM properties');
       await client.query('DELETE FROM admin_sessions');
@@ -160,7 +160,7 @@ async function seedDatabase() {
       await client.query('ALTER SEQUENCE contact_inquiries_id_seq RESTART WITH 1');
       
       // Insert sample properties
-      console.log('🏠 Inserting sample properties...');
+      // console.log('🏠 Inserting sample properties...');
       for (const property of sampleProperties) {
         const query = `
           INSERT INTO properties (
@@ -199,11 +199,11 @@ async function seedDatabase() {
         ];
         
         await client.query(query, values);
-        console.log(`  ✅ Added: ${property.title}`);
+        // console.log(`  ✅ Added: ${property.title}`);
       }
       
       // Insert sample contact inquiries
-      console.log('📧 Inserting sample contact inquiries...');
+      // console.log('📧 Inserting sample contact inquiries...');
       for (const inquiry of sampleInquiries) {
         const query = `
           INSERT INTO contact_inquiries (
@@ -223,16 +223,16 @@ async function seedDatabase() {
         ];
         
         await client.query(query, values);
-        console.log(`  ✅ Added inquiry from: ${inquiry.name}`);
+        // console.log(`  ✅ Added inquiry from: ${inquiry.name}`);
       }
       
       // Verify seeded data
       const propertiesCount = await client.query('SELECT COUNT(*) FROM properties');
       const inquiriesCount = await client.query('SELECT COUNT(*) FROM contact_inquiries');
       
-      console.log('\n📊 Seeding summary:');
-      console.log(`  - Properties added: ${propertiesCount.rows[0].count}`);
-      console.log(`  - Inquiries added: ${inquiriesCount.rows[0].count}`);
+      // console.log('\n📊 Seeding summary:');
+      // console.log(`  - Properties added: ${propertiesCount.rows[0].count}`);
+      // console.log(`  - Inquiries added: ${inquiriesCount.rows[0].count}`);
       
       // Show sample data
       const sampleData = await client.query(`
@@ -242,19 +242,19 @@ async function seedDatabase() {
         LIMIT 5
       `);
       
-      console.log('\n🏠 Sample properties:');
+      // console.log('\n🏠 Sample properties:');
       sampleData.rows.forEach(row => {
-        console.log(`  - ${row.title} (${row.type}) - ${row.status} - KES ${row.price.toLocaleString()}`);
+        // console.log(`  - ${row.title} (${row.type}) - ${row.status} - KES ${row.price.toLocaleString()}`);
       });
       
     } finally {
       client.release();
     }
     
-    console.log('\n🎉 Database seeding completed successfully!');
+    // console.log('\n🎉 Database seeding completed successfully!');
     
   } catch (error) {
-    console.error('❌ Seeding failed:', error);
+    // console.error('❌ Seeding failed:', error);
     process.exit(1);
   } finally {
     await pool.end();

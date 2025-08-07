@@ -50,15 +50,15 @@ class RailwayManager {
     try {
       // For now, we'll simulate connection success
       // In production, you'd want to use a proper PostgreSQL client library like 'pg' or similar
-      console.log('🚀 Connecting to Railway PostgreSQL database...');
-      console.log(`🔗 Host: ${this.config.connection.host}:${this.config.connection.port}`);
-      console.log(`📊 Database: ${this.config.connection.database}`);
+      // console.log('🚀 Connecting to Railway PostgreSQL database...');
+      // console.log(`🔗 Host: ${this.config.connection.host}:${this.config.connection.port}`);
+      // console.log(`📊 Database: ${this.config.connection.database}`);
       
       this.isConnected = true;
-      console.log('✅ Railway database connection initialized');
+      // console.log('✅ Railway database connection initialized');
       return { success: true, message: 'Connected to Railway PostgreSQL successfully' };
     } catch (error) {
-      console.error('❌ Railway database connection failed:', error);
+      // console.error('❌ Railway database connection failed:', error);
       this.isConnected = false;
       return { success: false, message: 'Failed to connect to Railway: ' + error.message };
     }
@@ -70,15 +70,15 @@ class RailwayManager {
       throw new Error('Database not connected. Call initialize() first.');
     }
     
-    console.log('🔍 Railway Query:', query);
-    console.log('📋 Parameters:', params);
+    // console.log('🔍 Railway Query:', query);
+    // console.log('📋 Parameters:', params);
     
     // IMPORTANT: Direct database access from browser is not possible for security reasons
     // In production, you would need to create a backend API endpoint that handles these queries
     // For now, we'll simulate the response structure
     
-    console.warn('⚠️ Railway database queries require a backend API endpoint');
-    console.warn('💡 This is a simulation - implement /api/properties endpoint for production');
+    // console.warn('⚠️ Railway database queries require a backend API endpoint');
+    // console.warn('💡 This is a simulation - implement /api/properties endpoint for production');
     
     // Simulate different query responses based on query content
     if (query.includes('information_schema.columns')) {
@@ -126,7 +126,7 @@ class RailwayManager {
       
       return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      // console.error('API request failed:', error);
       throw error;
     }
   }
@@ -157,7 +157,7 @@ class RailwayManager {
       const result = await this.executeQuery(query);
       return result.rows.map(row => this.transformFromDatabase(row));
     } catch (error) {
-      console.error('Error fetching properties:', error);
+      // console.error('Error fetching properties:', error);
       // Fallback to local data if database fails
       return this.getFallbackProperties();
     }
@@ -194,7 +194,7 @@ class RailwayManager {
       
       return this.transformFromDatabase(result.rows[0]);
     } catch (error) {
-      console.error('Error fetching property:', error);
+      // console.error('Error fetching property:', error);
       throw error;
     }
   }
@@ -225,7 +225,7 @@ class RailwayManager {
       
       return await this.getPropertyById(property.id);
     } catch (error) {
-      console.error('Error adding property:', error);
+      // console.error('Error adding property:', error);
       throw error;
     }
   }
@@ -258,7 +258,7 @@ class RailwayManager {
       
       return await this.getPropertyById(id);
     } catch (error) {
-      console.error('Error updating property:', error);
+      // console.error('Error updating property:', error);
       throw error;
     }
   }
@@ -274,7 +274,7 @@ class RailwayManager {
       
       return result.rowCount > 0;
     } catch (error) {
-      console.error('Error deleting property:', error);
+      // console.error('Error deleting property:', error);
       throw error;
     }
   }
@@ -331,7 +331,7 @@ class RailwayManager {
       const result = await this.executeQuery(query, [status]);
       return result.rows.map(row => this.transformFromDatabase(row));
     } catch (error) {
-      console.error('Error fetching properties by status:', error);
+      // console.error('Error fetching properties by status:', error);
       return [];
     }
   }
@@ -349,7 +349,7 @@ class RailwayManager {
       const result = await this.executeQuery(query, [`%${searchTerm}%`]);
       return result.rows.map(row => this.transformFromDatabase(row));
     } catch (error) {
-      console.error('Error searching properties:', error);
+      // console.error('Error searching properties:', error);
       return [];
     }
   }
@@ -373,7 +373,7 @@ class RailwayManager {
         averagePrice: parseFloat(results[3].rows[0].avg_price) || 0
       };
     } catch (error) {
-      console.error('Error fetching statistics:', error);
+      // console.error('Error fetching statistics:', error);
       return { total: 0, forSale: 0, forRent: 0, averagePrice: 0 };
     }
   }
@@ -402,7 +402,7 @@ class RailwayManager {
           images = parsedImages;
         }
       } catch (e) {
-        console.warn('Failed to parse images JSON:', e);
+        // console.warn('Failed to parse images JSON:', e);
       }
     }
 
@@ -518,7 +518,7 @@ class RailwayManager {
 
   // Fallback to local data if database is unavailable
   getFallbackProperties() {
-    console.warn('🔄 Using fallback data - database not available');
+    // console.warn('🔄 Using fallback data - database not available');
     
     // Return empty array for now, or could load from apartments-data.js if needed
     if (typeof window !== 'undefined' && window.apartmentsData) {
@@ -539,27 +539,27 @@ function initializeRailwayManager() {
   // Make it globally available
   window.railwayManager = railwayManager;
   
-  console.log('✅ RailwayManager created and made globally available');
+  // console.log('✅ RailwayManager created and made globally available');
   
   // Initialize connection when DOM is loaded
   document.addEventListener('DOMContentLoaded', function() {
     railwayManager.initialize().then(result => {
       if (result.success) {
-        console.log('✅ Railway database connection successful');
+        // console.log('✅ Railway database connection successful');
         
         // Test if we can fetch properties
         railwayManager.getAllProperties().then(properties => {
-          console.log(`🔍 Database contains ${properties.length} properties`);
+          // console.log(`🔍 Database contains ${properties.length} properties`);
           if (properties.length > 0) {
-            console.log('📋 Sample property from database:', properties[0]);
+            // console.log('📋 Sample property from database:', properties[0]);
           } else {
-            console.log('📭 Database is empty - no properties found');
+            // console.log('📭 Database is empty - no properties found');
           }
         }).catch(error => {
-          console.error('❌ Error fetching properties:', error);
+          // console.error('❌ Error fetching properties:', error);
         });
       } else {
-        console.error('❌ Railway database connection failed:', result.message);
+        // console.error('❌ Railway database connection failed:', result.message);
       }
     });
   });

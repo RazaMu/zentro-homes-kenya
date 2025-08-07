@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('Building Tailwind CSS...');
+// console.log('Building Tailwind CSS...');
 
 try {
   // Ensure output directory exists
@@ -16,8 +16,8 @@ try {
     stdio: 'inherit'
   });
 
-  console.log('✅ Tailwind CSS build completed successfully!');
+  // console.log('✅ Tailwind CSS build completed successfully!');
 } catch (error) {
-  console.error('❌ Tailwind CSS build failed:', error.message);
+  // console.error('❌ Tailwind CSS build failed:', error.message);
   process.exit(1);
 }

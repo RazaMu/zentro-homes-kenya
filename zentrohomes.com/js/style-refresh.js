@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.offsetHeight; // Trigger a reflow
         document.body.style.display = '';
         
-        console.log('Apartment details styling fixed');
+        // console.log('Apartment details styling fixed');
     }, 200);
     
     // Add responsive behavior for mobile navigation
@@ -189,5 +189,5 @@ document.addEventListener('DOMContentLoaded', function () {
     handleResponsiveImages();
     window.addEventListener('resize', handleResponsiveImages);
 
-    console.log('Styles refreshed to ensure consistent appearance');
+    // console.log('Styles refreshed to ensure consistent appearance');
 });

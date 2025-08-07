@@ -26,7 +26,7 @@ class RailwayDataManager {
           return jsonString.split(',').map(item => item.trim()).filter(item => item.length > 0);
         }
         // Log warning only for unexpected JSON parsing failures
-        console.warn('⚠️ JSON Parse Error:', error.message, 'Raw value:', jsonString);
+        // console.warn('⚠️ JSON Parse Error:', error.message, 'Raw value:', jsonString);
       }
       return fallback;
     }
@@ -35,15 +35,15 @@ class RailwayDataManager {
   // Unified image URL processing method for local uploads with property ID folders
   getImageUrl(imageData) {
     if (!imageData) {
-      console.log('🔍 getImageUrl: Input is null/undefined');
+      // console.log('🔍 getImageUrl: Input is null/undefined');
       return null;
     }
     
-    console.log('🔍 getImageUrl: Processing input type=', typeof imageData, 'value=', imageData);
+    // console.log('🔍 getImageUrl: Processing input type=', typeof imageData, 'value=', imageData);
     
     // Debug logging for troubleshooting
     if (Array.isArray(imageData) && imageData.length > 0) {
-      console.log('🔍 getImageUrl: Processing array, first item:', imageData[0]);
+      // console.log('🔍 getImageUrl: Processing array, first item:', imageData[0]);
     }
     
     // Handle array of images - get first image
@@ -56,11 +56,11 @@ class RailwayDataManager {
       // Handle base64 data URLs with performance monitoring
       if (imageData.startsWith('data:image/')) {
         const sizeKB = Math.round(imageData.length / 1024);
-        console.log(`🔍 getImageUrl: Found base64 data URL (${sizeKB}KB), using directly`);
+        // console.log(`🔍 getImageUrl: Found base64 data URL (${sizeKB}KB), using directly`);
         
         // Warn about large base64 images that might impact performance
         if (sizeKB > 500) {
-          console.log('⚠️ Large base64 image detected, consider optimization');
+          // console.log('⚠️ Large base64 image detected, consider optimization');
         }
         
         return imageData;
@@ -88,7 +88,7 @@ class RailwayDataManager {
         // Handle base64 data URLs with performance monitoring
         if (url.startsWith('data:image/')) {
           const sizeKB = Math.round(url.length / 1024);
-          console.log(`🔍 getImageUrl: Found base64 data URL in object (${sizeKB}KB), using directly`);
+          // console.log(`🔍 getImageUrl: Found base64 data URL in object (${sizeKB}KB), using directly`);
           return url;
         }
         // Local uploads with property ID folders
@@ -143,8 +143,8 @@ class RailwayDataManager {
       }
     }
     
-    console.log('⚠️ getImageUrl: Could not process image data:', imageData);
-    console.log('⚠️ getImageUrl: imageData type:', typeof imageData, 'keys:', Object.keys(imageData || {}));
+    // console.log('⚠️ getImageUrl: Could not process image data:', imageData);
+    // console.log('⚠️ getImageUrl: imageData type:', typeof imageData, 'keys:', Object.keys(imageData || {}));
     return null;
   }
 
@@ -158,7 +158,7 @@ class RailwayDataManager {
     
     // For very large base64 images, we could implement compression or lazy loading
     if (sizeKB > 1000) {
-      console.log(`🔧 Optimizing large base64 image (${sizeKB}KB)`);
+      // console.log(`🔧 Optimizing large base64 image (${sizeKB}KB)`);
       // Future enhancement: could add image compression here
     }
     
@@ -177,13 +177,13 @@ class RailwayDataManager {
           if (imageUrl && imageUrl.startsWith('data:image/')) {
             // Log base64 image processing for performance monitoring
             const sizeKB = Math.round(imageUrl.length / 1024);
-            console.log(`🖼️ Processing base64 image ${index + 1}/${imageData.length} (${sizeKB}KB)`);
+            // console.log(`🖼️ Processing base64 image ${index + 1}/${imageData.length} (${sizeKB}KB)`);
           }
           return imageUrl;
         })
         .filter(url => url !== null);
       
-      console.log(`✅ Processed ${processedImages.length} images from array of ${imageData.length}`);
+      // console.log(`✅ Processed ${processedImages.length} images from array of ${imageData.length}`);
       return processedImages;
     }
     
@@ -217,7 +217,7 @@ class RailwayDataManager {
     // Try to load from Railway API
     await this.loadFromAPI();
     
-    console.log('RailwayDataManager initialized with', this.apartments.length, 'properties');
+    // console.log('RailwayDataManager initialized with', this.apartments.length, 'properties');
   }
 
   // Wait for Railway client to be initialized
@@ -225,11 +225,11 @@ class RailwayDataManager {
     let attempts = 0;
     const maxAttempts = 50; // 5 seconds max wait
     
-    console.log('🔍 RailwayDataManager: Waiting for railwayClient...');
+    // console.log('🔍 RailwayDataManager: Waiting for railwayClient...');
     
     while (!window.railwayClient && attempts < maxAttempts) {
       if (attempts % 10 === 0) {
-        console.log(`🔍 Attempt ${attempts}: railwayClient=${!!window.railwayClient}`);
+        // console.log(`🔍 Attempt ${attempts}: railwayClient=${!!window.railwayClient}`);
       }
       await new Promise(resolve => setTimeout(resolve, 100));
       attempts++;
@@ -238,9 +238,9 @@ class RailwayDataManager {
     if (window.railwayClient) {
       this.client = window.railwayClient;
       this.isOnline = true;
-      console.log('✅ RailwayDataManager: Connected to Railway API successfully');
+      // console.log('✅ RailwayDataManager: Connected to Railway API successfully');
     } else {
-      console.warn('⚠️ RailwayDataManager: Running in offline mode - railwayClient not found after', attempts, 'attempts');
+      // console.warn('⚠️ RailwayDataManager: Running in offline mode - railwayClient not found after', attempts, 'attempts');
       this.loadFromStorage(); // Load fallback data
     }
   }
@@ -248,47 +248,47 @@ class RailwayDataManager {
   // Load data from Railway API
   async loadFromAPI() {
     if (!this.isOnline || !this.client) {
-      console.log('📂 RailwayDataManager: Using offline data - isOnline:', this.isOnline, 'client:', !!this.client);
+      // console.log('📂 RailwayDataManager: Using offline data - isOnline:', this.isOnline, 'client:', !!this.client);
       return;
     }
 
     try {
-      console.log('🔄 RailwayDataManager: Loading properties from Railway API...');
+      // console.log('🔄 RailwayDataManager: Loading properties from Railway API...');
       const response = await this.client.getProperties({ published: true, available: true });
       
       if (response.properties) {
         // Debug: Log raw Railway API response structure
         if (response.properties.length > 0) {
-          console.log('🔍 Raw Railway API property structure:', response.properties[0]);
-          console.log('🔍 Raw image fields:', {
-            main_image: response.properties[0].main_image,
-            gallery_images: response.properties[0].gallery_images,
-            images: response.properties[0].images
-          });
+          // console.log('🔍 Raw Railway API property structure:', response.properties[0]);
+          // console.log('🔍 Raw image fields:', {
+            // main_image: response.properties[0].main_image,
+            // gallery_images: response.properties[0].gallery_images,
+            // images: response.properties[0].images
+          // });
         }
         
         // Additional debugging for image structure
         if (response.properties.length > 0 && response.properties[0].images && response.properties[0].images.length > 0) {
-          console.log('🔍 DETAILED: First 3 image items structure:', response.properties[0].images.slice(0, 3));
-          console.log('🔍 DETAILED: First image object keys:', Object.keys(response.properties[0].images[0] || {}));
-          console.log('🔍 DETAILED: First image .url property:', response.properties[0].images[0]?.url);
-          console.log('🔍 DETAILED: Processing first image with getImageUrl:', this.getImageUrl(response.properties[0].images[0]));
+          // console.log('🔍 DETAILED: First 3 image items structure:', response.properties[0].images.slice(0, 3));
+          // console.log('🔍 DETAILED: First image object keys:', Object.keys(response.properties[0].images[0] || {}));
+          // console.log('🔍 DETAILED: First image .url property:', response.properties[0].images[0]?.url);
+          // console.log('🔍 DETAILED: Processing first image with getImageUrl:', this.getImageUrl(response.properties[0].images[0]));
         }
         
         this.apartments = this.convertToLegacyFormat(response.properties);
         this.lastSync = new Date();
-        console.log(`✅ RailwayDataManager: Synced ${this.apartments.length} properties from Railway API`);
+        // console.log(`✅ RailwayDataManager: Synced ${this.apartments.length} properties from Railway API`);
         
         // Save to storage as backup
         this.saveToStorage();
         
         // Log first property for verification
         if (this.apartments.length > 0) {
-          console.log('📋 First property from Railway API:', this.apartments[0]);
+          // console.log('📋 First property from Railway API:', this.apartments[0]);
         }
       }
     } catch (error) {
-      console.error('❌ RailwayDataManager: Failed to load from Railway API:', error);
+      // console.error('❌ RailwayDataManager: Failed to load from Railway API:', error);
       // Try to load from storage as fallback
       this.loadFromStorage();
     }
@@ -353,9 +353,9 @@ class RailwayDataManager {
       description: property.description,
       main_image: (() => {
         // Try to get main image from Railway API data with better fallback logic
-        console.log('🔍 Converting main_image for property:', property.title);
-        console.log('🔍 property.main_image:', property.main_image);
-        console.log('🔍 property.images:', property.images);
+        // console.log('🔍 Converting main_image for property:', property.title);
+        // console.log('🔍 property.main_image:', property.main_image);
+        // console.log('🔍 property.images:', property.images);
         
         let mainImageUrl = null;
         
@@ -363,7 +363,7 @@ class RailwayDataManager {
         if (property.main_image) {
           mainImageUrl = this.getImageUrl(property.main_image);
           if (mainImageUrl) {
-            console.log('✅ Using main_image field:', mainImageUrl.substring(0, 50) + '...');
+            // console.log('✅ Using main_image field:', mainImageUrl.substring(0, 50) + '...');
             return mainImageUrl;
           }
         }
@@ -375,7 +375,7 @@ class RailwayDataManager {
           if (primaryImage) {
             mainImageUrl = this.getImageUrl(primaryImage);
             if (mainImageUrl) {
-              console.log('✅ Using primary image from array:', mainImageUrl.substring(0, 50) + '...');
+              // console.log('✅ Using primary image from array:', mainImageUrl.substring(0, 50) + '...');
               return mainImageUrl;
             }
           }
@@ -383,7 +383,7 @@ class RailwayDataManager {
           // Fallback to first image in array
           mainImageUrl = this.getImageUrl(property.images[0]);
           if (mainImageUrl) {
-            console.log('✅ Using first image from array:', mainImageUrl.substring(0, 50) + '...');
+            // console.log('✅ Using first image from array:', mainImageUrl.substring(0, 50) + '...');
             return mainImageUrl;
           }
         }
@@ -392,12 +392,12 @@ class RailwayDataManager {
         if (property.gallery_images) {
           mainImageUrl = this.getImageUrl(property.gallery_images);
           if (mainImageUrl) {
-            console.log('✅ Using gallery_images:', mainImageUrl.substring(0, 50) + '...');
+            // console.log('✅ Using gallery_images:', mainImageUrl.substring(0, 50) + '...');
             return mainImageUrl;
           }
         }
         
-        console.log('⚠️ No valid image found, using placeholder');
+        // console.log('⚠️ No valid image found, using placeholder');
         return '/uploads/placeholder.jpg';
       })(),
       images: this.processImageArray(property.images || property.gallery_images).length > 0 ? this.processImageArray(property.images || property.gallery_images) : ['wp-content/uploads/2025/02/placeholder.jpg'],
@@ -416,12 +416,12 @@ class RailwayDataManager {
     }));
     
     // Debug: Log converted apartments to verify main_image is correctly set
-    if (converted.length > 0) {
-      console.log('🔍 FINAL CONVERTED APARTMENTS CHECK:');
-      converted.forEach((apt, index) => {
-        console.log(`   Property ${apt.id} (${apt.title}): main_image = ${apt.main_image?.substring(0, 50)}${apt.main_image?.length > 50 ? '...' : ''}`);
-      });
-    }
+    // if (converted.length > 0) {
+      // console.log('🔍 FINAL CONVERTED APARTMENTS CHECK:');
+      // converted.forEach((apt, index) => {
+        // console.log(`   Property ${apt.id} (${apt.title}): main_image = ${apt.main_image?.substring(0, 50)}${apt.main_image?.length > 50 ? '...' : ''}`);
+      // });
+    // }
     
     return converted;
   }
@@ -517,7 +517,7 @@ class RailwayDataManager {
         
         throw new Error('Invalid response from API');
       } catch (error) {
-        console.error('Failed to add apartment to Railway API:', error);
+        // console.error('Failed to add apartment to Railway API:', error);
         throw error;
       }
     } else {
@@ -560,7 +560,7 @@ class RailwayDataManager {
         
         throw new Error('Invalid response from API');
       } catch (error) {
-        console.error('Failed to update apartment in Railway API:', error);
+        // console.error('Failed to update apartment in Railway API:', error);
         throw error;
       }
     } else {
@@ -587,7 +587,7 @@ class RailwayDataManager {
         
         return true;
       } catch (error) {
-        console.error('Failed to delete apartment from Railway API:', error);
+        // console.error('Failed to delete apartment from Railway API:', error);
         throw error;
       }
     } else {
@@ -615,7 +615,7 @@ class RailwayDataManager {
         const response = await this.client.getProperties(railwayFilters);
         return this.convertToLegacyFormat(response.properties || []);
       } catch (error) {
-        console.error('API filter failed, using local filter:', error);
+        // console.error('API filter failed, using local filter:', error);
       }
     }
     
@@ -670,7 +670,7 @@ class RailwayDataManager {
         const response = await this.client.searchProperties(searchTerm);
         return this.convertToLegacyFormat(response.results || []);
       } catch (error) {
-        console.error('API search failed, using local search:', error);
+        // console.error('API search failed, using local search:', error);
       }
     }
     
@@ -691,7 +691,7 @@ class RailwayDataManager {
         const response = await this.client.getProperties({ status });
         return this.convertToLegacyFormat(response.properties || []);
       } catch (error) {
-        console.error('API query failed, using local filter:', error);
+        // console.error('API query failed, using local filter:', error);
       }
     }
     
@@ -706,7 +706,7 @@ class RailwayDataManager {
         const response = await this.client.getFeaturedProperties(limit);
         return this.convertToLegacyFormat(response || []);
       } catch (error) {
-        console.error('API query failed, using local filter:', error);
+        // console.error('API query failed, using local filter:', error);
       }
     }
     
@@ -723,7 +723,7 @@ class RailwayDataManager {
         const response = await this.client.getPropertiesByType(type, limit);
         return this.convertToLegacyFormat(response.properties || []);
       } catch (error) {
-        console.error('API query failed, using local filter:', error);
+        // console.error('API query failed, using local filter:', error);
       }
     }
     
@@ -770,7 +770,7 @@ class RailwayDataManager {
           totalViews: response.total_views || 0
         };
       } catch (error) {
-        console.error('API stats failed, using local calculation:', error);
+        // console.error('API stats failed, using local calculation:', error);
       }
     }
     
@@ -795,16 +795,16 @@ class RailwayDataManager {
   // Sync with Railway API (force refresh)
   async syncWithAPI() {
     if (!this.isOnline || !this.client) {
-      console.log('Cannot sync - Railway API not available');
+      // console.log('Cannot sync - Railway API not available');
       return false;
     }
     
     try {
       await this.loadFromAPI();
-      console.log('✅ Data synced with Railway API');
+      // console.log('✅ Data synced with Railway API');
       return true;
     } catch (error) {
-      console.error('❌ Sync failed:', error);
+      // console.error('❌ Sync failed:', error);
       return false;
     }
   }
@@ -855,12 +855,12 @@ class RailwayDataManager {
       
       localStorage.setItem('zentro-apartments-railway', JSON.stringify(minimalData));
       localStorage.setItem('zentro-last-update-railway', new Date().toISOString());
-      console.log('💾 Saved minimal property data to localStorage (without large images)');
+      // console.log('💾 Saved minimal property data to localStorage (without large images)');
     } catch (error) {
-      console.warn('Failed to save to localStorage:', error.message);
+      // console.warn('Failed to save to localStorage:', error.message);
       // If still failing, just skip localStorage caching
       localStorage.removeItem('zentro-apartments-railway');
-      console.log('💾 Skipped localStorage due to quota issues');
+      // console.log('💾 Skipped localStorage due to quota issues');
     }
   }
   
@@ -875,11 +875,11 @@ class RailwayDataManager {
         if (storedApartments.length > 0) {
           this.apartments = storedApartments;
           this.lastSync = lastUpdate ? new Date(lastUpdate) : new Date(); // Set lastSync from stored data
-          console.log(`Loaded ${this.apartments.length} properties from localStorage`);
+          // console.log(`Loaded ${this.apartments.length} properties from localStorage`);
           
-          if (lastUpdate) {
-            console.log(`Last updated: ${new Date(lastUpdate).toLocaleString()}`);
-          }
+          // if (lastUpdate) {
+            // console.log(`Last updated: ${new Date(lastUpdate).toLocaleString()}`);
+          // }
         }
       }
       
@@ -887,15 +887,15 @@ class RailwayDataManager {
       if (this.apartments.length === 0 && window.apartmentsData) {
         this.apartments = [...window.apartmentsData.apartments];
         this.lastSync = new Date(); // Set lastSync for fallback data too
-        console.log(`Loaded ${this.apartments.length} properties from fallback data`);
+        // console.log(`Loaded ${this.apartments.length} properties from fallback data`);
       }
     } catch (error) {
-      console.error('Failed to load from localStorage:', error);
+      // console.error('Failed to load from localStorage:', error);
       // Use apartments-data as final fallback
       if (window.apartmentsData) {
         this.apartments = [...window.apartmentsData.apartments];
         this.lastSync = new Date(); // Set lastSync for fallback data too
-        console.log(`Using fallback data: ${this.apartments.length} properties`);
+        // console.log(`Using fallback data: ${this.apartments.length} properties`);
       }
     }
   }
@@ -917,7 +917,7 @@ class RailwayDataManager {
       try {
         return await this.client.submitInquiry(inquiryData);
       } catch (error) {
-        console.error('Failed to submit inquiry via Railway API:', error);
+        // console.error('Failed to submit inquiry via Railway API:', error);
         throw error;
       }
     } else {
@@ -937,7 +937,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   window.railwayDataManager = railwayDataManager;
   
   // Initialize after Railway client is ready
-  console.log('🔄 Starting Railway Data Manager initialization...');
+  // console.log('🔄 Starting Railway Data Manager initialization...');
   await railwayDataManager.init();
   
   // Signal that initialization is complete
@@ -945,7 +945,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   // Log connection status
   const connectionInfo = railwayDataManager.getConnectionInfo();
-  console.log('🚀 Railway Data Manager Status:', connectionInfo);
+  // console.log('🚀 Railway Data Manager Status:', connectionInfo);
   
   // Dispatch custom event to notify other components
   window.dispatchEvent(new CustomEvent('railwayDataManagerReady', { 

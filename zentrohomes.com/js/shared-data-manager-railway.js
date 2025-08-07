@@ -19,7 +19,7 @@ class SharedDataManagerRailway {
     // Try to load from database
     await this.loadFromDatabase();
     
-    console.log('SharedDataManagerRailway initialized with', this.apartments.length, 'properties');
+    // console.log('SharedDataManagerRailway initialized with', this.apartments.length, 'properties');
   }
 
   // Wait for Railway manager to be initialized
@@ -27,11 +27,11 @@ class SharedDataManagerRailway {
     let attempts = 0;
     const maxAttempts = 50; // 5 seconds max wait
     
-    console.log('🔍 SharedDataManager: Waiting for railwayManager...');
+    // console.log('🔍 SharedDataManager: Waiting for railwayManager...');
     
     while (!window.railwayManager && attempts < maxAttempts) {
       if (attempts % 10 === 0) {
-        console.log(`🔍 Attempt ${attempts}: railwayManager=${!!window.railwayManager}`);
+        // console.log(`🔍 Attempt ${attempts}: railwayManager=${!!window.railwayManager}`);
       }
       await new Promise(resolve => setTimeout(resolve, 100));
       attempts++;
@@ -39,31 +39,31 @@ class SharedDataManagerRailway {
     
     if (window.railwayManager) {
       this.isOnline = true;
-      console.log('✅ SharedDataManager: Connected to Railway PostgreSQL successfully');
+      // console.log('✅ SharedDataManager: Connected to Railway PostgreSQL successfully');
     } else {
-      console.warn('⚠️ SharedDataManager: Running in offline mode - railwayManager not found after', attempts, 'attempts');
+      // console.warn('⚠️ SharedDataManager: Running in offline mode - railwayManager not found after', attempts, 'attempts');
     }
   }
 
   // Load data from Railway database
   async loadFromDatabase() {
     if (!this.isOnline || !window.railwayManager) {
-      console.log('📂 SharedDataManager: Using offline data - isOnline:', this.isOnline, 'railwayManager:', !!window.railwayManager);
+      // console.log('📂 SharedDataManager: Using offline data - isOnline:', this.isOnline, 'railwayManager:', !!window.railwayManager);
       return;
     }
 
     try {
-      console.log('🔄 SharedDataManager: Loading properties from Railway database...');
+      // console.log('🔄 SharedDataManager: Loading properties from Railway database...');
       this.apartments = await window.railwayManager.getAllProperties();
       this.lastSync = new Date();
-      console.log(`✅ SharedDataManager: Synced ${this.apartments.length} properties from Railway database`);
+      // console.log(`✅ SharedDataManager: Synced ${this.apartments.length} properties from Railway database`);
       
       // Log first property for verification
       if (this.apartments.length > 0) {
-        console.log('📋 First property from Railway database:', this.apartments[0]);
+        // console.log('📋 First property from Railway database:', this.apartments[0]);
       }
     } catch (error) {
-      console.error('❌ SharedDataManager: Failed to load from Railway database:', error);
+      // console.error('❌ SharedDataManager: Failed to load from Railway database:', error);
       // Keep using fallback data
     }
   }
@@ -89,7 +89,7 @@ class SharedDataManagerRailway {
         
         return newApartment;
       } catch (error) {
-        console.error('Failed to add apartment to Railway database:', error);
+        // console.error('Failed to add apartment to Railway database:', error);
         throw error;
       }
     } else {
@@ -125,7 +125,7 @@ class SharedDataManagerRailway {
         
         return updatedApartment;
       } catch (error) {
-        console.error('Failed to update apartment in Railway database:', error);
+        // console.error('Failed to update apartment in Railway database:', error);
         throw error;
       }
     } else {
@@ -151,7 +151,7 @@ class SharedDataManagerRailway {
         
         return true;
       } catch (error) {
-        console.error('Failed to delete apartment from Railway database:', error);
+        // console.error('Failed to delete apartment from Railway database:', error);
         throw error;
       }
     } else {
@@ -213,7 +213,7 @@ class SharedDataManagerRailway {
       try {
         return await window.railwayManager.searchProperties(searchTerm);
       } catch (error) {
-        console.error('Railway database search failed, using local search:', error);
+        // console.error('Railway database search failed, using local search:', error);
       }
     }
     
@@ -233,7 +233,7 @@ class SharedDataManagerRailway {
       try {
         return await window.railwayManager.getPropertiesByStatus(status);
       } catch (error) {
-        console.error('Railway database query failed, using local filter:', error);
+        // console.error('Railway database query failed, using local filter:', error);
       }
     }
     
@@ -270,7 +270,7 @@ class SharedDataManagerRailway {
       try {
         return await window.railwayManager.getStatistics();
       } catch (error) {
-        console.error('Railway database stats failed, using local calculation:', error);
+        // console.error('Railway database stats failed, using local calculation:', error);
       }
     }
     
@@ -291,16 +291,16 @@ class SharedDataManagerRailway {
   // Sync with Railway database (force refresh)
   async syncWithDatabase() {
     if (!this.isOnline || !window.railwayManager) {
-      console.log('Cannot sync - Railway database not available');
+      // console.log('Cannot sync - Railway database not available');
       return false;
     }
     
     try {
       await this.loadFromDatabase();
-      console.log('✅ Data synced with Railway database');
+      // console.log('✅ Data synced with Railway database');
       return true;
     } catch (error) {
-      console.error('❌ Railway sync failed:', error);
+      // console.error('❌ Railway sync failed:', error);
       return false;
     }
   }
@@ -327,7 +327,7 @@ class SharedDataManagerRailway {
       localStorage.setItem('zentro-apartments-railway', JSON.stringify(this.apartments));
       localStorage.setItem('zentro-last-update-railway', new Date().toISOString());
     } catch (error) {
-      console.error('Failed to save to localStorage:', error);
+      // console.error('Failed to save to localStorage:', error);
     }
   }
   
@@ -341,15 +341,15 @@ class SharedDataManagerRailway {
         const storedApartments = JSON.parse(stored);
         if (storedApartments.length > 0) {
           this.apartments = storedApartments;
-          console.log(`Loaded ${this.apartments.length} properties from localStorage (Railway)`);
+          // console.log(`Loaded ${this.apartments.length} properties from localStorage (Railway)`);
           
           if (lastUpdate) {
-            console.log(`Last updated: ${new Date(lastUpdate).toLocaleString()}`);
+            // console.log(`Last updated: ${new Date(lastUpdate).toLocaleString()}`);
           }
         }
       }
     } catch (error) {
-      console.error('Failed to load from localStorage:', error);
+      // console.error('Failed to load from localStorage:', error);
     }
   }
   
@@ -375,7 +375,7 @@ class SharedDataManagerRailway {
     try {
       return await window.railwayManager.executeQuery(query, params);
     } catch (error) {
-      console.error('Custom query failed:', error);
+      // console.error('Custom query failed:', error);
       throw error;
     }
   }
@@ -448,7 +448,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   // Log connection status
   const connectionInfo = sharedDataManagerRailway.getConnectionInfo();
-  console.log('📊 Railway Data Manager Status:', connectionInfo);
+  // console.log('📊 Railway Data Manager Status:', connectionInfo);
 });
 
 // Export for use in other files

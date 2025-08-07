@@ -20,18 +20,18 @@ class ApartmentDetailsManager {
   async waitForRailwayDataReady() {
     return new Promise((resolve) => {
       if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
-        console.log('✅ Apartment Details: Railway data manager already ready');
+        // console.log('✅ Apartment Details: Railway data manager already ready');
         resolve(true);
         return;
       }
 
       const timeout = setTimeout(() => {
-        console.log('⚠️ Apartment Details: Timeout waiting for Railway data manager');
+        // console.log('⚠️ Apartment Details: Timeout waiting for Railway data manager');
         resolve(false);
       }, 30000); // Increased timeout to 30 seconds
 
       const handleReady = (event) => {
-        console.log('✅ Apartment Details: Railway data manager ready event received', event.detail);
+        // console.log('✅ Apartment Details: Railway data manager ready event received', event.detail);
         clearTimeout(timeout);
         window.removeEventListener('railwayDataManagerReady', handleReady);
         resolve(true);
@@ -41,7 +41,7 @@ class ApartmentDetailsManager {
       
       const pollInterval = setInterval(() => {
         if (window.sharedDataManager && window.sharedDataManager.isInitialized) {
-          console.log('✅ Apartment Details: Railway data manager ready via polling');
+          // console.log('✅ Apartment Details: Railway data manager ready via polling');
           clearTimeout(timeout);
           clearInterval(pollInterval);
           window.removeEventListener('railwayDataManagerReady', handleReady);
@@ -57,31 +57,31 @@ class ApartmentDetailsManager {
 
   async loadApartmentData() {
     try {
-      console.log('🔍 ApartmentDetails: Loading apartment ID:', this.apartmentId);
+      // console.log('🔍 ApartmentDetails: Loading apartment ID:', this.apartmentId);
       
       // Always wait for Railway data manager since it has the actual data
       const dataReady = await this.waitForRailwayDataReady();
       
       if (dataReady && window.sharedDataManager) {
         const allApartments = await window.sharedDataManager.getAllApartments();
-        console.log('🔢 Available apartment IDs from Railway:', allApartments.map(apt => ({ id: apt.id, title: apt.title })));
-        console.log('🎯 Requested apartment ID:', this.apartmentId, typeof this.apartmentId);
+        // console.log('🔢 Available apartment IDs from Railway:', allApartments.map(apt => ({ id: apt.id, title: apt.title })));
+        // console.log('🎯 Requested apartment ID:', this.apartmentId, typeof this.apartmentId);
         
         this.apartment = await window.sharedDataManager.getApartmentById(this.apartmentId);
-        console.log('🏠 Loaded apartment from Railway:', this.apartment);
+        // console.log('🏠 Loaded apartment from Railway:', this.apartment);
       } else {
-        console.error('❌ Railway data manager not ready, cannot load apartment data');
+        // console.error('❌ Railway data manager not ready, cannot load apartment data');
         this.showNotFound();
         return;
       }
 
       if (!this.apartment) {
-        console.error('❌ Apartment not found with ID:', this.apartmentId);
+        // console.error('❌ Apartment not found with ID:', this.apartmentId);
         this.showNotFound();
         return;
       }
 
-      console.log('✅ Apartment loaded successfully:', this.apartment.title);
+      // console.log('✅ Apartment loaded successfully:', this.apartment.title);
       this.renderPropertyHeader();
       this.renderImageGallery();
       this.renderPropertyInfo();
@@ -90,7 +90,7 @@ class ApartmentDetailsManager {
       await this.renderSimilarProperties();
       this.updatePageTitle();
     } catch (error) {
-      console.error('❌ Error loading apartment data:', error);
+      // console.error('❌ Error loading apartment data:', error);
       this.showNotFound();
     }
   }
@@ -148,14 +148,14 @@ class ApartmentDetailsManager {
     
     if (allImages.length === 0) {
       allImages.push('/uploads/placeholder.jpg');
-      console.log(`⚠️ No local images found for property ${apartment.id}, using placeholder`);
+      // console.log(`⚠️ No local images found for property ${apartment.id}, using placeholder`);
     }
     
-    console.log('🖼️ Apartment Details - Local image gallery:', {
-      apartment_id: apartment.id,
-      total_local_images: allImages.length,
-      final_images: allImages
-    });
+    // console.log('🖼️ Apartment Details - Local image gallery:', {
+      // apartment_id: apartment.id,
+      // total_local_images: allImages.length,
+      // final_images: allImages
+    // });
     
     const galleryContainer = document.getElementById('property-gallery');
 
@@ -264,7 +264,7 @@ class ApartmentDetailsManager {
     const localImages = [];
     const maxImages = 20;
     
-    console.log(`🔍 Apartment Details - Discovering local images for property ${propertyId}`);
+    // console.log(`🔍 Apartment Details - Discovering local images for property ${propertyId}`);
     
     for (let i = 1; i <= maxImages; i++) {
       const imageUrl = this.getImageUrl(null, propertyId, i - 1);
@@ -273,7 +273,7 @@ class ApartmentDetailsManager {
         const imageExists = await this.checkImageExists(imageUrl);
         if (imageExists) {
           localImages.push(imageUrl);
-          console.log(`✅ Found local image: Img_${i}.jpg`);
+          // console.log(`✅ Found local image: Img_${i}.jpg`);
         } else {
           if (i === 1) {
             break;
@@ -286,7 +286,7 @@ class ApartmentDetailsManager {
               gapCount++;
             } else {
               localImages.push(nextImageUrl);
-              console.log(`✅ Found local image: Img_${j}.jpg`);
+              // console.log(`✅ Found local image: Img_${j}.jpg`);
               i = j;
               break;
             }
@@ -296,12 +296,12 @@ class ApartmentDetailsManager {
           }
         }
       } catch (error) {
-        console.log(`❌ Error checking image Img_${i}.jpg:`, error);
+        // console.log(`❌ Error checking image Img_${i}.jpg:`, error);
         break;
       }
     }
     
-    console.log(`🎯 Discovered ${localImages.length} local images for property ${propertyId}`);
+    // console.log(`🎯 Discovered ${localImages.length} local images for property ${propertyId}`);
     return localImages;
   }
 
@@ -390,15 +390,15 @@ class ApartmentDetailsManager {
     const videoSection = document.getElementById('property-video-section');
 
     // Check all possible field names for YouTube URLs
-    console.log('🎬 DEBUG: Checking all possible YouTube URL fields for apartment:', apartment.id);
-    console.log('   - apartment.youtubeUrl:', apartment.youtubeUrl);
-    console.log('   - apartment.youtube_url:', apartment.youtube_url);
-    console.log('   - apartment.virtual_tour_url:', apartment.virtual_tour_url);
-    console.log('   - apartment.youtube:', apartment.youtube);
-    console.log('   - apartment.media?.youtubeUrl:', apartment.media?.youtubeUrl);
-    console.log('   - apartment.media?.virtualTour:', apartment.media?.virtualTour);
-    console.log('   - apartment.virtualTour:', apartment.virtualTour);
-    console.log('   - apartment.virtualTourUrl:', apartment.virtualTourUrl);
+    // console.log('🎬 DEBUG: Checking all possible YouTube URL fields for apartment:', apartment.id);
+    // console.log('   - apartment.youtubeUrl:', apartment.youtubeUrl);
+    // console.log('   - apartment.youtube_url:', apartment.youtube_url);
+    // console.log('   - apartment.virtual_tour_url:', apartment.virtual_tour_url);
+    // console.log('   - apartment.youtube:', apartment.youtube);
+    // console.log('   - apartment.media?.youtubeUrl:', apartment.media?.youtubeUrl);
+    // console.log('   - apartment.media?.virtualTour:', apartment.media?.virtualTour);
+    // console.log('   - apartment.virtualTour:', apartment.virtualTour);
+    // console.log('   - apartment.virtualTourUrl:', apartment.virtualTourUrl);
 
     // Try all possible field names for YouTube URLs (including virtual_tour_url which is used by admin)
     const youtubeUrl = apartment.youtubeUrl || 
@@ -410,23 +410,23 @@ class ApartmentDetailsManager {
                       apartment.virtualTour ||
                       apartment.virtualTourUrl;
     
-    console.log('🎬 Final resolved YouTube URL:', youtubeUrl);
+    // console.log('🎬 Final resolved YouTube URL:', youtubeUrl);
     
     if (!youtubeUrl || youtubeUrl.trim() === '') {
-      console.log('🎬 No YouTube URL found for apartment:', apartment.id);
+      // console.log('🎬 No YouTube URL found for apartment:', apartment.id);
       videoSection.classList.add('hidden');
       videoSection.style.display = 'none';
       return;
     }
     
-    console.log('✅ YouTube URL found and will be displayed:', youtubeUrl);
+    // console.log('✅ YouTube URL found and will be displayed:', youtubeUrl);
     videoSection.classList.remove('hidden');
     videoSection.style.display = 'block';
 
     const youtubeId = this.extractYouTubeId(youtubeUrl);
     
     if (!youtubeId) {
-      console.warn('Invalid YouTube URL:', youtubeUrl);
+      // console.warn('Invalid YouTube URL:', youtubeUrl);
       videoSection.classList.add('hidden');
       videoSection.style.display = 'none';
       return;
@@ -580,7 +580,7 @@ class ApartmentDetailsManager {
     try {
       if (window.sharedDataManager) {
         const allApartments = await window.sharedDataManager.getAllApartments();
-        console.log('🔍 Looking for similar properties from database...');
+        // console.log('🔍 Looking for similar properties from database...');
         
         similarProperties = allApartments
           .filter(apt => 
@@ -617,10 +617,10 @@ class ApartmentDetailsManager {
           similarProperties.push(...otherProperties);
         }
 
-        console.log(`✅ Found ${similarProperties.length} similar available properties from database`);
+        // console.log(`✅ Found ${similarProperties.length} similar available properties from database`);
       }
     } catch (error) {
-      console.error('❌ Error fetching similar properties:', error);
+      // console.error('❌ Error fetching similar properties:', error);
     }
 
     const similarContainer = document.getElementById('similar-properties-grid');
@@ -638,7 +638,7 @@ class ApartmentDetailsManager {
     similarContainer.innerHTML = similarProperties.map(similar => {
       const similarImageUrl = this.getImageUrl(null, similar.id, 0) || '/uploads/placeholder.jpg';
       
-      console.log(`🖼️ Similar Property ${similar.id} - Using local thumbnail: ${similarImageUrl}`);
+      // console.log(`🖼️ Similar Property ${similar.id} - Using local thumbnail: ${similarImageUrl}`);
       
       return `
       <div class="similar-property-card" data-property-id="${similar.id}">
@@ -841,12 +841,12 @@ class ApartmentDetailsManager {
   getImageUrl(imageData, propertyId = null, imageIndex = null) {
     if (propertyId && imageIndex !== null) {
       const localImagePath = `/uploads/${propertyId}/Img_${imageIndex + 1}.jpg`;
-      console.log(`🔍 Apartment Details getImageUrl: Using local storage path for property ${propertyId}, image ${imageIndex + 1}: ${localImagePath}`);
+      // console.log(`🔍 Apartment Details getImageUrl: Using local storage path for property ${propertyId}, image ${imageIndex + 1}: ${localImagePath}`);
       return window.location.origin + localImagePath;
     }
     
     if (imageData && typeof imageData === 'string' && imageData.includes('/uploads/') && imageData.includes('Img_')) {
-      console.log(`🔍 Apartment Details getImageUrl: Found local Img_X path: ${imageData}`);
+      // console.log(`🔍 Apartment Details getImageUrl: Found local Img_X path: ${imageData}`);
       if (!imageData.startsWith('http')) {
         return window.location.origin + imageData;
       }
